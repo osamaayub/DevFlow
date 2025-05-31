@@ -1,5 +1,3 @@
-/* eslint-disable react/react-in-jsx-scope */
-
 export default function Home() {
   return (
     <main className="flex flex-col gap-4 row-start-2 items-center mt-6">
