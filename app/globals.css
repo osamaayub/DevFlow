@@ -581,3 +581,10 @@ code {
     @apply bg-background text-foreground;
   }
 }
+/* background */
+.background-image-auth-dark {
+  background-image: url("/images/auth-dark.png");
+}
+.background-image-auth-light {
+  background-image: url("/images/auth-light.png");
+}
