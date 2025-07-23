@@ -17,7 +17,7 @@ export function Navbar() {
           Dev <span className="text-primary-500">Flow</span>
         </p>
       </Link>
-      <p>Search</p>
+       Search bar
       <div className=" flex-between gap-5">
         <Theme />
         <MobileNavigation />
