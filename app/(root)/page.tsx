@@ -1,3 +1,4 @@
+import HomeFilters from "@/components/filters/HomeFilters";
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { Button } from "@/components/ui/button";
 import { Routes } from "@/constants/route";
@@ -20,7 +21,7 @@ const Home = async () => {
      <LocalSearchBar  route="/" imgSrc={'/icons/search.svg'} placeholder="Search Questions..." otherClasses="flex-1 "/>
      </section>
      <section className="mt-11">
-      HomeFilters
+      <HomeFilters/>
      <div className="mt-10 flex w-full flex-col gap-6">
      <p>Question Card 1</p>
       <p>Question Card 2</p>
