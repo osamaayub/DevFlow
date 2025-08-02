@@ -1,11 +1,29 @@
+import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilters from "@/components/filters/HomeFilters";
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { Button } from "@/components/ui/button";
+import { questions } from "@/constants/filter";
 import { Routes } from "@/constants/route";
+
 import Link from "next/link";
 
 
-const Home = async () => {
+interface SearchParams{
+  searchParams:Promise<{[key:string]:string}>
+}
+const Home = async ({searchParams}:SearchParams) => {
+  
+  const {query="",filter=""}=await searchParams;
+    const filteredQuestions = questions.filter((question) => {
+    const matchesQuery = question.title
+      .toLowerCase()
+      .includes(query.toLowerCase());
+    const matchesFilter = filter
+      ? question.tags[0].name.toLowerCase() === filter.toLowerCase()
+      : true;
+    return matchesQuery && matchesFilter;
+  });
+
 
   return (
     <>
@@ -23,10 +41,10 @@ const Home = async () => {
      <section className="mt-11">
       <HomeFilters/>
      <div className="mt-10 flex w-full flex-col gap-6">
-     <p>Question Card 1</p>
-      <p>Question Card 2</p>
-      <p>Question Card 3</p>
-       <p>Question Card 4</p>
+      {filteredQuestions.map((question)=>(
+       <QuestionCard key={question._id} question={question}/>
+      ))}
+
      </div>
      </section>
     </>

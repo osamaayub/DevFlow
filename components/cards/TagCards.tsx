@@ -6,7 +6,7 @@ import { getDevinconClassName } from "@/lib/utils"
 interface Props{
     _id:string,
     name:string,
-    questions:number,
+    questions?:number,
     showCount?:boolean,
     compact?:boolean
 }

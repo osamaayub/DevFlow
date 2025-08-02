@@ -51,7 +51,7 @@ const LocalSearchBar = ({imgSrc,route,placeholder,otherClasses}:Props) => {
         placeholder={placeholder} 
         value={searchQuery}
         onChange={(e)=>{setSearchQuery(e.target.value)}}
-        className="paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none outline-none"/>
+        className="paragraph-regular no-focus placeholder text-dark400_light800 border-none shadow-none outline-none"/>
     </div>
   )
 }

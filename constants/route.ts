@@ -6,5 +6,6 @@ export const Routes = {
   SIGN_UP: "/sign-up",
   PROFILE:(id:string)=>`profile/${id}`,
   TAGS:(id:string)=>`tags/${id}`,
-  Ask_A_Question:"/ask-question"
+  Ask_A_Question:"/ask-question",
+  QUESTION:(id:string)=>`/question/${id}`
 };
