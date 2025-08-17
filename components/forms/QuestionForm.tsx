@@ -14,7 +14,9 @@ import {
 } from "../ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
+import { useRef } from "react";
+import { MDXEditorMethods } from "@mdxeditor/editor";
+import dynamic from "next/dynamic";
 export function QuestionForm() {
   const form = useForm({
     resolver: zodResolver(AskAQuestionSchema),
@@ -24,8 +26,14 @@ export function QuestionForm() {
       tags: [],
     },
   });
+  const editorRef=useRef<MDXEditorMethods>(null);
+ const Editor = dynamic(() => import("@/components/editor").then((mod) => mod.Editor), {
+  ssr: false,
+});
   const handleCreateQuestion = () => {};
+
   return (
+  
     <Form {...form}>
       <form
         className="flex w-full flex-col gap-10"
@@ -64,7 +72,13 @@ export function QuestionForm() {
                 Detailed explanation of your problem?{" "}
                 <span className="text-primary-500">*</span>
               </FormLabel>
-              <FormControl>Editor</FormControl>
+              <FormControl>
+                <Editor 
+                value={field.value}
+                editorRef={editorRef} 
+                fieldChange={field.onChange}
+                />
+              </FormControl>
               <FormDescription className="body-regular text-light-500 mt-2.5">
                 Introduce the problem and expand on what you put in the title.
                 Minimum 20 characters.
