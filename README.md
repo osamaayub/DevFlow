@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevFlow
+
+DevFlow is a modern, community-driven Q&A platform for developers, inspired by Stack Overflow. Built with [Next.js](https://nextjs.org), it enables users to ask and answer programming questions, share knowledge, and collaborate with developers worldwide.
+
+## Features
+
+- 📝 **Ask & Answer Questions:** Post questions, provide detailed answers, and help others.
+- 🔍 **Powerful Search & Filters:** Quickly find questions using full-text search and tag/category filters.
+- 🏷️ **Tagging System:** Organize questions with technology tags (React, JavaScript, etc.).
+- 👤 **Authentication:** Sign up or log in with email, Google, or GitHub.
+- 🌗 **Dark/Light Theme:** Seamless theme switching for comfortable browsing.
+- 📱 **Responsive Design:** Fully optimized for desktop and mobile devices.
+- 🛠️ **Rich Editor:** Markdown/MDX editor for formatting questions and answers.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/osamaayub/DevFlow.git
+   cd DevFlow
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-## Learn More
+3. **Configure environment variables:**
+   - Copy `.env.example` to `.env.local` and fill in your credentials (NextAuth, database, etc.).
 
-To learn more about Next.js, take a look at the following resources:
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Open [http://localhost:3000](http://localhost:3000) in your browser.**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+- `app/` — Next.js app directory (routes, layouts, pages)
+- `components/` — UI components (forms, navigation, cards, etc.)
+- `constants/` — Static data and configuration
+- `context/` — React context providers (e.g., Theme)
+- `lib/` — Utility functions and validation schemas
+- `types/` — TypeScript type definitions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend:** Next.js 15, React 19, Tailwind CSS 4, TypeScript
+- **Auth:** NextAuth.js (Google, GitHub, Email)
+- **Forms:** React Hook Form, Zod
+- **Editor:** MDX Editor
+- **UI:** Shadcn UI, Lucide Icons
+
+## Contributing
+
+Contributions are welcome! Please open issues or submit pull requests for improvements and bug fixes.
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+Made with ❤️

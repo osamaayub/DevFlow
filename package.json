@@ -55,9 +55,8 @@
     "typescript": "^5",
     "typescript-eslint": "^8.33.0"
   },
-  "packageManager": "npm@11.4.0",
-  "overrides": {
-    "react": "$react",
-    "react-dom": "$react-dom"
-  }
+  "main": "index.js",
+  "repository": "git@github.com:osamaayub/DevFlow.git",
+  "author": "osamayub <osama.ayubwebdev@gmail.com>",
+  "license": "MIT"
 }
