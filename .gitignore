@@ -15,6 +15,7 @@
 
 
 /.idea/
+/.vscode./
 # next.js
 /.next/
 /out/
