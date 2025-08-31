@@ -1,4 +1,3 @@
-import { error } from "console";
 import mongoose,{Mongoose} from "mongoose";
 
 
@@ -43,6 +42,3 @@ export const dbConnect=async():Promise<Mongoose>=>{
  return cached.conn;
 }
 
-function err(reason: any): typeof import("mongoose") | PromiseLike<typeof import("mongoose")> {
-    throw new Error("Function not implemented.");
-}
