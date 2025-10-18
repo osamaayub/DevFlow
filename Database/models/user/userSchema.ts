@@ -8,7 +8,9 @@ export interface IUser {
   image: string
   location?: string
   portfolio?: string
-  reputation?: number
+  reputation?: number,
+  password:string,
+  joinedAt:Date,
 }
 
 export const UserSchema = new Schema(
@@ -42,6 +44,15 @@ export const UserSchema = new Schema(
     reputation: {
       type: Number,
       default: 0
+    },
+    password:{
+      type:String,
+      required:true,
+      minLength:4,
+      maxLength:8
+    },
+    joinedAt:{
+      type:Date
     }
   },
   { timestamps: true }
