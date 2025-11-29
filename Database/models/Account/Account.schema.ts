@@ -7,7 +7,7 @@ export interface IAccount{
     name:string;
     password?:string;
     userId:Types.ObjectId,
-    image:string,
+    image?:string,
     provider:string,
     providerAccountId:string
 }
