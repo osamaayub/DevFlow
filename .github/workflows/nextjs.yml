@@ -24,7 +24,7 @@ jobs:
 
       # 3️⃣ Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       # 4️⃣ Lint using ESLint CLI
       - name: Lint
