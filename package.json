@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@eslint/compat": "^1.2.6",
@@ -36,14 +36,13 @@
     "zod": "^3.25.71"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@eslint/js": "^9.28.0",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^8.57.1",
+    "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "eslint-config-prettier": "^10.1.5",
     "eslint-config-standard": "^17.1.0",

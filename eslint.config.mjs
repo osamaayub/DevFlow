@@ -1,25 +1,17 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
 import { globalIgnores } from "eslint/config";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 import importPlugin from "eslint-plugin-import";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-  plugins: {
-    import: importPlugin,
-  },
-});
-
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
   globalIgnores(["components/ui/**"]),
   {
     rules: {
@@ -55,6 +47,9 @@ const eslintConfig = [
       "no-undef": "off",
     },
   },
+  {
+    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+  }
 ];
 
 export default eslintConfig;
