@@ -1,7 +1,6 @@
 // eslint.config.mjs
 import { dirname } from "path"
 import { fileURLToPath } from "url"
-
 import { FlatCompat } from "@eslint/eslintrc"
 import importPlugin from "eslint-plugin-import"
 
@@ -21,7 +20,8 @@ const eslintConfig = [
     ]
   },
 
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // ✅ Wrap configs in an array
+  ...compat.extends(["next/core-web-vitals", "next/typescript"]),
 
   {
     plugins: {
