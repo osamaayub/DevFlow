@@ -7,27 +7,41 @@ on:
     branches: [dev, main]
 
 jobs:
-  install:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1️⃣ Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Node.js (match your local version)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      # 3️⃣ Clear npm cache (optional but avoids corruption)
+      - name: Clear npm cache
+        run: npm cache clean --force
+
+      # 4️⃣ Install dependencies
       - name: Install dependencies
         run: npm install
 
+      # 5️⃣ Lint using ESLint CLI (Next.js 16+ compatible)
       - name: Lint
-        run: npm run lint
+        run: npx eslint .
 
+      # 6️⃣ Run tests (if any)
       - name: Test
         run: npm test --if-present
 
+      # 7️⃣ Build Next.js app
       - name: Build
         run: npm run build
+
+      # 8️⃣ Optional: Export environment variables for future deploys
+      # env:
+      #   NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
