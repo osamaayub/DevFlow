@@ -1,5 +1,7 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import {
   DefaultValues,
   FieldValues,
@@ -7,8 +9,9 @@ import {
   useForm,
   Path,
 } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodType } from "zod";
+
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -18,15 +21,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Routes } from "@/constants/route";
-import Link from "next/link";
+
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   formType: "SIGN_UP" | "SIGN_IN";
   defaultValues: T;
-  onSubmitAction: (data: T) => Promise<{ sucess: boolean }>;
+  onSubmitAction: (data: T) => Promise<{ success: boolean }>;
 }
 
 export function AuthForm<T extends FieldValues>({
@@ -88,7 +90,7 @@ export function AuthForm<T extends FieldValues>({
         </Button>
         {formType === "SIGN_IN" ? (
           <p>
-            Don't have an account?{" "}
+            Don&#39;t have an account?{" "}
             <Link
               href={Routes.SIGN_UP}
               className="paragraph-semibold primary-text-gradient"
