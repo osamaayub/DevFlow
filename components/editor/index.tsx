@@ -7,7 +7,9 @@ import {basicDark}from "cm6-theme-basic-dark";
 import "./dark-editor.css";
 
 // InitializedMDXEditor.tsx
+import { useTheme } from 'next-themes';
 import type { ForwardedRef } from 'react'
+// eslint-disable-next-line import/order
 import {
   headingsPlugin,
   listsPlugin,
@@ -16,7 +18,7 @@ import {
   markdownShortcutPlugin,
   type MDXEditorMethods,
 } from '@mdxeditor/editor'
-import { useTheme } from 'next-themes';
+// eslint-disable-next-line import/order
 import { Separator } from '@radix-ui/react-dropdown-menu';
 
 interface EditorProps{

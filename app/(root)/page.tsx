@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilters from "@/components/filters/HomeFilters";
 import LocalSearchBar from "@/components/search/LocalSearchBar";
@@ -5,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { questions } from "@/constants/filter";
 import { Routes } from "@/constants/route";
 
-import Link from "next/link";
 
 
 interface SearchParams{

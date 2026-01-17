@@ -1,9 +1,11 @@
-import Link from "next/link";
-import { Routes } from "@/constants/route";
-import NavLinks from "./navbar/NavLinks";
-import Image from "next/image";
-import {auth,signOut} from "@/auth";
 import { LogOut } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
+import {auth,signOut} from "@/auth";
+import { Routes } from "@/constants/route";
+
+import NavLinks from "./navbar/NavLinks";
 import { Button } from "../ui/button";
 
 const LeftSidebar = async() => {

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+// eslint-disable-next-line import/order
 import { Inter, Space_Grotesk } from "next/font/google";
+
 import "./globals.css";
-import ThemeProvider from "@/context/Theme";
-import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
+
 import { auth } from "@/auth";
+import { Toaster } from "@/components/ui/sonner";
+import ThemeProvider from "@/context/Theme";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -13,7 +16,6 @@ const SpaceGrosTek = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
-// config based metadata
 export const metadata: Metadata = {
   title: "DevFlow App",
   description:

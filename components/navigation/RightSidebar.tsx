@@ -1,6 +1,8 @@
-import { Routes } from "@/constants/route";
 import Image from "next/image";
 import Link from "next/link";
+
+import { Routes } from "@/constants/route";
+
 import TagCards from "../cards/TagCards";
 
 const hotQuestions = [

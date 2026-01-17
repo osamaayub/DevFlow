@@ -1,8 +1,12 @@
-import { Routes } from "@/constants/route"
-import Link from "next/link"
-import { Badge } from "../ui/badge"
-import { getDevinconClassName } from "@/lib/utils"
 import Image from "next/image"
+import Link from "next/link"
+
+import { Routes } from "@/constants/route"
+import { getDevinconClassName } from "@/lib/utils"
+
+import { Badge } from "../ui/badge"
+
+
 
 interface Props {
   _id: string,
@@ -39,6 +43,7 @@ const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, 
   );
 
   {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     showCount && (
       <p className="small-medium text-dark500_light700">{questions}</p>
     )

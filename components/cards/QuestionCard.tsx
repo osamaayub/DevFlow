@@ -1,10 +1,12 @@
+import Link from "next/link";
+
+import { questions } from "@/constants/filter";
 import { Routes } from "@/constants/route";
 import { getTimeStamp } from "@/lib/utils";
-import Link from "next/link";
+
 import TagCards from "./TagCards";
 import Metric from "../Metric";
 
-import { questions } from "@/constants/filter";
 
 
 interface Props {
@@ -13,8 +15,6 @@ interface Props {
 
 
 const QuestionCard = ({ question: { _id, title, author, answers, tags, views, createdAt } }: Props) => {
-  // @ts-ignore
-  // @ts-ignore
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
       <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
