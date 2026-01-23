@@ -33,7 +33,7 @@ export const dbConnect=async():Promise<Mongoose>=>{
     }).then((res)=>{
        console.log("connected to mongodb");
        return res;
-    }).catch(()=>{
+    }).catch((error:any)=>{
         console.log("error connecting to mongodb",error);
         throw error;
     });
