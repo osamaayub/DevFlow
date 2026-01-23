@@ -5,11 +5,11 @@ import Link from "next/link";
 import {
   DefaultValues,
   FieldValues,
+  Path,
   SubmitHandler,
   useForm,
-  Path,
 } from "react-hook-form";
-import { z, ZodType } from "zod";
+import { ZodSchema, ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,12 +23,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Routes } from "@/constants/route";
 
-
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodType<T>;
+  schema: ZodSchema<any>; 
   formType: "SIGN_UP" | "SIGN_IN";
   defaultValues: T;
-  onSubmitAction: (data: T) => Promise<{ success: boolean }>;
+  onSubmitAction: (data: T) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
 }
 
 export function AuthForm<T extends FieldValues>({
@@ -37,23 +39,36 @@ export function AuthForm<T extends FieldValues>({
   formType,
   onSubmitAction,
 }: AuthFormProps<T>) {
-  // ✅ Select schema based on formType
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<T>({
+    resolver: zodResolver(schema as any),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
-  const handleSubmit: SubmitHandler<T> = async () => {
-    //Authenticate the User here
+  const handleSubmit: SubmitHandler<T> = async (data) => {
+    try {
+      const result = await onSubmitAction(data);
+
+      if (!result.success) {
+        form.setError("root", {
+          type: "server",
+          message: result.error || "Something went wrong",
+        });
+      }
+    } catch (error) {
+      form.setError("root", {
+        type: "server",
+        message: "Unexpected error occurred",
+      });
+    }
   };
+
   const buttonText = formType === "SIGN_IN" ? "SIGN IN" : "SIGN UP";
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className=" space-y-6 mt-10"
+        className="space-y-6 mt-10"
       >
         {Object.keys(defaultValues).map((key) => (
           <FormField
@@ -61,8 +76,8 @@ export function AuthForm<T extends FieldValues>({
             control={form.control}
             name={key as Path<T>}
             render={({ field }) => (
-              <FormItem className=" flex w-full flex-col gap-2.5">
-                <FormLabel className="capitalize  paragraph-medium text-dark400_light700">
+              <FormItem className="flex w-full flex-col gap-2.5">
+                <FormLabel className="capitalize paragraph-medium text-dark400_light700">
                   {field.name}
                 </FormLabel>
                 <FormControl>
@@ -78,7 +93,14 @@ export function AuthForm<T extends FieldValues>({
             )}
           />
         ))}
+        {form.formState.errors.root && (
+          <p className="text-sm text-red-500">
+            {form.formState.errors.root.message}
+          </p>
+        )}
+
         <Button
+          type="submit"
           disabled={form.formState.isSubmitting}
           className="w-full paragraph-medium primary-gradient min-h-12 rounded-2 px-4 py-3 font-inter !text-light-900"
         >
@@ -88,8 +110,9 @@ export function AuthForm<T extends FieldValues>({
               : "Signing Up..."
             : buttonText}
         </Button>
+
         {formType === "SIGN_IN" ? (
-          <p>
+          <p className="text-sm text-center">
             Don&#39;t have an account?{" "}
             <Link
               href={Routes.SIGN_UP}
@@ -99,8 +122,8 @@ export function AuthForm<T extends FieldValues>({
             </Link>
           </p>
         ) : (
-          <p>
-            Already have an account? {"  "}
+          <p className="text-sm text-center">
+            Already have an account?{" "}
             <Link
               href={Routes.SIGN_IN}
               className="paragraph-semibold primary-text-gradient"
