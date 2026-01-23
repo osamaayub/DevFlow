@@ -33,7 +33,7 @@ export function QuestionForm() {
   const Editor = dynamic(() => import("@/components/editor").then((mod) => mod.Editor), {
     ssr: false,
   });
-  const handleCreateQuestion = (data:z.infer<typeof AskQuestionSchema>>) => {
+  const handleCreateQuestion = (data:z.infer<typeof AskQuestionSchema>) => {
 
   };
   const handleTagRemove = (tag: string, field:{value:string[]}) => {
