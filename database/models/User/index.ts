@@ -1,1 +1,2 @@
-export * from "./User"
+export * from "./userModel"
+export * from "./userSchema"
