@@ -4,10 +4,10 @@ export interface IQuestion {
   title: string
   content: string
   tags: Types.ObjectId[]
-  views: Number
-  upvotes: Number
-  downvotes: Number
-  answers: Number
+  views: number
+  upvotes: number
+  downvotes: number
+  answers: number
   author: Types.ObjectId
 }
 
