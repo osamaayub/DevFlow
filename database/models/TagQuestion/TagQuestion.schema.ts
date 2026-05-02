@@ -7,8 +7,8 @@ export interface ITagQuestion {
 }
 
 export const TagQuestionSchema = new Schema({
-    question: { type: Types.ObjectId, ref: "Question", required: true },
-    tagId: { type: Types.ObjectId, ref: "Tag", required: true }
+    question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
+    tagId: { type: Schema.Types.ObjectId, ref: "Tag", required: true }
 }, {
     timestamps: true
 })
