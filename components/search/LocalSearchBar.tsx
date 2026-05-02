@@ -17,33 +17,39 @@ interface Props{
 }
 
 const LocalSearchBar = ({imgSrc,route,placeholder,otherClasses}:Props) => {
-  const SearchParams=useSearchParams();
-  const pathname=usePathname();
-  const query=SearchParams.get("query") ||"";
-  const [searchQuery,setSearchQuery]=useState(query);
-  const router=useRouter();
-  useEffect(()=>{
-    const delayDebounceFn=setTimeout(()=>{
-       if(searchQuery){
-      const newUrl=formUrlQuery({
-        params:SearchParams.toString(),
-        key:"query",
-        value:searchQuery
-      })
-      router.push(newUrl,{scroll:false});
-    }
-    else{
-       if(pathname===route){
-        const newUrl=removeUrlQuery({
-          params:SearchParams.toString(),
-          keysToRemove:["query"],
+  const SearchParams = useSearchParams();
+  const pathname = usePathname();
+  const query = SearchParams.get("query") || "";
+  const [searchQuery, setSearchQuery] = useState(query);
+  const router = useRouter();
+  const paramsString = SearchParams.toString();
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+
+      if (searchQuery) {
+        const newUrl = formUrlQuery({
+          params: paramsString,
+          key: "query",
+          value: searchQuery,
         });
-        router.push(newUrl,{scroll:false});
-       }
-    }
-    return ()=>clearTimeout(delayDebounceFn);
-    },300);
-  },[searchQuery,route,SearchParams,pathname]);
+        if (newUrl !== currentUrl) {
+          router.replace(newUrl, { scroll: false });
+        }
+      } else if (pathname === route) {
+        const newUrl = removeUrlQuery({
+          params: paramsString,
+          keysToRemove: ["query"],
+        });
+        if (newUrl !== currentUrl) {
+          router.replace(newUrl, { scroll: false });
+        }
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, route, paramsString, pathname, router]);
   return (
     <div className={`background-light800_darkgradient flex min-[h-56px] grow items-center gap-4 rounded-[10px] px-4 ${otherClasses}`}>
         <Image src={imgSrc} alt="search icon" width={24} height={24}

@@ -1,6 +1,6 @@
 "use client";
 import {useSearchParams,useRouter} from "next/navigation";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { formUrlQuery, removeUrlQuery } from "@/lib/url";
 import { cn } from "@/lib/utils";
@@ -20,32 +20,36 @@ const filters=[
 ]
 
 const HomeFilters = () => {
- const router=useRouter();
-  const SearchParams=useSearchParams();
-  const filterParams=SearchParams.get("filter");
-  const [active,setActive]=useState(filterParams||"");
+  const router = useRouter();
+  const SearchParams = useSearchParams();
+  const filterParams = SearchParams.get("filter");
+  const [active, setActive] = useState("");
 
+  useEffect(() => {
+    setActive(filterParams || "");
+  }, [filterParams]);
 
-  const handleTypeClick=(filter:string)=>{
-    let newUrl="";
-    // if the filter is active
-    if(filter===active){
-       setActive("");
-             newUrl=removeUrlQuery({
-                  params:SearchParams.toString(),
-                  keysToRemove:["filter"],
-                });
-                    router.push(newUrl,{scroll:false});
-               }
-    else{
-            setActive(filter);
-        newUrl=formUrlQuery({
-              params:SearchParams.toString(),
-              key:"filter",
-              value:filter.toLowerCase()
-            })
-          router.push(newUrl,{scroll:false});
+  const handleTypeClick = (filter: string) => {
+    let newUrl = "";
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
 
+    if (filter === active) {
+      setActive("");
+      newUrl = removeUrlQuery({
+        params: SearchParams.toString(),
+        keysToRemove: ["filter"],
+      });
+    } else {
+      setActive(filter);
+      newUrl = formUrlQuery({
+        params: SearchParams.toString(),
+        key: "filter",
+        value: filter.toLowerCase(),
+      });
+    }
+
+    if (newUrl !== currentUrl) {
+      router.replace(newUrl, { scroll: false });
     }
   }
 
