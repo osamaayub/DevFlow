@@ -14,16 +14,21 @@ const NavLinks = ({ isMobileNav,userId}:{isMobileNav?:boolean,userId?:string}) =
   return (
     <>
       {sidebarLinks.map((item) => {
+        const route =
+          item.route === "/profile"
+            ? userId
+              ? `${item.route}/${userId}`
+              : null
+            : item.route;
+
+        if (!route) return null;
+
         const isActive =
-          (pathname.includes(item.route) && item.route.length > 1) ||
-          pathname === item.route;
-        if (item.route === "/profile") {
-          if (userId) item.route = `${item.route}/${userId}`;
-          else return null;
-        }
+          (pathname.includes(route) && route.length > 1) || pathname === route;
+
         const LinkComponent = (
           <Link
-            href={item.route}
+            href={route}
             key={item.label}
             className={cn(
               isActive
