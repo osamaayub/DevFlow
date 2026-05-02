@@ -1,5 +1,8 @@
- 
- interface Tag{
+declare module "*.css";
+declare module "*.scss";
+declare module "*.sass";
+
+interface Tag{
   _id:string,
   name:string
  }

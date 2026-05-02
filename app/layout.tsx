@@ -4,7 +4,6 @@ import { Inter, Space_Grotesk } from "next/font/google";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-
 import { auth } from "@/auth";
 import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/context/Theme";
@@ -31,9 +30,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning={true}>
- 
       <SessionProvider session={session}>
         <body
           className={`${inter.className} ${SpaceGrosTek.variable} antialiased`}

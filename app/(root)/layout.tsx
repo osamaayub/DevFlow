@@ -5,8 +5,6 @@ import LeftSidebar from "@/components/navigation/LeftSidebar";
 import { Navbar } from "@/components/navigation/navbar/navbar";
 import RightSidebar from "@/components/navigation/RightSidebar";
 
-export const dynamic = "force-dynamic";
-
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main className="background-light850_dark100 relative">
