@@ -10,9 +10,9 @@ export interface IAnswer {
     downvotes: number,
 }
 export const AnswerSchema = new Schema({
-    author: { type: Types.ObjectId, ref: 'User', required: true },
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
-    question: { type: Types.ObjectId, ref: 'Question', required: true },
+    question: { type: Schema.Types.ObjectId, ref: 'Question', required: true },
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
 })
