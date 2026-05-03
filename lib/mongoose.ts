@@ -1,4 +1,5 @@
 import mongoose,{Mongoose} from "mongoose";
+import { MongoClient } from "mongodb";
 
 
 
@@ -16,6 +17,7 @@ interface MongooseCache{
 
 declare global{
     var mongoose:MongooseCache
+    var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 let cached=global.mongoose;
 
@@ -41,4 +43,22 @@ export const dbConnect=async():Promise<Mongoose>=>{
  cached.conn=await cached.promise;
  return cached.conn;
 }
+
+// For NextAuth MongoDBAdapter
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
+
+if (process.env.NODE_ENV === "development") {
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(MONGODB_URI);
+    global._mongoClientPromise = client.connect();
+  }
+  clientPromise = global._mongoClientPromise;
+} else {
+  // In production mode, it's best to not use a global variable.
+  client = new MongoClient(MONGODB_URI);
+  clientPromise = client.connect();
+}
+
+export default clientPromise;
 
