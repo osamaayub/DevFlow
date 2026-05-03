@@ -9,6 +9,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.2",
     "@eslint/compat": "^1.2.6",
     "@hookform/resolvers": "^5.1.1",
     "@mdxeditor/editor": "^3.42.0",

@@ -32,8 +32,7 @@ export const UserSchema = new Schema(
       type: String
     },
     image: {
-      type: String,
-      required: true
+      type: String
     },
     location: {
       type: String
@@ -47,7 +46,6 @@ export const UserSchema = new Schema(
     },
     password:{
       type:String,
-      required:true,
       minLength:4,
       maxLength:8
     },

@@ -1,14 +1,14 @@
-import { Schema,Types } from "mongoose";
+import { Schema, Types } from "mongoose";
 
 
-export interface ITagQuestion{
-    question:Types.ObjectId,
-    tagId:Types.ObjectId
+export interface ITagQuestion {
+    question: Types.ObjectId,
+    tag: Types.ObjectId
 }
 
 export const TagQuestionSchema = new Schema({
-    question:{type:Types.ObjectId,ref:"Question",required:true},
-    tagId:{type:Types.ObjectId,ref:"Tag",required:true}
-},{
-    timestamps:true
+    question: { type: Schema.Types.ObjectId, ref: "Question", required: true },
+    tag: { type: Schema.Types.ObjectId, ref: "Tag", required: true }
+}, {
+    timestamps: true
 })
