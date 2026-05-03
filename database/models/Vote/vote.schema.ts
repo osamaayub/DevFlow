@@ -3,8 +3,7 @@ import {Schema, Types}from "mongoose"
 export interface IVote{
     author:Types.ObjectId,
     id:Types.ObjectId,
-    referenceModel:"Question"|"Answer",
-    voteType:"upvote"|"downvote"
+    voteType:"Question"|"Answer"
 }
 
 export const VoteSchema = new Schema({
@@ -15,17 +14,11 @@ export const VoteSchema = new Schema({
     },
     id: {
         type: Schema.Types.ObjectId,
-        refPath: 'referenceModel',
-        required: true
-    },
-    referenceModel: {
-        type: String,
-        enum: ["Question", "Answer"],
         required: true
     },
     voteType: {
         type: String,
-        enum: ["upvote", "downvote"],
+        enum:["Question","Answer"],
         required: true
-    }
+    },
 }, { timestamps: true });
