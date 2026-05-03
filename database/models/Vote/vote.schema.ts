@@ -2,18 +2,25 @@ import {Schema, Types}from "mongoose"
 
 export interface IVote{
     author:Types.ObjectId,
-    content:string,
+    id:Types.ObjectId,
+    referenceModel:"Question"|"Answer",
     voteType:"upvote"|"downvote"
 }
 
 export const VoteSchema = new Schema({
     author: {
-        type: Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    content: {
+    id: {
+        type: Schema.Types.ObjectId,
+        refPath: 'referenceModel',
+        required: true
+    },
+    referenceModel: {
         type: String,
+        enum: ["Question", "Answer"],
         required: true
     },
     voteType: {
