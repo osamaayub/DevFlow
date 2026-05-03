@@ -1,25 +1,38 @@
+'use client';
 
-'use client'
-
-import { BoldItalicUnderlineToggles, ChangeCodeMirrorLanguage, codeBlockPlugin, codeMirrorPlugin, ConditionalContents, CreateLink, diffSourcePlugin, imagePlugin, InsertCodeBlock, InsertImage, InsertTable, InsertThematicBreak, linkDialogPlugin, linkPlugin, ListsToggle, MDXEditor, tablePlugin, toolbarPlugin, UndoRedo } from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
-import {basicDark}from "cm6-theme-basic-dark";
-import "./dark-editor.css";
-
-// InitializedMDXEditor.tsx
-import { useTheme } from 'next-themes';
-import type { ForwardedRef } from 'react'
-// eslint-disable-next-line import/order
 import {
+  BoldItalicUnderlineToggles,
+  ChangeCodeMirrorLanguage,
+  codeBlockPlugin,
+  codeMirrorPlugin,
+  ConditionalContents,
+  CreateLink,
+  diffSourcePlugin,
   headingsPlugin,
+  imagePlugin,
+  InsertCodeBlock,
+  InsertImage,
+  InsertTable,
+  InsertThematicBreak,
+  linkDialogPlugin,
+  linkPlugin,
   listsPlugin,
-  quotePlugin,
-  thematicBreakPlugin,
+  ListsToggle,
+  MDXEditor,
   markdownShortcutPlugin,
+  quotePlugin,
+  tablePlugin,
+  thematicBreakPlugin,
+  toolbarPlugin,
+  UndoRedo,
   type MDXEditorMethods,
-} from '@mdxeditor/editor'
-// eslint-disable-next-line import/order
-import { Separator } from '@radix-ui/react-dropdown-menu';
+} from "@mdxeditor/editor";
+import "@mdxeditor/editor/style.css";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import { basicDark } from "cm6-theme-basic-dark";
+import { useTheme } from "next-themes";
+import type { ForwardedRef } from "react";
+import "./dark-editor.css";
 
 interface EditorProps{
     value:string,

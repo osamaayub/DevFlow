@@ -1,9 +1,17 @@
 "use client";
 
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MDXEditorMethods } from "@mdxeditor/editor";
+import dynamic from "next/dynamic";
+import { useRef, type KeyboardEvent } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AskQuestionSchema } from "@/lib/validation";
-import React, { KeyboardEvent } from "react"
+
+import TagCards from "../cards/TagCards";
 import {
   Form,
   FormControl,
@@ -13,13 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useRef } from "react";
-import { MDXEditorMethods } from "@mdxeditor/editor";
-import dynamic from "next/dynamic";
-import z from "zod";
-import TagCards from "../cards/TagCards";
 export function QuestionForm() {
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
@@ -33,7 +34,7 @@ export function QuestionForm() {
   const Editor = dynamic(() => import("@/components/editor").then((mod) => mod.Editor), {
     ssr: false,
   });
-  const handleCreateQuestion = (data:z.infer<typeof AskQuestionSchema>) => {
+  const handleCreateQuestion = () => {
 
   };
   const handleTagRemove = (tag: string, field:{value:string[]}) => {

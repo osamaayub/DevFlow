@@ -9,7 +9,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
-import { ZodSchema, ZodType } from "zod";
+import type { ZodSchema } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Routes } from "@/constants/route";
 
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodSchema<any>; 
+  schema: ZodSchema<T>;
   formType: "SIGN_UP" | "SIGN_IN";
   defaultValues: T;
   onSubmitAction: (data: T) => Promise<{
@@ -40,7 +40,7 @@ export function AuthForm<T extends FieldValues>({
   onSubmitAction,
 }: AuthFormProps<T>) {
   const form = useForm<T>({
-    resolver: zodResolver(schema as any),
+    resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
@@ -54,7 +54,7 @@ export function AuthForm<T extends FieldValues>({
           message: result.error || "Something went wrong",
         });
       }
-    } catch (error) {
+    } catch {
       form.setError("root", {
         type: "server",
         message: "Unexpected error occurred",

@@ -12,15 +12,14 @@ const SocialAuthForm = () => {
     "background-dark400_light900 body-medium text-dark200_light900 min-h-12 flex-1 rounded-2 px-4 py-3.5";
 
   const handleSignIn = async (provider: "github" | "google") => {
-    await signIn(provider, {
-      redirectTo: Routes.HOME,
-      // redirect: true,
-    });
-    toast.success("Sign In sucessfully");
     try {
-    } catch (error: any) {
-      console.log(error.message);
-      toast.error("Sign In Failed ,Please Try Again!");
+      await signIn(provider, {
+        callbackUrl: Routes.HOME,
+      });
+      toast.success("Sign in successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Sign in failed. Please try again!");
     }
   };
   return (
