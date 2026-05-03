@@ -1,9 +1,7 @@
-import mongoose,{Mongoose} from "mongoose";
 import { MongoClient } from "mongodb";
+import mongoose, { Mongoose } from "mongoose";
 
-
-
-const MONGODB_URI=process.env.MONGODB_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 
 if(!MONGODB_URI){
@@ -15,14 +13,16 @@ interface MongooseCache{
     promise:Promise<Mongoose>|null;
 }
 
+/* eslint-disable no-var */
 declare global{
     var mongoose:MongooseCache
     var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
-let cached=global.mongoose;
+/* eslint-enable no-var */
+let cached = global.mongoose;
 
-if(!cached){
-cached=global.mongoose={conn:null,promise:null}
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 export const dbConnect=async():Promise<Mongoose>=>{
@@ -32,11 +32,11 @@ export const dbConnect=async():Promise<Mongoose>=>{
  if(!cached.promise){
     cached.promise=mongoose.connect(MONGODB_URI,{
         dbName:'DevFlow'
-    }).then((res)=>{
+    }).then((res) => {
        console.log("connected to mongodb");
        return res;
-    }).catch((error:any)=>{
-        console.log("error connecting to mongodb",error);
+    }).catch((error: unknown) => {
+        console.log("error connecting to mongodb", error);
         throw error;
     });
  }

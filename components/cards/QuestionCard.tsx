@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { questions } from "@/constants/filter";
 import { Routes } from "@/constants/route";
 import { getTimeStamp } from "@/lib/utils";
 
@@ -42,11 +41,11 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, cr
           <Metric imgUrl={"/icons/like.svg"} alt="Like" value={questions[0].upvotes} title="votes"
                   textStyles="small-medium text-dark400_light800" href={""} imgStyles={""} />
 
-          <Metric imgUrl={"/icons/message.svg"} alt="Answers" value={questions[0].answers} title="answers"
+          <Metric imgUrl={"/icons/message.svg"} alt="Answers" value={answers} title="answers"
                   textStyles="small-medium text-dark400_light800" href={""} />
 
 
-          <Metric imgUrl={"/icons/eye.svg"} alt="Views" value={questions[0].views} title="views"
+          <Metric imgUrl={"/icons/eye.svg"} alt="Views" value={views} title="views"
                   textStyles="small-medium text-dark400_light800" href={""} />
         </div>
       </div>

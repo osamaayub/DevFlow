@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+
 import { auth } from "@/auth";
 import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/context/Theme";
