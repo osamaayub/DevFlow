@@ -1,10 +1,20 @@
 import { Schema, Types } from "mongoose";
 
+export enum Type {
+    QUESTION = "question",
+    ANSWER = "answer",
+}
+
+export enum VoteType {
+    UPVOTE = "upvote",
+    DOWNVOTE = "downvote",
+}
+
 export interface IVote {
     author: Types.ObjectId;
     id: Types.ObjectId;
-    type: "Question" | "Answer";
-    value: 1 | -1;
+    type: Type;
+    value: VoteType;
 }
 
 export const VoteSchema = new Schema<IVote>(
@@ -16,17 +26,16 @@ export const VoteSchema = new Schema<IVote>(
         },
         id: {
             type: Schema.Types.ObjectId,
-            refPath: "type",
             required: true,
         },
         type: {
             type: String,
-            enum: ["Question", "Answer"],
+            enum: Object.values(Type),
             required: true,
         },
         value: {
-            type: Number,
-            enum: [1, -1],
+            type: String,
+            enum: Object.values(VoteType),
             required: true,
         },
     },
