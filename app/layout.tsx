@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 // eslint-disable-next-line import/order
 import { Inter, Space_Grotesk } from "next/font/google";
-
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-
 import { auth } from "@/auth";
 import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/context/Theme";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
+
 const SpaceGrosTek = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
+
 export const metadata: Metadata = {
   title: "DevFlow App",
   description:
@@ -31,18 +32,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-
   return (
-    <html lang="en" suppressHydrationWarning={true}>
-      <SessionProvider session={session}>
-        <body
-          className={`${inter.className} ${SpaceGrosTek.variable} antialiased`}
-        >
-          <header>
-
-          <link rel="stylesheet" type='text/css' href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
-
-        </header>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          rel="stylesheet"
+          type="text/css"
+          href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+        />
+      </head>
+      <body className={`${inter.className} ${SpaceGrosTek.variable} antialiased`}>
+        <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -52,10 +52,8 @@ export default async function RootLayout({
             {children}
             <Toaster />
           </ThemeProvider>
-          
-        </body>
-        
-      </SessionProvider>
+        </SessionProvider>
+      </body>
     </html>
   );
 }

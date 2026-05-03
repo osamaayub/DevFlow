@@ -1,11 +1,16 @@
-"use client"
+"use client";
+import dynamic from "next/dynamic";
+import { ThemeProviderProps } from "next-themes";
 
-import {ThemeProviderProps} from "next-themes";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-const ThemeProvider = ({children,...props}:ThemeProviderProps) => {
+const NextThemesProvider = dynamic(
+  () => import("next-themes").then((mod) => mod.ThemeProvider),
+  { ssr: false }
+);
+
+const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => {
   return (
     <NextThemesProvider {...props}>
-    {children}
+      {children}
     </NextThemesProvider>
   );
 };
