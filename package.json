@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
@@ -53,6 +54,7 @@
     "eslint-plugin-promise": "^6.6.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.2.0",
+    "patch-package": "^8.0.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5",
