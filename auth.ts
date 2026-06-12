@@ -20,17 +20,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   callbacks: {
     async signIn({ user }) {
-      await dbConnect();
-      const existingUser = await User.findOne({ email: user.email });
-      if (!existingUser) {
-        await User.create({
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          username: user.email?.split('@')[0], // simple username
-          joinedAt: new Date(),
-        });
+      if (!user.email) {
+        return true;
       }
+
+      try {
+        await dbConnect();
+
+        const existingUser = await User.findOne({ email: user.email });
+
+        if (!existingUser) {
+          const baseUsername = user.email.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "") || "user";
+
+          await User.create({
+            name: user.name || baseUsername,
+            email: user.email,
+            image: user.image || "",
+            username: baseUsername,
+            joinedAt: new Date(),
+          });
+        }
+      } catch (error) {
+        console.error("OAuth user sync failed", error);
+      }
+
       return true;
     },
   },
