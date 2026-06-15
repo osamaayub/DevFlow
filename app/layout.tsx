@@ -41,7 +41,10 @@ export default async function RootLayout({
           href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
         />
       </head>
-      <body className={`${inter.className} ${SpaceGrosTek.variable} antialiased`}>
+      <body
+        className={`${inter.className} ${SpaceGrosTek.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"
