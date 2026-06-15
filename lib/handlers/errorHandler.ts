@@ -1,0 +1,45 @@
+import { NextResponse } from "next/server";
+
+import { RequestError } from "@/lib/http-error";
+
+export type ResponseType = "api" | "server";
+
+const DEFAULT_RESPONSE_TYPE: ResponseType = "server";
+
+export const formatErrorMessage = (error?: Record<string, string[]>): string | undefined => {
+  if (!error) return undefined;
+
+  return Object.entries(error)
+    .map(([field, fieldErrors]) => `${field}: ${fieldErrors.join(", ")}`)
+    .join("; ");
+};
+
+export const HandleError = (
+  error: RequestError | string,
+  responseType: ResponseType = DEFAULT_RESPONSE_TYPE,
+  statusCode?: number,
+  message?: string,
+) => {
+  const requestError =
+    error instanceof RequestError
+      ? error
+      : new RequestError(message || String(error), statusCode ?? 500);
+
+  const finalStatusCode = requestError.statusCode ?? statusCode ?? 500;
+  const finalMessage = requestError.message || message || "Something went wrong";
+  const normalizedError =
+    responseType === "server" ? formatErrorMessage(requestError.error) : requestError.error;
+
+  return NextResponse.json(
+    {
+      statusCode: finalStatusCode,
+      message: finalMessage,
+      ...(normalizedError !== undefined ? { error: normalizedError } : {}),
+    },
+    { status: finalStatusCode },
+  );
+};
+
+export const formatResponse = HandleError;
+
+
