@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import logger from "@/lib/logger";
 import { RequestError } from "@/lib/http-error";
 
 export type ResponseType = "api" | "server";
@@ -42,6 +43,17 @@ export const HandleError = (
   const finalMessage = requestError.message || message || "Something went wrong";
   const normalizedError =
     responseType === "server" ? formatErrorMessage(requestError.error) : requestError.error;
+
+  logger.error(
+    {
+      err: requestError,
+      responseType,
+      statusCode: finalStatusCode,
+      message: finalMessage,
+      error: normalizedError,
+    },
+    "HandleError encountered an error",
+  );
 
   return NextResponse.json(
     {
