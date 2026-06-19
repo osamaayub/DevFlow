@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
 import { Routes } from "@/constants/route";
+import logger from "@/lib/logger";
 
 import { Button } from "../ui/button";
 
@@ -18,7 +19,13 @@ const SocialAuthForm = () => {
       });
       toast.success("Sign in successfully");
     } catch (error) {
-      console.error(error);
+      logger.error(
+        {
+          err: error,
+          provider,
+        },
+        "Social sign-in failed",
+      );
       toast.error("Sign in failed. Please try again!");
     }
   };

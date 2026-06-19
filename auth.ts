@@ -3,6 +3,7 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 
 import { User } from "@/database/models/User";
+import logger from "@/lib/logger";
 import { dbConnect } from "@/lib/mongoose";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -41,7 +42,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
         }
       } catch (error) {
-        console.error("OAuth user sync failed", error);
+        logger.error(
+          {
+            err: error,
+            email: user.email,
+          },
+          "OAuth user sync failed",
+        );
       }
 
       return true;

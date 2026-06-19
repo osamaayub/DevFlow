@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import logger from "@/lib/logger";
 import { Routes } from "@/constants/route";
 
 interface AuthFormProps<T extends FieldValues> {
@@ -54,7 +55,15 @@ export function AuthForm<T extends FieldValues>({
           message: result.error || "Something went wrong",
         });
       }
-    } catch {
+    } catch (error) {
+      logger.error(
+        {
+          err: error,
+          formType,
+        },
+        "Auth form submission failed",
+      );
+
       form.setError("root", {
         type: "server",
         message: "Unexpected error occurred",
