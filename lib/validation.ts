@@ -46,18 +46,19 @@ export const AskQuestionSchema = z.object({
 
 export const UserSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",     }),
+    message: "Name must be at least 2 characters.",
+  }),
   username: z.string().min(2, {
     message: "Username must be at least 2 characters.",
   }),
   email: z.string().email({ message: "please Provide a Valid Email Address" }),
-reputation: z.number().min(0, { message: "Reputation cannot be negative." }),
-bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional(),
-location: z.string().max(100, { message: "Location cannot exceed 100 characters." }).optional(),
-portfolio: z.string().url({ message: "Portfolio must be a valid URL." }).optional(),
-image: z.string().url({ message: "Image must be a valid URL." }),
-joinedAt: z.date(),
-password:z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
+  reputation: z.number().min(0, { message: "Reputation cannot be negative." }),
+  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional(),
+  location: z.string().max(100, { message: "Location cannot exceed 100 characters." }).optional(),
+  portfolio: z.string().url({ message: "Portfolio must be a valid URL." }).optional(),
+  image: z.string().url({ message: "Image must be a valid URL." }),
+  joinedAt: z.date(),
+  password: z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
 
 
 }); 
