@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Non-blocking: the repo currently has pre-existing lint errors.
+      # Remove continue-on-error once they are resolved to enforce lint as a gate.
+      - name: Lint
+        run: yarn lint
+        continue-on-error: true
+
+      - name: Build
+        run: yarn build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          # Build-only placeholder — lib/mongoose.ts throws at import time if MONGODB_URI
+          # is unset. Its unawaited client.connect() never blocks the build. Real values
+          # are injected at runtime via the GitHub Environment secrets.
+          MONGODB_URI: mongodb://localhost:27017/devflow-build
