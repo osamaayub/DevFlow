@@ -57,6 +57,7 @@ export const HandleError = (
 
   return NextResponse.json(
     {
+      success: false,
       statusCode: finalStatusCode,
       message: finalMessage,
       ...(normalizedError !== undefined ? { error: normalizedError } : {}),
