@@ -9,7 +9,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
-import type { ZodSchema } from "zod";
+import type { ZodTypeAny } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,7 @@ import logger from "@/lib/logger";
 import { Routes } from "@/constants/route";
 
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodSchema<T>;
+  schema: ZodTypeAny;
   formType: "SIGN_UP" | "SIGN_IN";
   defaultValues: T;
   onSubmitAction: (data: T) => Promise<{
