@@ -18,7 +18,7 @@ export async function POST(request:NextRequest) {
     await dbConnect();
     const body = await request.json();
     const user = await User.create(body);
-    return NextResponse.json({success:true,data:user,statusCode:201})
+    return NextResponse.json({success:true,data:user,statusCode:201}, {status:201})
   } catch (error: any) {
     return HandleError(error) as unknown as ApiErrorResponse
   }
