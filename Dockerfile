@@ -12,8 +12,9 @@ RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Placeholder only — lib/mongoose.ts requires MONGODB_URI at import time.
-# No DB connection is made during the build; real values are injected at runtime.
+# Build-only placeholder — lib/mongoose.ts throws at import time if MONGODB_URI is unset.
+# It also fires an unawaited client.connect() at import; that promise is never awaited
+# during the build, so it does not block it. Real values are injected at runtime.
 ARG MONGODB_URI=mongodb://localhost:27017/devflow-build
 ENV MONGODB_URI=$MONGODB_URI
 RUN yarn build

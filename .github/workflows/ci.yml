@@ -34,6 +34,7 @@ jobs:
         run: yarn build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
-          # Placeholder only — lib/mongoose.ts requires MONGODB_URI at import time.
-          # No DB connection is made during the build; real values are injected at runtime.
+          # Build-only placeholder — lib/mongoose.ts throws at import time if MONGODB_URI
+          # is unset. Its unawaited client.connect() never blocks the build. Real values
+          # are injected at runtime via the GitHub Environment secrets.
           MONGODB_URI: mongodb://localhost:27017/devflow-build
