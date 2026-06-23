@@ -8,8 +8,28 @@ const SignUp = () => {
     <AuthForm
       schema={SignUpSchema}
       formType="SIGN_UP"
-      defaultValues={{ username: "", email: "", password: "" }}
-      onSubmitAction={(data) => Promise.resolve({ success: true, data })}
+      defaultValues={{ name: "", username: "", email: "", password: "" }}
+      onSubmitAction={async (data) => {
+        try {
+          const res = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            return {
+              success: false,
+              error: body?.error || body?.message || "Failed to create user",
+            };
+          }
+
+          return { success: true };
+        } catch (error) {
+          return { success: false, error: "Network error while creating user" };
+        }
+      }}
     />
   );
 };
