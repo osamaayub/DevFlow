@@ -18,11 +18,12 @@ export async function POST(request:NextRequest) {
   try {
     await dbConnect();
     const body = await request.json();
-    const user = await User.create(body);
     const exisitingUser=await User.findOne({email: body.email});
     if(!exisitingUser){
       throw new Error("User Already Exists")
     }
+    const user = await User.create(body);
+
     return NextResponse.json({success:true,data:user,statusCode:201}, {status:201})
   } catch (error: any) {
     return HandleError(error) as unknown as ApiErrorResponse
