@@ -8,7 +8,7 @@ export async function GET() {
   try {
     await dbConnect();
     const users = await User.find();
-    return NextResponse.json(users)
+    return NextResponse.json({sucess:true,data:users})
   } catch (error: any) {
     return HandleError(error) as unknown as ApiErrorResponse
   }
