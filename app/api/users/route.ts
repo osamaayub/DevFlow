@@ -2,6 +2,7 @@ import { User } from "@/database/models"
 import { HandleError } from "@/lib/handlers"
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
+import { ValidationError } from "@/lib";
 
 
 export async function GET() {
