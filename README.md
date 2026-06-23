@@ -80,7 +80,13 @@ DevFlow lets developers ask and answer programming questions, organize content w
 
 ## Environment Variables
 
-Create a `.env.local` from `.env.example` and set the following:
+Env files are loaded by environment:
+
+- `.env.local` — always loaded locally (gitignored); good for shared local overrides.
+- `.env.development.local` — used by `yarn dev`. Copy from `.env.development.example`.
+- `.env.production.local` — used by `yarn build` / `yarn start`. Copy from `.env.production.example`.
+
+In CI/CD, production values come from the `production` GitHub Environment secrets instead. Set the following in each:
 
 | Variable | Required | Description |
 | --- | --- | --- |
