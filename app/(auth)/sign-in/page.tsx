@@ -21,7 +21,9 @@ const SignIn = () => {
             redirect: true,
           });
 
-          if (result?.error) {
+          const errorMessage = typeof result === "string" ? result : undefined;
+
+          if (errorMessage) {
             return {
               success: false,
               error: "Invalid email or password",

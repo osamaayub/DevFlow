@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
@@ -6,6 +7,7 @@ import Google from "next-auth/providers/google";
 import { User } from "@/database/models/User";
 import logger from "@/lib/logger";
 import { dbConnect } from "@/lib/mongoose";
+import type { IUser } from "@/database/models/User";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // adapter: MongoDBAdapter(mongoClientPromise),
@@ -26,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         try {
           await dbConnect();
-          const user = await User.findOne({ email }).lean();
+          const user = (await User.findOne({ email })) as (IUser & { _id: Types.ObjectId }) | null;
 
           if (!user || user.password !== password) {
             return null;
