@@ -52,7 +52,7 @@ interface ApiSuccessResponse<t=null> extends SuccessResponse<t>, ErrorResponse<t
     }
     statusCode:number
 }  
-type ApiErrorResponse<t = null> = NextResponse<{
+type ApiErrorResponse = NextResponse<{
     success: false,
     data?: undefined,
     message: string,
