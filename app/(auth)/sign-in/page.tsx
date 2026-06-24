@@ -17,8 +17,8 @@ const SignIn = () => {
           const result = await signIn("credentials", {
             email: data.email,
             password: data.password,
-            redirect: false,
             callbackUrl: Routes.HOME,
+            redirect: true,
           });
 
           if (result?.error) {
@@ -30,7 +30,6 @@ const SignIn = () => {
 
           return {
             success: true,
-            redirectTo: Routes.HOME,
           };
         } catch {
           return {

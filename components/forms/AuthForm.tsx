@@ -59,7 +59,7 @@ export function AuthForm<T extends FieldValues>({
       }
 
       if (result.redirectTo) {
-        window.location.assign(result.redirectTo);
+        return;
       }
     } catch (error) {
       logger.error(
