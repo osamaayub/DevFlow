@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 import { User } from "@/database/models";
@@ -12,6 +13,14 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
     const user = await User.findById(id);
 
     if (!user) throw new NotFoundError({ user: ["User not found"] });
@@ -30,6 +39,14 @@ export async function PUT(
   try {
     await dbConnect();
     const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
     const body = await request.json();
     const user = await User.findByIdAndUpdate(id, body, { new: true, runValidators: true });
 
@@ -49,6 +66,14 @@ export async function DELETE(
   try {
     await dbConnect();
     const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
     const user = await User.findByIdAndDelete(id);
 
     if (!user) throw new NotFoundError({ user: ["User not found"] });

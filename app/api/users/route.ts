@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const existingUser = await User.findOne({ email: body.email });
 
-    if (!existingUser) {
-      throw new Error("User Already Exists");
+    if (existingUser) {
+      throw new Error("User already exists");
     }
 
     const user = await User.create(body);
