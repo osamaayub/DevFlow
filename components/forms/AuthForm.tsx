@@ -31,6 +31,7 @@ interface AuthFormProps<T extends FieldValues> {
   onSubmitAction: (data: T) => Promise<{
     success: boolean;
     error?: string;
+    redirectTo?: string;
   }>;
 }
 
@@ -54,6 +55,11 @@ export function AuthForm<T extends FieldValues>({
           type: "server",
           message: result.error || "Something went wrong",
         });
+        return;
+      }
+
+      if (result.redirectTo) {
+        window.location.assign(result.redirectTo);
       }
     } catch (error) {
       logger.error(
