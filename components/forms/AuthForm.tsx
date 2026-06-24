@@ -21,8 +21,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import logger from "@/lib/logger";
 import { Routes } from "@/constants/route";
+import logger from "@/lib/logger";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodTypeAny;

@@ -26,7 +26,7 @@ const SignUp = () => {
           }
 
           return { success: true };
-        } catch (error) {
+        } catch {
           return { success: false, error: "Network error while creating user" };
         }
       }}
