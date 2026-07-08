@@ -31,7 +31,9 @@ const HomeFilters = () => {
 
   const handleTypeClick = (filter: string) => {
     let newUrl = "";
-    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    const currentUrl = typeof window !== "undefined"
+      ? `${window.location.pathname}${window.location.search}`
+      : "";
 
     if (filter === active) {
       setActive("");

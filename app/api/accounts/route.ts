@@ -21,7 +21,7 @@ export async function POST(request: NextRequest){
     const existingAccount = await Account.findOne({email: body.email});
 
     if(existingAccount){
-      throw new Error("Account already exists");
+      throw new Error( " User Account already exists");
     }       
     const newAccount = new Account(body);
     await newAccount.save();
