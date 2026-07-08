@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { Routes } from "@/constants/route";
-import { getTimeStamp } from "@/lib/utils";
 
 import TagCards from "./TagCards";
+import RelativeTime from "../RelativeTime";
 import Metric from "../Metric";
 
 
@@ -20,7 +20,9 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
         <div>
           <Link href={Routes.QUESTION(_id)}>
             <span
-              className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">{getTimeStamp(createdAt)}</span>
+              className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">
+              <RelativeTime date={createdAt} />
+            </span>
             <h3 className="sm:h3-semibold base-semibold text-dark200_light900 line-clamp-1 flex-1">{title}</h3>
           </Link>
         </div>
@@ -33,7 +35,7 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
       <div className="flex-between mt-6 w-full flex-wrap gap-3">
         <Metric imgUrl={author.image}
                 value={author.name}
-                alt={author.name} title={`${getTimeStamp(createdAt)}`} href={Routes.PROFILE(author._id)}
+                alt={author.name} title={<RelativeTime date={createdAt} />} href={Routes.PROFILE(author._id)}
                 textStyles="body-medium text-dark400_light700" isAuthor imgStyles={""} />
 
 

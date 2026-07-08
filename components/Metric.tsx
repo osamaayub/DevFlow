@@ -1,10 +1,11 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link"
 
 interface MetricProps{
   imgUrl:string,
   alt:string,
-  title:string,
+  title:ReactNode,
   value:string|number,
   href?:string,
   textStyles:string,
