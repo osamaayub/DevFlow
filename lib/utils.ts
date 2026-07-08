@@ -13,9 +13,15 @@ export const getDevinconClassName=(techName:string)=>{
  return techMap[normalizeTechName]?`${techMap[normalizeTechName]} colored}`:"devicon-devicon-plain"
 }
 
-export const getTimeStamp = (date: Date) => {
+export const getTimeStamp = (date: Date | string) => {
+  const parsedDate = date instanceof Date ? date : new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "recently";
+  }
+
   const now = new Date();
-  const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const secondsAgo = Math.floor((now.getTime() - parsedDate.getTime()) / 1000);
 
   const units = [
     { label: "year", seconds: 31536000 },
