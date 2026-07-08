@@ -9,7 +9,7 @@ export const formUrlQuery=({params,key,value}:UrlQueryParams)=>{
 const queryString=qs.parse(params);
  queryString[key]=value;
  return qs.stringifyUrl({
-  url:window.location.pathname,
+  url: typeof window !== "undefined" ? window.location.pathname : "/",
   query:queryString
  });
 }
@@ -24,7 +24,7 @@ const queryString=qs.parse(params);
    delete queryString[key];
  })
  return qs.stringifyUrl({
-  url:window.location.pathname,
+  url: typeof window !== "undefined" ? window.location.pathname : "/",
   query:queryString
  },{skipNull:true});
 }

@@ -20,9 +20,13 @@ const LocalSearchBar = ({imgSrc,route,placeholder,otherClasses}:Props) => {
   const SearchParams = useSearchParams();
   const pathname = usePathname();
   const query = SearchParams.get("query") || "";
-  const [searchQuery, setSearchQuery] = useState(query);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const paramsString = SearchParams.toString();
+
+  useEffect(() => {
+    setSearchQuery(query);
+  }, [query]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
