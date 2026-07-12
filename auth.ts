@@ -1,13 +1,13 @@
-import { Types } from "mongoose";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import { Types } from "mongoose";
 
 import { User } from "@/database/models/User";
-import logger from "@/lib/logger";
-import { dbConnect } from "@/lib/mongoose";
 import type { IUser } from "@/database/models/User";
+import { dbConnect } from "@/lib/mongoose";
+import logger from "@/lib/logger";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // adapter: MongoDBAdapter(mongoClientPromise),
