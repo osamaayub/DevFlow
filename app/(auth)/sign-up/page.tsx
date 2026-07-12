@@ -2,6 +2,7 @@
 
 import { AuthForm } from "@/components/forms/AuthForm";
 import { SignUpSchema } from "@/lib/validation";
+import { usersApi } from "@/lib/api";
 
 const SignUp = () => {
   return (
@@ -11,23 +12,14 @@ const SignUp = () => {
       defaultValues={{ name: "", username: "", email: "", password: "" }}
       onSubmitAction={async (data) => {
         try {
-          const res = await fetch("/api/users", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
-
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            return {
-              success: false,
-              error: body?.error || body?.message || "Failed to create user",
-            };
-          }
-
+          await usersApi.create(data);
           return { success: true };
-        } catch {
-          return { success: false, error: "Network error while creating user" };
+        } catch (error: unknown) {
+          const message =
+            (error as any)?.details?.message ||
+            (error as any)?.message ||
+            "Network error while creating user";
+          return { success: false, error: message };
         }
       }}
     />
