@@ -20,10 +20,27 @@ export class FetchError extends Error {
     }
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isNamedError = (value: unknown): value is { name: string; message?: string } =>
+    isObject(value) && typeof (value as { name: unknown }).name === "string";
+
+const isAbortError = (value: unknown): value is { name: "AbortError" } =>
+    isNamedError(value) && value.name === "AbortError";
 
 export async function fetchHandler<T = unknown>(url: string, options: FetchOptions = {}): Promise<ActionResponse<T>> {
-    const { json, headers, timeoutMs = 15000, retries = 0, retryDelayMs = 300, throwOnErrorBody = false, ...rest } = options;
+    const {
+        json,
+        headers,
+        timeoutMs = 15000,
+        retries = 0,
+        retryDelayMs = 300,
+        throwOnErrorBody = false,
+        ...rest
+    } = options;
 
     const makeRequest = async (attempt = 0): Promise<ActionResponse<T>> => {
         const controller = new AbortController();
@@ -36,20 +53,24 @@ export async function fetchHandler<T = unknown>(url: string, options: FetchOptio
             if (json !== undefined) {
                 if (!reqHeaders.has("Content-Type")) reqHeaders.set("Content-Type", "application/json");
                 body = JSON.stringify(json);
-            } else if ((rest as any).body) {
-                body = (rest as any).body as BodyInit;
+            } else if ("body" in rest && rest.body !== undefined) {
+                body = rest.body as BodyInit;
             }
 
-            const response = await fetch(url, { ...rest, headers: reqHeaders, body, signal: controller.signal as any });
+            const response = await fetch(url, {
+                ...rest,
+                headers: reqHeaders,
+                body,
+                signal: controller.signal,
+            });
 
-            const contentType = response.headers.get("content-type") || "";
+            const contentType = response.headers.get("content-type") ?? "";
 
-            // handle no-content
             if (response.status === 204) {
-                return { success: true, data: null as any, statusCode: 204 } as ActionResponse<T>;
+                return { success: true, data: undefined as unknown as T, statusCode: 204 } as ActionResponse<T>;
             }
 
-            let payload: any = null;
+            let payload: unknown = null;
             if (contentType.includes("application/json")) {
                 payload = await response.json();
             } else {
@@ -61,24 +82,35 @@ export async function fetchHandler<T = unknown>(url: string, options: FetchOptio
                 }
             }
 
+            const payloadRecord = isObject(payload) ? payload : undefined;
+            const payloadMessage = payloadRecord && "message" in payloadRecord ? String(payloadRecord.message) : undefined;
+            const payloadError = payloadRecord && "error" in payloadRecord ? payloadRecord.error : undefined;
+
             if (!response.ok) {
-                const message = payload?.message || `HTTP error! status: ${response.status}`;
-                throw new FetchError(message, response.status, payload?.error ?? payload, payload);
+                const message = payloadMessage || `HTTP error! status: ${response.status}`;
+                throw new FetchError(message, response.status, payloadError ?? payload, payload);
             }
 
-            // optional: server returns an application-level error shape { success: false }
-            if (throwOnErrorBody && payload && typeof payload === "object" && payload.success === false) {
-                const message = payload.message || "Server reported error";
-                throw new FetchError(message, (payload.statusCode as number) ?? undefined, payload.error ?? undefined, payload);
+            if (
+                throwOnErrorBody &&
+                payloadRecord &&
+                "success" in payloadRecord &&
+                payloadRecord.success === false
+            ) {
+                const message = payloadMessage ?? "Server reported error";
+                const statusCode =
+                    payloadRecord.statusCode && typeof payloadRecord.statusCode === "number"
+                        ? payloadRecord.statusCode
+                        : undefined;
+                throw new FetchError(message, statusCode, payloadError, payload);
             }
 
             return payload as ActionResponse<T>;
         } catch (err: unknown) {
-            const isAbort = (err as any)?.name === "AbortError";
-            const isNetwork = (err as any)?.message?.includes("Failed to fetch") || isAbort;
+            const abort = isAbortError(err);
+            const network = abort || (isNamedError(err) && typeof err.message === "string" && err.message.includes("Failed to fetch"));
 
-            // retry on network errors or Abort (transient) or server 5xx wrapped in FetchError
-            const canRetry = attempt < retries && (isNetwork || (err instanceof FetchError && (err.statusCode ?? 0) >= 500));
+            const canRetry = attempt < retries && (network || (err instanceof FetchError && (err.statusCode ?? 0) >= 500));
             if (canRetry) {
                 const delay = Math.round(retryDelayMs * Math.pow(2, attempt)) + Math.floor(Math.random() * 100);
                 await sleep(delay);
@@ -86,13 +118,10 @@ export async function fetchHandler<T = unknown>(url: string, options: FetchOptio
             }
 
             if (err instanceof FetchError) throw err;
+            if (abort) throw new FetchError("Request timed out", 408);
 
-            // wrap other errors
-            if ((err as any)?.name === "AbortError") {
-                throw new FetchError("Request timed out", 408);
-            }
-
-            throw new FetchError((err as Error)?.message || String(err));
+            const message = isNamedError(err) && typeof err.message === "string" ? err.message : String(err);
+            throw new FetchError(message);
         } finally {
             if (id !== undefined) {
                 clearTimeout(id);

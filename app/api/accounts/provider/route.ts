@@ -1,8 +1,9 @@
 
-import { HandleError } from "@/lib/handlers";
 import { NextResponse, NextRequest } from "next/server";
+
 import { Account } from "@/database/models";
 import { dbConnect, ValidationError } from "@/lib";
+import { HandleError } from "@/lib/handlers";
 
 export async function POST(request: NextRequest) {
     try {

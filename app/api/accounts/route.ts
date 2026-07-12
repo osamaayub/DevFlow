@@ -1,7 +1,8 @@
-import {Account} from "@/database/models";
-import {HandleError} from "@/lib/handlers";
-import {dbConnect} from "@/lib/mongoose";
-import {NextRequest, NextResponse} from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+import { Account } from "@/database/models";
+import { dbConnect } from "@/lib/mongoose";
+import { HandleError } from "@/lib/handlers";
 
 export async function GET(){
   try{
