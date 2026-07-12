@@ -42,7 +42,13 @@ export type AccountDto = {
     updatedAt: string;
 };
 
-const API_BASE_URL = typeof window === "undefined" ? "" : process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE_URL = (() => {
+    const url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!url) {
+        throw new Error("Missing required env var NEXT_PUBLIC_API_BASE_URL");
+    }
+    return url;
+})();
 
 const defaultOptions: FetchOptions = {
     timeoutMs: 15000,
@@ -69,7 +75,7 @@ const baseOptions = (options: FetchOptions = {}): FetchOptions => {
     };
 };
 
-const getApiUrl = (path: string) => `${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`;
+const getApiUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 const apiRequest = async <T>(path: string, options: FetchOptions = {}) => {
     const response = await fetchHandler<T>(getApiUrl(path), baseOptions(options));
