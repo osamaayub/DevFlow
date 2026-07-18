@@ -1,4 +1,4 @@
-name: Dev CI
+name: DevFlow Dev CI
 
 on:
   push:
@@ -12,6 +12,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: development
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+      AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+      AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
+      AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      LOG_LEVEL: debug
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

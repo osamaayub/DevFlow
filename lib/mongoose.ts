@@ -1,20 +1,19 @@
-import dns from "dns";
+﻿import dns from "dns";
+
 import { MongoClient } from "mongodb";
 import mongoose, { Mongoose } from "mongoose";
 
 import logger from "./logger";
 
-// Fix for ECONNREFUSED on querySrv: Node's built-in resolver (c-ares) sometimes
-// fails to resolve mongodb+srv SRV records even when the OS resolver (nslookup/dig)
-// succeeds — common on Windows, WSL2, and some VPN/corporate networks.
-// Forcing a known-good public DNS server avoids this.
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not defined in the env");
-}
+const getMongoUri = (): string => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not defined in the env");
+  }
+  return uri;
+};
 
 interface MongooseCache {
   conn: Mongoose | null;
@@ -39,7 +38,7 @@ export const dbConnect = async (): Promise<Mongoose> => {
   }
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(MONGODB_URI, {
+      .connect(getMongoUri(), {
         dbName: "DevFlow",
       })
       .then((res) => {
@@ -60,14 +59,10 @@ export const dbConnect = async (): Promise<Mongoose> => {
 
 // For NextAuth MongoDBAdapter
 let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let clientPromise: Promise<MongoClient> | null = null;
 
-// This creates the connection immediately at import time, so it MUST have a
-// .catch attached right here — otherwise a failure surfaces as an
-// unhandledRejection at the process level instead of being handled where
-// clientPromise is eventually awaited/consumed.
 const createClientPromise = (): Promise<MongoClient> => {
-  client = new MongoClient(MONGODB_URI);
+  client = new MongoClient(getMongoUri());
   return client.connect().catch((error: unknown) => {
     logger.error(
       { err: error },
@@ -77,14 +72,18 @@ const createClientPromise = (): Promise<MongoClient> => {
   });
 };
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    global._mongoClientPromise = createClientPromise();
+const getClientPromise = (): Promise<MongoClient> => {
+  if (!clientPromise) {
+    if (process.env.NODE_ENV === "development") {
+      if (!global._mongoClientPromise) {
+        global._mongoClientPromise = createClientPromise();
+      }
+      clientPromise = global._mongoClientPromise;
+    } else {
+      clientPromise = createClientPromise();
+    }
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  clientPromise = createClientPromise();
-}
+  return clientPromise;
+};
 
-export default clientPromise;
+export default getClientPromise;
