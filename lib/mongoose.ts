@@ -1,10 +1,9 @@
-import dns from "dns";
+﻿import dns from "dns";
 
 import { MongoClient } from "mongodb";
 import mongoose, { Mongoose } from "mongoose";
 
 import logger from "./logger";
-
 
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
@@ -60,12 +59,8 @@ export const dbConnect = async (): Promise<Mongoose> => {
 
 // For NextAuth MongoDBAdapter
 let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let clientPromise: Promise<MongoClient> | null = null;
 
-// This creates the connection immediately at import time, so it MUST have a
-// .catch attached right here — otherwise a failure surfaces as an
-// unhandledRejection at the process level instead of being handled where
-// clientPromise is eventually awaited/consumed.
 const createClientPromise = (): Promise<MongoClient> => {
   client = new MongoClient(getMongoUri());
   return client.connect().catch((error: unknown) => {
@@ -77,14 +72,18 @@ const createClientPromise = (): Promise<MongoClient> => {
   });
 };
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    global._mongoClientPromise = createClientPromise();
+const getClientPromise = (): Promise<MongoClient> => {
+  if (!clientPromise) {
+    if (process.env.NODE_ENV === "development") {
+      if (!global._mongoClientPromise) {
+        global._mongoClientPromise = createClientPromise();
+      }
+      clientPromise = global._mongoClientPromise;
+    } else {
+      clientPromise = createClientPromise();
+    }
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  clientPromise = createClientPromise();
-}
+  return clientPromise;
+};
 
-export default clientPromise;
+export default getClientPromise;
