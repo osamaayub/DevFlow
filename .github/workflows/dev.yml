@@ -25,6 +25,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate required secrets
+        run: |
+          required=(MONGODB_URI AUTH_GOOGLE_ID AUTH_GOOGLE_SECRET AUTH_GITHUB_ID AUTH_GITHUB_SECRET AUTH_SECRET NEXTAUTH_URL)
+          for var in "${required[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "Missing required env: $var"
+              exit 1
+            fi
+          done
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

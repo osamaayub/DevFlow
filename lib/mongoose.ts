@@ -11,11 +11,13 @@ import logger from "./logger";
 // Forcing a known-good public DNS server avoids this.
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not defined in the env");
-}
+const getMongoUri = (): string => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not defined in the env");
+  }
+  return uri;
+};
 
 interface MongooseCache {
   conn: Mongoose | null;
@@ -68,7 +70,7 @@ let clientPromise: Promise<MongoClient>;
 // unhandledRejection at the process level instead of being handled where
 // clientPromise is eventually awaited/consumed.
 const createClientPromise = (): Promise<MongoClient> => {
-  client = new MongoClient(MONGODB_URI);
+  client = new MongoClient(getMongoUri());
   return client.connect().catch((error: unknown) => {
     logger.error(
       { err: error },
