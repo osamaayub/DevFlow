@@ -5,10 +5,7 @@ import mongoose, { Mongoose } from "mongoose";
 
 import logger from "./logger";
 
-// Fix for ECONNREFUSED on querySrv: Node's built-in resolver (c-ares) sometimes
-// fails to resolve mongodb+srv SRV records even when the OS resolver (nslookup/dig)
-// succeeds — common on Windows, WSL2, and some VPN/corporate networks.
-// Forcing a known-good public DNS server avoids this.
+
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const getMongoUri = (): string => {
@@ -42,7 +39,7 @@ export const dbConnect = async (): Promise<Mongoose> => {
   }
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(MONGODB_URI, {
+      .connect(getMongoUri(), {
         dbName: "DevFlow",
       })
       .then((res) => {
