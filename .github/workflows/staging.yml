@@ -1,17 +1,17 @@
-name: Dev CI
+name: Staging CI
 
 on:
   push:
     branches:
-      - dev
+      - staging
   pull_request:
     branches:
-      - dev
+      - staging
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: development
+    environment: staging
     env:
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
       AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
@@ -43,4 +43,4 @@ jobs:
       - name: Show environment info
         run: |
           echo "Branch: $GITHUB_REF"
-          echo "Environment: development"
+          echo "Environment: staging"
