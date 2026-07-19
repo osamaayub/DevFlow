@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
-import { dbConnect, signInOauthSchema } from "@/lib";
-import { User } from "@/database/models";
-import { Account } from "@/database/models";
-import { HandleError } from "@/lib/handlers";
 import mongoose from "mongoose";
+import { NextResponse } from "next/server";
 import slugify from "slugify";
+
+import { Account } from "@/database/models";
+import { User } from "@/database/models";
+import { dbConnect, signInOauthSchema } from "@/lib";
+import { HandleError } from "@/lib/handlers";
 
 export async function POST(request: Request) {
   const session = await mongoose.startSession();

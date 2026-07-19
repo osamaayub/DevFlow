@@ -1,7 +1,7 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
 import type { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 
 import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/context/Theme";

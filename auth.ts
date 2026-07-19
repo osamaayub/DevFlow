@@ -3,13 +3,13 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import slugify from "slugify";
 
 import { User } from "@/database/models/User";
 import type { IUser } from "@/database/models/User";
 import { accountsApi, authApi } from "@/lib/api";
 import logger from "@/lib/logger";
 import { dbConnect } from "@/lib/mongoose";
-import slugify from "slugify";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // adapter: MongoDBAdapter(mongoClientPromise),
@@ -161,13 +161,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
-      const customToken = token as any;
+      const customToken = token as {
+        id?: string;
+        name?: string;
+        email?: string;
+        picture?: string;
+        provider?: string;
+      };
+
       if (session.user) {
-        session.user.id = customToken.id || session.user.id;
-        session.user.name = customToken.name || (session.user as any).name;
-        session.user.email = customToken.email || session.user.email;
-        session.user.image = customToken.picture || session.user.image;
-        (session.user as any).provider = customToken.provider || (session.user as any).provider;
+        const sessionUser = session.user as {
+          id?: string;
+          username?: string;
+          provider?: string;
+          name?: string | null;
+          email?: string | null;
+          image?: string | null;
+        };
+
+        sessionUser.id = customToken.id ?? sessionUser.id;
+        sessionUser.name = customToken.name ?? sessionUser.name;
+        sessionUser.email = customToken.email ?? sessionUser.email;
+        sessionUser.image = customToken.picture ?? sessionUser.image;
+        sessionUser.provider = customToken.provider ?? sessionUser.provider;
       }
       return session;
     },
