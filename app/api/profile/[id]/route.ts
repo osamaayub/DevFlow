@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { dbConnect } from "@/lib/mongoose";
 import { User } from "@/database/models/User";
+import { dbConnect } from "@/lib/mongoose";
 
 type ProfileParams = { id: string };
 
