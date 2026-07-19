@@ -3,9 +3,11 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import slugify from "slugify";
 
 import { User } from "@/database/models/User";
 import type { IUser } from "@/database/models/User";
+import { accountsApi, authApi } from "@/lib/api";
 import logger from "@/lib/logger";
 import { dbConnect } from "@/lib/mongoose";
 
@@ -42,12 +44,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             username: user.username,
           };
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           logger.error(
             {
               err: error,
+              message: errorMessage,
               email,
             },
-            "Credentials sign-in failed",
+            "Credentials sign-in failed during user lookup",
           );
           return null;
         }
@@ -64,38 +68,124 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       if (!user.email) {
         return true;
       }
 
+      const providerName = account?.provider;
+      const providerType = account?.type;
+      const isCredentials = providerType === "credentials" || providerName === "credentials";
+      const isOAuth =
+        providerType === "oauth" ||
+        providerName === "github" ||
+        providerName === "google";
+
       try {
         await dbConnect();
 
-        const existingUser = await User.findOne({ email: user.email });
+        if (isOAuth && providerName && account?.providerAccountId) {
+          const baseUsername =
+            user.image ||
+            user.name ||
+            user.email.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "") ||
+            "user";
+          const sluggedUsername = slugify(String(baseUsername), {
+            lower: true,
+            strict: true,
+            trim: true,
+          });
 
-        if (!existingUser) {
-          const baseUsername = user.email.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "") || "user";
-
-          await User.create({
-            name: user.name || baseUsername,
-            email: user.email,
+          await authApi.signInOauth({
+            provider: providerName,
+            providerAccountId: account.providerAccountId,
+            user: {
+              name: user.name || baseUsername,
+              username: sluggedUsername,
+              email: user.email,
+              image: user.image || "",
+            },
             image: user.image || "",
-            username: baseUsername,
-            joinedAt: new Date(),
           });
         }
+
+        if (isCredentials) {
+          const existingUser = await User.findOne({ email: user.email });
+          if (!existingUser) {
+            logger.warn(
+              {
+                email: user.email,
+              },
+              "Credentials sign-in succeeded for user that does not exist in DB",
+            );
+          }
+        }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(
           {
             err: error,
+            message: errorMessage,
             email: user.email,
+            provider: account?.provider,
+            providerAccountId: account?.providerAccountId,
           },
-          "OAuth user sync failed",
+          "OAuth sign-in synchronization failed while syncing user account",
         );
       }
 
       return true;
+    },
+
+    async jwt({ token, account }) {
+      if (account?.providerAccountId) {
+        try {
+          const providerAccount = await accountsApi.getByProviderAccountId(account.providerAccountId);
+          token.provider = providerAccount.provider || account.provider || token.provider;
+          token.userId = providerAccount.userId || token.userId;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          logger.error(
+            {
+              err: error,
+              message: errorMessage,
+              providerAccountId: account.providerAccountId,
+              provider: account.provider,
+            },
+            "Unable to resolve OAuth account from providerAccountId during JWT callback",
+          );
+          token.provider = account.provider || token.provider;
+        }
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      const customToken = token as {
+        id?: string;
+        name?: string;
+        email?: string;
+        picture?: string;
+        provider?: string;
+      };
+
+      if (session.user) {
+        const sessionUser = session.user as {
+          id?: string;
+          username?: string;
+          provider?: string;
+          name?: string | null;
+          email?: string | null;
+          image?: string | null;
+        };
+
+        sessionUser.id = customToken.id ?? sessionUser.id;
+        sessionUser.name = customToken.name ?? sessionUser.name;
+        sessionUser.email = customToken.email ?? sessionUser.email;
+        sessionUser.image = customToken.picture ?? sessionUser.image;
+        sessionUser.provider = customToken.provider ?? sessionUser.provider;
+      }
+      return session;
     },
   },
 });

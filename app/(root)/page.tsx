@@ -8,7 +8,6 @@ import { questions } from "@/constants/filter";
 import { Routes } from "@/constants/route";
 
 
-
 interface SearchParams{
   searchParams:Promise<{[key:string]:string}>
 }

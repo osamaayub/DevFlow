@@ -62,17 +62,19 @@ export function AuthForm<T extends FieldValues>({
         return;
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(
         {
           err: error,
+          message: errorMessage,
           formType,
         },
-        "Auth form submission failed",
+        "Authentication form submission failed during server request",
       );
 
       form.setError("root", {
         type: "server",
-        message: "Unexpected error occurred",
+        message: "Unable to complete sign-in. Please try again.",
       });
     }
   };

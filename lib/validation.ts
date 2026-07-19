@@ -61,15 +61,29 @@ export const UserSchema = z.object({
   password: z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
 
 
-}); 
+});
 
 export const AccountUpdateSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",   
+    message: "Name must be at least 2 characters.",
   }),
   image: z.string().url({ message: "Image must be a valid URL." }).optional(),
   password: z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" }).optional(),
-  userId: z.string().min(1, { message: "User ID is required." }),       
+  userId: z.string().min(1, { message: "User ID is required." }),
   provider: z.string().min(1, { message: "Provider is required." }),
   providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
 })
+export const signInOauthSchema = z.object({
+  provider: z.enum(["google", "github"]),
+  providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
+  user: z.object({
+    name: z.string().min(4, {
+      message: "Name must be at least 4 characters.",
+    }),
+    username: z.string().min(3, {
+      message: "Username must be at least 3 characters.",
+    }),
+    email: z.string().email({ message: "please Provide a Valid Email Address" }), 
+  }),
+  image: z.string().url({ message: "Image must be a valid URL." }).optional(),
+}); 

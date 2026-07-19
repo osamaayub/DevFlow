@@ -31,7 +31,7 @@ import "@mdxeditor/editor/style.css";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { basicDark } from "cm6-theme-basic-dark";
 import { useTheme } from "next-themes";
-import type { ForwardedRef } from "react";
+import { useEffect, useState, type ForwardedRef } from "react";
 import "./dark-editor.css";
 
 interface EditorProps{
@@ -41,12 +41,18 @@ interface EditorProps{
 }
 
 export const Editor = ({value,fieldChange,editorRef,...props}:EditorProps) => {
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
 
-    const {resolvedTheme}=useTheme();
-    const theme=resolvedTheme==="dark" ? [basicDark] :[];
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
+    const theme = mounted && resolvedTheme === "dark" ? [basicDark] : [];
+
   return (
     <MDXEditor
-    key={resolvedTheme}
+    key={mounted ? resolvedTheme : "initial"}
     markdown={value}
       onChange={fieldChange}
       className="background-light800_dark200 light-border-2 markdown-editor dark-editor

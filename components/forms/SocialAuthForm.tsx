@@ -19,14 +19,16 @@ const SocialAuthForm = () => {
       });
       toast.success("Sign in successfully");
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(
         {
           err: error,
+          message: errorMessage,
           provider,
         },
-        "Social sign-in failed",
+        "Social authentication failed during OAuth provider request",
       );
-      toast.error("Sign in failed. Please try again!");
+      toast.error("Social sign-in failed. Please refresh and try again.");
     }
   };
   return (

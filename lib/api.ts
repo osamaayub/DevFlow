@@ -17,6 +17,18 @@ export type AccountCreatePayload = {
     image?: string;
 };
 
+export type OauthSignInPayload = {
+    provider: string;
+    providerAccountId: string;
+    user: {
+        name: string;
+        username: string;
+        email: string;
+        image?: string;
+    };
+    image?: string;
+};
+
 export type UserDto = {
     _id: string;
     name: string;
@@ -43,11 +55,17 @@ export type AccountDto = {
 };
 
 const API_BASE_URL = (() => {
-    const url = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (!url) {
-        throw new Error("Missing required env var NEXT_PUBLIC_API_BASE_URL");
+    if (typeof window !== "undefined") {
+        return "";
     }
-    return url;
+
+    const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        process.env.NEXTAUTH_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+        "http://127.0.0.1:3000";
+
+    return baseUrl;
 })();
 
 const defaultOptions: FetchOptions = {
@@ -104,8 +122,8 @@ export const accountsApi = {
 };
 
 export const authApi = {
-    findByProvider: (providerAccountId: string) => apiRequest<AccountDto>("/api/accounts/provider", {
+    signInOauth: (payload: OauthSignInPayload) => apiRequest<UserDto>("/api/auth/signInOauth", {
         method: "POST",
-        json: { providerAccountId },
+        json: payload,
     }),
 };
