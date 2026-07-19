@@ -42,11 +42,18 @@ export const dbConnect = async (): Promise<Mongoose> => {
         dbName: "DevFlow",
       })
       .then((res) => {
-        logger.info("connected to mongodb");
+        logger.info("Connected to MongoDB successfully");
         return res;
       })
       .catch((error: unknown) => {
-        logger.error({ err: error }, "error connecting to mongodb");
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error(
+          {
+            err: error,
+            message: errorMessage,
+          },
+          "MongoDB connection failed during initial connection",
+        );
         // Reset the cached promise so the next call retries instead of
         // permanently returning a rejected promise
         cached.promise = null;
@@ -64,9 +71,13 @@ let clientPromise: Promise<MongoClient> | null = null;
 const createClientPromise = (): Promise<MongoClient> => {
   client = new MongoClient(getMongoUri());
   return client.connect().catch((error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
-      { err: error },
-      "error connecting to mongodb (nextauth client)"
+      {
+        err: error,
+        message: errorMessage,
+      },
+      "MongoDB connection failed for NextAuth client",
     );
     throw error;
   });
