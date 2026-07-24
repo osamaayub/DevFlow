@@ -18,6 +18,17 @@
     preact "10.24.3"
     preact-render-to-string "6.5.11"
 
+"@auth/core@0.41.3":
+  version "0.41.3"
+  resolved "https://registry.yarnpkg.com/@auth/core/-/core-0.41.3.tgz#9c03e881feb589d3e807b764c050b32e350fce51"
+  integrity sha512-sJ3JMHHkXMD3aOjopv7mOBTO1Ocw4b0fAEXJBz6k7YHLpYQI6C40jCUPc5fNvUKxXRXNE1/sRISA15UrwWJBTw==
+  dependencies:
+    "@panva/hkdf" "^1.2.1"
+    jose "^6.0.6"
+    oauth4webapi "^3.3.0"
+    preact "10.24.3"
+    preact-render-to-string "6.5.11"
+
 "@auth/mongodb-adapter@^3.11.2":
   version "3.11.2"
   resolved "https://registry.npmjs.org/@auth/mongodb-adapter/-/mongodb-adapter-3.11.2.tgz"
@@ -4786,12 +4797,12 @@ natural-compare@^1.4.0:
   resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
-next-auth@^5.0.0-beta.29:
-  version "5.0.0-beta.31"
-  resolved "https://registry.npmjs.org/next-auth/-/next-auth-5.0.0-beta.31.tgz"
-  integrity sha512-1OBgCKPzo+S7UWWMp3xgvGvIJ0OpV7B3vR4ZDRqD9a4Ch+OT6dakLXG9ivhtmIWVa71nTSXattOHyCg8sNi8/Q==
+next-auth@^5.0.0-beta.32:
+  version "5.0.0-beta.32"
+  resolved "https://registry.yarnpkg.com/next-auth/-/next-auth-5.0.0-beta.32.tgz#699dba2616e017f1b062865ace95ab52fa8b53d2"
+  integrity sha512-CGlChIEWZ6LltNVxrE5yiySMID+Idpmry47JYA5lLwgD8Sx02a8M65VL0TWVz9nbnOioS/tCW/rP/0+mE7Qp4Q==
   dependencies:
-    "@auth/core" "0.41.2"
+    "@auth/core" "0.41.3"
 
 next-themes@^0.4.6:
   version "0.4.6"
