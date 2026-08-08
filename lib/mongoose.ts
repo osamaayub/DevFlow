@@ -68,20 +68,22 @@ export const dbConnect = async (): Promise<Mongoose> => {
 let client: MongoClient;
 let clientPromise: Promise<MongoClient> | null = null;
 
-const createClientPromise = (): Promise<MongoClient> => {
-  client = new MongoClient(getMongoUri());
-  return client.connect().catch((error: unknown) => {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+const createClientPromise = async (): Promise<MongoClient> => {
+  client = new MongoClient(getMongoUri())
+  try {
+    return await client.connect()
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error(
       {
         err: error,
-        message: errorMessage,
+        message: errorMessage
       },
-      "MongoDB connection failed for NextAuth client",
-    );
-    throw error;
-  });
-};
+      "MongoDB connection failed for NextAuth client"
+    )
+    throw error
+  }
+}
 
 const getClientPromise = (): Promise<MongoClient> => {
   if (!clientPromise) {

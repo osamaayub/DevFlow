@@ -1,4 +1,7 @@
+import { Routes } from "@/constants/route"
+
 import { fetchHandler, FetchOptions } from "./fetch";
+
 
 export type UserSignUpPayload = {
     name: string;
@@ -122,7 +125,7 @@ export const accountsApi = {
 };
 
 export const authApi = {
-    signInOauth: (payload: OauthSignInPayload) => apiRequest<UserDto>("/api/auth/signInOauth", {
+    signInOauth: (payload: OauthSignInPayload) => apiRequest<UserDto>(`/api/auth/${Routes.SIGN_IN_WITH_OAUTH}`, {
         method: "POST",
         json: payload,
     }),

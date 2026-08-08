@@ -80,6 +80,6 @@ export async function POST(request: Request) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
     return HandleError(errorMessage) as unknown as ApiErrorResponse;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 }
