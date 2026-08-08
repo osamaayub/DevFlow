@@ -8,4 +8,5 @@ export const Routes = {
   TAGS: (id: string) => `/tags/${id}`,
   Ask_A_Question: "/ask-question",
   QUESTION: (id: string) => `/question/${id}`,
+  SIGN_IN_WITH_OAUTH:`signInOauth`
 };
