@@ -7,7 +7,7 @@ import { auth } from "@/auth"
 import { dbConnect, UnauthorizedError, ValidationError } from "@/lib"
 import { ActionOptions } from "@/types"
 
-export async function action({ schema, params, authorize = false }: ActionOptions<T>) {
+export async function action<T>({ schema, params, authorize = false }: ActionOptions<T>) {
   try {
     if (schema && params) {
       const validatedData = schema.parse(params)
