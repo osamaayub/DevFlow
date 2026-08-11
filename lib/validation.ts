@@ -10,8 +10,8 @@ export const SignUpSchema = z.object({
   email: z.string().email({ message: "please Provide a Valid Email Address" }),
   password: z
     .string()
-    .min(6, { message: "password must be aleast of 6 characters" })
-    .max(10, { message: "password cannot execede 10 characters" }),
+    .min(6, { message: "password must be least of 6 characters" })
+    .max(10, { message: "password cannot exceed 10 characters" }),
 });
 export const SignInSchema = z.object({
   email: z
@@ -21,7 +21,7 @@ export const SignInSchema = z.object({
   password: z
     .string()
     .min(6, { message: "Password must be of at least 6 characters" })
-    .max(10, { message: "password cannot execede 10 characters" }),
+    .max(10, { message: "password cannot exceed 10 characters" }),
 });
 
 export const AskQuestionSchema = z.object({
@@ -30,7 +30,7 @@ export const AskQuestionSchema = z.object({
     .min(5, {
       message: "Title must be at least 5 characters.",
     })
-    .max(130, { message: "Title musn't be longer then 130 characters." }),
+    .max(130, { message: "Title mustn't be longer then 130 characters." }),
   content: z.string().min(100, { message: "Minimum of 100 characters." }),
   tags: z
     .array(
@@ -58,7 +58,7 @@ export const UserSchema = z.object({
   portfolio: z.string().url({ message: "Portfolio must be a valid URL." }).optional(),
   image: z.string().url({ message: "Image must be a valid URL." }),
   joinedAt: z.date(),
-  password: z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
+  password: z.string().min(6, { message: "password must be least of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
 
 
 });
@@ -68,7 +68,7 @@ export const AccountUpdateSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
   image: z.string().url({ message: "Image must be a valid URL." }).optional(),
-  password: z.string().min(6, { message: "password must be aleast of 6 characters" }).max(10, { message: "password cannot execede 10 characters" }).optional(),
+  password: z.string().min(6, { message: "password must be least of 6 characters" }).max(10, { message: "password cannot execede 10 characters" }).optional(),
   userId: z.string().min(1, { message: "User ID is required." }),
   provider: z.string().min(1, { message: "Provider is required." }),
   providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
