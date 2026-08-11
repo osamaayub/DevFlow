@@ -42,9 +42,8 @@ const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, 
     </>
   );
 
-  {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    showCount && (
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  {showCount && (
       <p className="small-medium text-dark500_light700">{questions}</p>
     )
   }

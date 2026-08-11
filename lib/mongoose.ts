@@ -54,8 +54,6 @@ export const dbConnect = async (): Promise<Mongoose> => {
           },
           "MongoDB connection failed during initial connection",
         );
-        // Reset the cached promise so the next call retries instead of
-        // permanently returning a rejected promise
         cached.promise = null;
         throw error;
       });
