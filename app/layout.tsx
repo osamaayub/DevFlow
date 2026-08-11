@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/auth";
-
 import RootProviders from "@/components/RootProviders";
 
 const inter = Inter({
