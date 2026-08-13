@@ -21,7 +21,7 @@ export type AccountCreatePayload = {
 };
 
 export type OauthSignInPayload = {
-    provider: string;
+    provider: "github"|"google",
     providerAccountId: string;
     user: {
         name: string;
@@ -31,6 +31,13 @@ export type OauthSignInPayload = {
     };
     image?: string;
 };
+
+export interface  AuthCredentials{
+  name:string,
+  username:string,
+  email:string,
+  password:string
+}
 
 export type UserDto = {
     _id: string;

@@ -1,92 +1,78 @@
-"use client";
+"use client"
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import {
-  DefaultValues,
-  FieldValues,
-  Path,
-  SubmitHandler,
-  useForm,
-} from "react-hook-form";
-import type { ZodTypeAny } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { DefaultValues, FieldValues, Path, SubmitHandler, useForm } from "react-hook-form"
+import { toast } from "sonner"
+import type { ZodTypeAny } from "zod"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Routes } from "@/constants/route";
-import logger from "@/lib/logger";
+  FormMessage
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Routes } from "@/constants/route"
 
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodTypeAny;
-  formType: "SIGN_UP" | "SIGN_IN";
-  defaultValues: T;
-  onSubmitAction: (data: T) => Promise<{
-    success: boolean;
-    error?: string;
-    redirectTo?: string;
-  }>;
+  schema: ZodTypeAny
+  formType: "SIGN_UP" | "SIGN_IN"
+  defaultValues: T
+  onSubmitAction: (data: T) => Promise<ActionResponse>
 }
 
 export function AuthForm<T extends FieldValues>({
   schema,
   defaultValues,
   formType,
-  onSubmitAction,
+  onSubmitAction
 }: AuthFormProps<T>) {
   const form = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues: defaultValues as DefaultValues<T>,
-  });
+    defaultValues: defaultValues as DefaultValues<T>
+  })
+  const router = useRouter()
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
-      const result = await onSubmitAction(data);
+      const result = await onSubmitAction(data)
 
       if (!result.success) {
-        form.setError("root", {
-          type: "server",
-          message: result.error || "Something went wrong",
-        });
-        return;
+        toast.error(result.error?.message || "An error occurred")
+        return
       }
 
-      if (result.redirectTo) {
-        return;
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error(
-        {
-          err: error,
-          message: errorMessage,
-          formType,
-        },
-        "Authentication form submission failed during server request",
-      );
+      toast.success(
+        formType === "SIGN_IN" ? "Signed in successfully!" : "Account created successfully!"
+      )
 
-      form.setError("root", {
-        type: "server",
-        message: "Unable to complete sign-in. Please try again.",
-      });
+      router.push(Routes.HOME)
+    } catch (error: unknown) {
+      const err = error as { digest?: string }
+
+      // Allow Next.js internal redirection errors to pass through successfully
+      if (err?.digest?.includes("NEXT_REDIRECT")) {
+        return
+      }
+
+      toast.error(
+        formType === "SIGN_IN"
+          ? "Unable to complete sign-in. Please try again."
+          : "Unable to complete sign-up. Please try again."
+      )
     }
-  };
+  }
 
-  const buttonText = formType === "SIGN_IN" ? "SIGN IN" : "SIGN UP";
+  const buttonText = formType === "SIGN_IN" ? "SIGN IN" : "SIGN UP"
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-6 mt-10"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 mt-10">
         {Object.keys(defaultValues).map((key) => (
           <FormField
             key={key}
@@ -111,9 +97,7 @@ export function AuthForm<T extends FieldValues>({
           />
         ))}
         {form.formState.errors.root && (
-          <p className="text-sm text-red-500">
-            {form.formState.errors.root.message}
-          </p>
+          <p className="text-sm text-red-500">{form.formState.errors.root.message}</p>
         )}
 
         <Button
@@ -131,25 +115,19 @@ export function AuthForm<T extends FieldValues>({
         {formType === "SIGN_IN" ? (
           <p className="text-sm text-center">
             Don&#39;t have an account?{" "}
-            <Link
-              href={Routes.SIGN_UP}
-              className="paragraph-semibold primary-text-gradient"
-            >
+            <Link href={Routes.SIGN_UP} className="paragraph-semibold primary-text-gradient">
               SIGN UP
             </Link>
           </p>
         ) : (
           <p className="text-sm text-center">
             Already have an account?{" "}
-            <Link
-              href={Routes.SIGN_IN}
-              className="paragraph-semibold primary-text-gradient"
-            >
+            <Link href={Routes.SIGN_IN} className="paragraph-semibold primary-text-gradient">
               SIGN IN
             </Link>
           </p>
         )}
       </form>
     </Form>
-  );
+  )
 }

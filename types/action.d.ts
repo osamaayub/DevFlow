@@ -9,3 +9,9 @@ export type ActionOptions<T>={
     
 
 }
+export  interface AuthCredentials{
+ name:string,
+ username:string,
+ email:string,
+ password:string
+}
