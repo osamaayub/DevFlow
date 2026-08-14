@@ -11,8 +11,7 @@ const SignUp = () => {
       schema={SignUpSchema}
       formType="SIGN_UP"
       defaultValues={{email:"",username:"",name:"",password:"" }}
-      onSubmitAction={(data) => signUpWithCredentials({ params: data })}     // ✅ Wrap here
-
+      onSubmitAction={(data) => signUpWithCredentials(data)}
     />
   );
 };
