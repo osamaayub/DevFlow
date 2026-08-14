@@ -1,6 +1,5 @@
 "use client";
 
-
 import { AuthForm } from "@/components/forms/AuthForm";
 import { signInWithCredentials } from "@/lib/actions"
 import { SignInSchema } from "@/lib/validation";
@@ -11,9 +10,13 @@ const SignIn = () => {
       schema={SignInSchema}
       formType="SIGN_IN"
       defaultValues={{ email: "", password: "" }}
-      onSubmitAction={(data) => signInWithCredentials({ params: data })} // ✅ Wrap here
+      onSubmitAction={(data) => signInWithCredentials(data)}
     />
   )
 };
 
-export default SignIn;
+export default SignIn; 
+
+
+
+
