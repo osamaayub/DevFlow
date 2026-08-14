@@ -1,9 +1,9 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 
 import { AuthForm } from "@/components/forms/AuthForm";
 import { Routes } from "@/constants/route";
+import { signInWithCredentials } from "@/lib/actions"; // Import your server action
 import { SignInSchema } from "@/lib/validation";
 
 const SignIn = () => {
@@ -14,29 +14,32 @@ const SignIn = () => {
       defaultValues={{ email: "", password: "" }}
       onSubmitAction={async (data) => {
         try {
-          const result = await signIn("credentials", {
+          const result = await signInWithCredentials({
             email: data.email,
             password: data.password,
-            callbackUrl: Routes.HOME,
-            redirect: true,
           });
 
-          const errorMessage = typeof result === "string" ? result : undefined;
-
-          if (errorMessage) {
+          if (!result.success) {
             return {
               success: false,
-              error: "Invalid email or password",
+              error: {
+                message: result.error?.message || "Sign in failed. Please try again.",
+              },
             };
           }
+
+          // Optional: redirect after successful sign in
+          window.location.href = Routes.HOME;
 
           return {
             success: true,
           };
-        } catch {
+        } catch (error:unknown) {
           return {
             success: false,
-            error: "Sign in failed. Please try again.",
+            error: {
+              message: "Sign in failed. Please try again.",
+            },
           };
         }
       }}
