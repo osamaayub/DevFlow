@@ -1,191 +1,321 @@
-import { Types } from "mongoose";
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import GitHub from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
-import slugify from "slugify";
+import bcrypt from "bcryptjs"
+import NextAuth from "next-auth"
+import type { User as NextAuthUser } from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import GitHub from "next-auth/providers/github"
+import Google from "next-auth/providers/google"
 
-import { User } from "@/database/models/User";
-import type { IUser } from "@/database/models/User";
-import { accountsApi, authApi } from "@/lib/api";
-import logger from "@/lib/logger";
-import { dbConnect } from "@/lib/mongoose";
+import { IUser, IAccount } from "@/database"
+import { api } from "@/lib"
+import logger from "@/lib/logger"
+import { SignInSchema } from "@/lib/validation"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  // adapter: MongoDBAdapter(mongoClientPromise),
+// Constants
+const OAUTH_PROVIDERS = ["github", "google"] as const
+type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]
+
+const isValidOAuthProvider = (provider: string): provider is OAuthProvider => {
+  return OAUTH_PROVIDERS.includes(provider as OAuthProvider)
+}
+
+const getOAuthAccount = async (providerAccountId: string): Promise<IAccount | null> => {
+  try {
+    const account = await api.accounts.getByProviderAccountId(providerAccountId)
+
+    if (!account) {
+      logger.warn({ providerAccountId }, "OAuth account not found")
+      return null
+    }
+
+    return account as unknown as IAccount
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error({ error, providerAccountId }, `Failed to retrieve OAuth account: ${errorMessage}`)
+    return null
+  }
+}
+
+/**
+ * Safe credentials account lookup by email
+ */
+const getCredentialsAccount = async (email: string): Promise<IAccount | null> => {
+  try {
+    const account = await api.accounts.getByEmail(email)
+
+    if (!account) {
+      logger.info({ email }, "Credentials account not found")
+      return null
+    }
+
+    return account as unknown as IAccount
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error({ error, email }, `Failed to retrieve credentials account: ${errorMessage}`)
+    return null
+  }
+}
+
+/**
+ * Safe user lookup
+ */
+const getUser = async (userId: string): Promise<IUser | null> => {
+  try {
+    const user = await api.users.getById(userId)
+
+    if (!user) {
+      logger.warn({ userId }, "User not found")
+      return null
+    }
+
+    return user as unknown as IUser
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error({ error, userId }, `Failed to retrieve user: ${errorMessage}`)
+    return null
+  }
+}
+
+/**
+ * Safe OAuth sign-in
+ */
+const performOAuthSignIn = async (
+  provider: OAuthProvider,
+  providerAccountId: string,
+  userInfo: {
+    name: string
+    email: string
+    image: string
+    username: string
+  }
+): Promise<boolean> => {
+  try {
+    // ✅ FIXED: Using api.auth cleanly without 'any' overrides
+    const user = await api.auth.signInOauth({
+      provider,
+      providerAccountId,
+      user: userInfo,
+      image: userInfo.image
+    })
+
+    if (!user) {
+      logger.warn(
+        { provider, providerAccountId, email: userInfo.email },
+        "OAuth sign-in API call failed"
+      )
+      return false
+    }
+
+    logger.info({ provider, email: userInfo.email }, "OAuth sign-in successful")
+    return true
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error(
+      { error, provider, providerAccountId, email: userInfo.email },
+      `OAuth sign-in failed: ${errorMessage}`
+    )
+    return false
+  }
+}
+
+/**
+ * Generate username from various sources
+ */
+const generateUsername = (
+  provider: OAuthProvider,
+  profile?: Record<string, unknown>,
+  userName?: string | null,
+  userEmail?: string | null
+): string => {
+  let username: string
+
+  if (provider === "github" && profile?.login) {
+    username = String(profile.login)
+  } else if (userName) {
+    username = userName.toLowerCase().replace(/\s+/g, "-")
+  } else if (userEmail) {
+    username = userEmail.split("@")[0]
+  } else {
+    username = `user-${Date.now()}`
+  }
+
+  return username
+    .replace(/[^a-z0-9-_]/g, "")
+    .substring(0, 30)
+    .replace(/^-+|-+$/g, "")
+}
+
+export const { handlers, signIn, auth } = NextAuth({
   providers: [
+    GitHub({
+      allowDangerousEmailAccountLinking: false
+    }),
+    Google({
+      allowDangerousEmailAccountLinking: false
+    }),
     Credentials({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const email = credentials?.email?.toString();
-        const password = credentials?.password?.toString();
-
-        if (!email || !password) {
-          return null;
+        if (!credentials) {
+          logger.warn("Credentials sign-in attempted with missing credentials")
+          return null
         }
+
+        const validatedFields = SignInSchema.safeParse(credentials)
+
+        if (!validatedFields.success) {
+          logger.warn(
+            { errors: validatedFields.error.flatten().fieldErrors },
+            "Credentials validation failed"
+          )
+          return null
+        }
+
+        const { email, password } = validatedFields.data
 
         try {
-          await dbConnect();
-          const user = (await User.findOne({ email })) as (IUser & { _id: Types.ObjectId }) | null;
+          const user = (await api.users.getByEmail(email)) as unknown as IUser | undefined
 
-          if (!user || user.password !== password) {
-            return null;
+          if (!user) {
+            logger.info({ email }, "User not found for credentials sign-in")
+            return null
           }
+
+          if (!user.password) {
+            logger.warn({ email }, "User has no password hash")
+            return null
+          }
+
+          const isValidPassword = await bcrypt.compare(password, user.password)
+
+          if (!isValidPassword) {
+            logger.warn({ email }, "Invalid password for credentials sign-in")
+            return null
+          }
+
+          logger.info({ email }, "Credentials sign-in successful")
 
           return {
-            id: user._id.toString(),
-            name: user.name,
-            email: user.email,
-            image: user.image || "",
-            username: user.username,
-          };
+            id: String(user._id ?? ""),
+            name: user.name ?? null,
+            email: user.email ?? null,
+            image: user.image ?? null
+          } as NextAuthUser
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          logger.error(
-            {
-              err: error,
-              message: errorMessage,
-              email,
-            },
-            "Credentials sign-in failed during user lookup",
-          );
-          return null;
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          logger.error({ error, email }, `Credentials authorize failed: ${errorMessage}`)
+          return null
         }
-      },
-    }),
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID || "",
-      clientSecret: process.env.AUTH_GITHUB_SECRET || "",
-    }),
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID || "",
-      clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
-    }),
+      }
+    })
   ],
-  secret: process.env.AUTH_SECRET,
+  pages: {
+    signIn: "/sign-in",
+    error: "/auth/error"
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60
+  },
   callbacks: {
-    async signIn({ user, account }) {
-      if (!user.email) {
-        return true;
+    async signIn({ user, account, profile }) {
+      if (account?.type === "credentials") {
+        return true
       }
 
-      const providerName = account?.provider;
-      const providerType = account?.type;
-      const isCredentials = providerType === "credentials" || providerName === "credentials";
-      const isOAuth =
-        providerType === "oauth" ||
-        providerName === "github" ||
-        providerName === "google";
+      if (!account || !user || !user.email) {
+        logger.warn({ provider: account?.provider }, "OAuth sign-in rejected: missing data")
+        return false
+      }
+
+      if (!isValidOAuthProvider(account.provider)) {
+        logger.error({ provider: account.provider }, "Unsupported OAuth provider")
+        return false
+      }
+
+      const provider = account.provider as OAuthProvider
 
       try {
-        await dbConnect();
+        const username = generateUsername(provider, profile, user.name, user.email)
 
-        if (isOAuth && providerName && account?.providerAccountId) {
-          const baseUsername =
-            user.image ||
-            user.name ||
-            user.email.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "") ||
-            "user";
-          const sluggedUsername = slugify(String(baseUsername), {
-            lower: true,
-            strict: true,
-            trim: true,
-          });
-
-          await authApi.signInOauth({
-            provider: providerName,
-            providerAccountId: account.providerAccountId,
-            user: {
-              name: user.name || baseUsername,
-              username: sluggedUsername,
-              email: user.email,
-              image: user.image || "",
-            },
-            image: user.image || "",
-          });
+        const userInfo = {
+          name: user.name ?? username,
+          email: user.email,
+          image: user.image ?? "",
+          username
         }
 
-        if (isCredentials) {
-          const existingUser = await User.findOne({ email: user.email });
-          if (!existingUser) {
-            logger.warn(
-              {
-                email: user.email,
-              },
-              "Credentials sign-in succeeded for user that does not exist in DB",
-            );
-          }
-        }
+        return await performOAuthSignIn(provider, account.providerAccountId, userInfo)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error)
         logger.error(
-          {
-            err: error,
-            message: errorMessage,
-            email: user.email,
-            provider: account?.provider,
-            providerAccountId: account?.providerAccountId,
-          },
-          "OAuth sign-in synchronization failed while syncing user account",
-        );
+          { error, provider: account.provider, email: user.email },
+          `signIn callback failed: ${errorMessage}`
+        )
+        return false
       }
-
-      return true;
     },
 
     async jwt({ token, account }) {
-      if (account?.providerAccountId) {
+      if (account) {
         try {
-          const providerAccount = await accountsApi.getByProviderAccountId(account.providerAccountId);
-          token.provider = providerAccount.provider || account.provider || token.provider;
-          token.userId = providerAccount.userId || token.userId;
+          let accountData: IAccount | null = null
+
+          if (account.type === "credentials") {
+            accountData = await getCredentialsAccount(token.email ?? "")
+          } else {
+            accountData = await getOAuthAccount(account.providerAccountId)
+          }
+
+          if (accountData?.userId) {
+            token.sub = accountData.userId.toString()
+          }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorMessage = error instanceof Error ? error.message : String(error)
           logger.error(
-            {
-              err: error,
-              message: errorMessage,
-              providerAccountId: account.providerAccountId,
-              provider: account.provider,
-            },
-            "Unable to resolve OAuth account from providerAccountId during JWT callback",
-          );
-          token.provider = account.provider || token.provider;
+            { error, provider: account.provider },
+            `JWT callback failed: ${errorMessage}`
+          )
         }
       }
-      return token;
+
+      return token
     },
 
     async session({ session, token }) {
-      const customToken = token as {
-        id?: string;
-        name?: string;
-        email?: string;
-        picture?: string;
-        provider?: string;
-      };
-
-      if (session.user) {
-        const sessionUser = session.user as {
-          id?: string;
-          username?: string;
-          provider?: string;
-          name?: string | null;
-          email?: string | null;
-          image?: string | null;
-        };
-
-        sessionUser.id = customToken.id ?? sessionUser.id;
-        sessionUser.name = customToken.name ?? sessionUser.name;
-        sessionUser.email = customToken.email ?? sessionUser.email;
-        sessionUser.image = customToken.picture ?? sessionUser.image;
-        sessionUser.provider = customToken.provider ?? sessionUser.provider;
+      if (!session.user || !token.sub) {
+        logger.warn("Session callback: missing user or token.sub")
+        return session
       }
-      return session;
-    },
-  },
-});
+
+      try {
+        const user = await getUser(token.sub)
+
+        if (user) {
+          session.user = {
+            ...session.user,
+            id: String(user._id ?? token.sub),
+            name: user.name ?? null,
+            email: user.email ?? null,
+            image: user.image ?? null,
+            emailVerified: null
+          } as typeof session.user // ✅ FIXED: Casts cleanly to what the session callback demands
+        } else {
+          logger.warn({ userId: token.sub }, "User not found in session callback")
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        logger.error({ error, userId: token.sub }, `Session callback failed: ${errorMessage}`)
+      }
+
+      return session
+    }
+  }
+})

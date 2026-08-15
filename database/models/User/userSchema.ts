@@ -1,6 +1,7 @@
 import { Schema } from "mongoose"
 
 export interface IUser {
+  _id: string // ✅ Added _id to fix TS2339 in auth.ts
   name: string
   username: string
   email: string
@@ -8,9 +9,9 @@ export interface IUser {
   image: string
   location?: string
   portfolio?: string
-  reputation?: number,
-  password:string,
-  joinedAt:Date,
+  reputation?: number
+  password?: string // ✅ Made optional (OAuth users might not have a password)
+  joinedAt?: Date
 }
 
 export const UserSchema = new Schema(
@@ -44,13 +45,13 @@ export const UserSchema = new Schema(
       type: Number,
       default: 0
     },
-    password:{
-      type:String,
-      minLength:4,
-      maxLength:8
+    password: {
+      type: String,
+      minLength: 4,
+      maxLength: 8
     },
-    joinedAt:{
-      type:Date
+    joinedAt: {
+      type: Date
     }
   },
   { timestamps: true }

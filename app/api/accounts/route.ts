@@ -12,7 +12,7 @@ export async function GET(){
 
   }catch(error: unknown){
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 }
 export async function POST(request: NextRequest){
@@ -29,6 +29,6 @@ export async function POST(request: NextRequest){
     return NextResponse.json({success: true, data: newAccount},{status:201}); 
   }catch(error: unknown){
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   } 
 }

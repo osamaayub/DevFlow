@@ -1,48 +1,51 @@
-import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { NextResponse } from "next/server"
+import { ZodError } from "zod"
 
-import { RequestError } from "@/lib/http-error";
-import logger from "@/lib/logger";
+import { RequestError } from "@/lib/http-error"
+import logger from "@/lib/logger"
 
-export type ResponseType = "api" | "server";
+export type ResponseType = "api" | "server"
 
-const DEFAULT_RESPONSE_TYPE: ResponseType = "server";
+const DEFAULT_RESPONSE_TYPE: ResponseType = "server"
 
 export const formatErrorMessage = (error?: Record<string, string[]>): string | undefined => {
-  if (!error) return undefined;
+  if (!error) return undefined
 
   return Object.entries(error)
     .map(([field, fieldErrors]) => `${field}: ${fieldErrors.join(", ")}`)
-    .join("; ");
-};
+    .join("; ")
+}
 
 const normalizeZodError = (error: ZodError): RequestError => {
   const fieldErrors = error.issues.reduce<Record<string, string[]>>((acc, issue) => {
-    const field = issue.path.length ? issue.path.join(".") : "root";
-    acc[field] = [...(acc[field] ?? []), issue.message];
-    return acc;
-  }, {});
+    const field = issue.path.length ? issue.path.join(".") : "root"
+    acc[field] = [...(acc[field] ?? []), issue.message]
+    return acc
+  }, {})
 
-  return new RequestError("Validation Error", 400, fieldErrors);
-};
+  return new RequestError("Validation Error", 400, fieldErrors)
+}
 
 export const HandleError = (
-  error: RequestError | ZodError | string,
+  error: RequestError | ZodError | Error | string, // ✅ Added Error
   responseType: ResponseType = DEFAULT_RESPONSE_TYPE,
   statusCode?: number,
-  message?: string,
+  message?: string
 ) => {
+  // Normalize to RequestError
   const requestError =
     error instanceof ZodError
       ? normalizeZodError(error)
       : error instanceof RequestError
         ? error
-        : new RequestError(message || String(error), statusCode ?? 500);
+        : error instanceof Error
+          ? new RequestError(message || error.message, statusCode ?? 500) // ✅ Handle Error
+          : new RequestError(message || String(error), statusCode ?? 500)
 
-  const finalStatusCode = requestError.statusCode ?? statusCode ?? 500;
-  const finalMessage = requestError.message || message || "Something went wrong";
+  const finalStatusCode = requestError.statusCode ?? statusCode ?? 500
+  const finalMessage = requestError.message || message || "Something went wrong"
   const normalizedError =
-    responseType === "server" ? formatErrorMessage(requestError.error) : requestError.error;
+    responseType === "api" ? formatErrorMessage(requestError.error) : requestError.error
 
   logger.error(
     {
@@ -50,22 +53,20 @@ export const HandleError = (
       responseType,
       statusCode: finalStatusCode,
       message: finalMessage,
-      error: normalizedError,
+      error: normalizedError
     },
-    "HandleError encountered an error",
-  );
+    "HandleError encountered an error"
+  )
 
   return NextResponse.json(
     {
       success: false,
       statusCode: finalStatusCode,
       message: finalMessage,
-      ...(normalizedError !== undefined ? { error: normalizedError } : {}),
+      ...(normalizedError !== undefined ? { error: normalizedError } : {})
     },
-    { status: finalStatusCode },
-  );
-};
+    { status: finalStatusCode }
+  )
+}
 
-export const formatResponse = HandleError;
-
-
+export const formatResponse = HandleError

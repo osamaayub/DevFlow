@@ -41,6 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 }

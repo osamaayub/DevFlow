@@ -1,132 +1,159 @@
 import { Routes } from "@/constants/route"
 
-import { fetchHandler, FetchOptions } from "./fetch";
-
+import { fetchHandler, FetchOptions } from "./fetch"
 
 export type UserSignUpPayload = {
-    name: string;
-    username: string;
-    email: string;
-    password: string;
-};
+  name: string
+  username: string
+  email: string
+  password: string
+}
 
 export type AccountCreatePayload = {
-    email: string;
-    provider: string;
-    providerAccountId: string;
-    userId: string;
-    name?: string;
-    password?: string;
-    image?: string;
-};
+  email: string
+  provider: string
+  providerAccountId: string
+  userId: string
+  name?: string
+  password?: string
+  image?: string
+}
 
 export type OauthSignInPayload = {
-    provider: string;
-    providerAccountId: string;
-    user: {
-        name: string;
-        username: string;
-        email: string;
-        image?: string;
-    };
-    image?: string;
-};
+  provider: "github" | "google"
+  providerAccountId: string
+  user: {
+    name: string
+    username: string
+    email: string
+    image?: string
+  }
+  image?: string
+}
+
+export interface AuthCredentials {
+  name: string
+  username: string
+  email: string
+  password: string
+}
 
 export type UserDto = {
-    _id: string;
-    name: string;
-    username: string;
-    email: string;
-    bio?: string;
-    image?: string;
-    location?: string;
-    portfolio?: string;
-    reputation?: number;
-    joinedAt: string;
-};
+  _id: string
+  name: string
+  username: string
+  email: string
+  bio?: string
+  image?: string
+  location?: string
+  portfolio?: string
+  reputation?: number
+  joinedAt: string,
+  password:string
+}
 
 export type AccountDto = {
-    _id: string;
-    email: string;
-    provider: string;
-    providerAccountId: string;
-    userId: string;
-    name?: string;
-    image?: string;
-    createdAt: string;
-    updatedAt: string;
-};
+  _id: string
+  email: string
+  provider: string
+  providerAccountId: string
+  userId: string
+  name?: string
+  image?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ActionResponse<T> = {
+  success: boolean
+  data?: T
+  error?: string
+}
 
 const API_BASE_URL = (() => {
-    if (typeof window !== "undefined") {
-        return "";
-    }
+  if (typeof window !== "undefined") {
+    return ""
+  }
 
-    const baseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL ||
-        process.env.NEXTAUTH_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
-        "http://127.0.0.1:3000";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+    "http://127.0.0.1:3000"
 
-    return baseUrl;
-})();
+  return baseUrl
+})()
 
 const defaultOptions: FetchOptions = {
-    timeoutMs: 15000,
-    retryDelayMs: 300,
-    throwOnErrorBody: true,
-    credentials: "same-origin",
-    headers: {
-        Accept: "application/json",
-    },
-};
+  timeoutMs: 15000,
+  retryDelayMs: 300,
+  throwOnErrorBody: true,
+  credentials: "same-origin",
+  headers: {
+    Accept: "application/json"
+  }
+}
 
 const baseOptions = (options: FetchOptions = {}): FetchOptions => {
-    const method = options.method ? String(options.method).toUpperCase() : "GET";
-    const retries = options.retries ?? (method === "GET" || method === "HEAD" ? 1 : 0);
+  const method = options.method ? String(options.method).toUpperCase() : "GET"
+  const retries = options.retries ?? (method === "GET" || method === "HEAD" ? 1 : 0)
 
-    return {
-        ...defaultOptions,
-        ...options,
-        retries,
-        headers: {
-            ...(defaultOptions.headers as Record<string, string>),
-            ...(options.headers as Record<string, string> | undefined),
-        },
-    };
-};
+  return {
+    ...defaultOptions,
+    ...options,
+    retries,
+    headers: {
+      ...(defaultOptions.headers as Record<string, string>),
+      ...(options.headers as Record<string, string> | undefined)
+    }
+  }
+}
 
-const getApiUrl = (path: string) => `${API_BASE_URL}${path}`;
+export const getApiUrl = (path: string) => `${API_BASE_URL}${path}`
 
-const apiRequest = async <T>(path: string, options: FetchOptions = {}) => {
-    const response = await fetchHandler<T>(getApiUrl(path), baseOptions(options));
-    return response.data;
-};
+export const apiRequest = async <T>(path: string, options: FetchOptions = {}) => {
+  const response = await fetchHandler<T>(getApiUrl(path), baseOptions(options))
+  return response.data
+}
 
 export const usersApi = {
-    getAll: () => apiRequest<UserDto[]>("/api/users"),
-    getById: (id: string) => apiRequest<UserDto>(`/api/users/${id}`),
-    getByEmail: (email: string) => apiRequest<UserDto[]>("/api/users/email", { method: "POST", json: { email } }),
-    create: (payload: UserSignUpPayload) => apiRequest<UserDto>("/api/users", { method: "POST", json: payload }),
-    update: (id: string, payload: Partial<UserSignUpPayload>) => apiRequest<UserDto>(`/api/users/${id}`, { method: "PUT", json: payload }),
-    delete: (id: string) => apiRequest<void>(`/api/users/${id}`, { method: "DELETE" }),
-};
+  getAll: () => apiRequest<UserDto[]>("/api/users"),
+  getById: (id: string) => apiRequest<UserDto>(`/api/users/${id}`),
+  getByEmail: (email: string) =>
+    apiRequest<UserDto>("/api/users/email", { method: "POST", json: { email } }),
+  create: (payload: UserSignUpPayload) =>
+    apiRequest<UserDto>("/api/users", { method: "POST", json: payload }),
+  update: (id: string, payload: Partial<UserSignUpPayload>) =>
+    apiRequest<UserDto>(`/api/users/${id}`, { method: "PUT", json: payload }),
+  delete: (id: string) => apiRequest<void>(`/api/users/${id}`, { method: "DELETE" })
+}
 
 export const accountsApi = {
-    getAll: () => apiRequest<AccountDto[]>("/api/accounts"),
-    getById: (id: string) => apiRequest<AccountDto>(`/api/accounts/${id}`),
-    getByProviderAccountId: (providerAccountId: string) => apiRequest<AccountDto>("/api/accounts/provider", {
-        method: "POST",
-        json: { providerAccountId },
+  getAll: () => apiRequest<AccountDto[]>("/api/accounts"),
+  getById: (id: string) => apiRequest<AccountDto>(`/api/accounts/${id}`),
+  // ✅ FIXED: Renamed from getByEmail - looks up account by email for credentials provider
+  getByEmail: (email: string) =>
+    apiRequest<AccountDto>("/api/accounts/email", {
+      method: "POST",
+      json: { email }
     }),
-    create: (payload: AccountCreatePayload) => apiRequest<AccountDto>("/api/accounts", { method: "POST", json: payload }),
-    update: (id: string, payload: Partial<AccountCreatePayload>) => apiRequest<AccountDto>(`/api/accounts/${id}`, { method: "PUT", json: payload }),
-    delete: (id: string) => apiRequest<void>(`/api/accounts/${id}`, { method: "DELETE" }),
-};
+  // ✅ FIXED: Correct method for OAuth account lookup
+  getByProviderAccountId: (providerAccountId: string) =>
+    apiRequest<AccountDto>("/api/accounts/provider", {
+      method: "POST",
+      json: { providerAccountId }
+    }),
+  create: (payload: AccountCreatePayload) =>
+    apiRequest<AccountDto>("/api/accounts", { method: "POST", json: payload }),
+  update: (id: string, payload: Partial<AccountCreatePayload>) =>
+    apiRequest<AccountDto>(`/api/accounts/${id}`, { method: "PUT", json: payload }),
+  delete: (id: string) => apiRequest<void>(`/api/accounts/${id}`, { method: "DELETE" })
+}
 
 export const authApi = {
-    signInOauth: (payload: OauthSignInPayload) => apiRequest<UserDto>(`/api/auth/${Routes.SIGN_IN_WITH_OAUTH}`, {
-        method: "POST",
-        json: payload,
-    }),
-};
+  signInOauth: (payload: OauthSignInPayload) =>
+    apiRequest<UserDto>(`/api/auth/${Routes.SIGN_IN_WITH_OAUTH}`, {
+      method: "POST",
+      json: payload
+    })
+}
