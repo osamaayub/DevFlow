@@ -28,7 +28,7 @@ export const GET = async (
     return NextResponse.json({ success: true, data: account }, { status: 200 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 };
 
@@ -58,7 +58,7 @@ export const DELETE = async (
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 };
 
@@ -78,6 +78,6 @@ export const PUT = async (
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 };

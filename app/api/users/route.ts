@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: users, statusCode: 200 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, data: user }, { status: 201 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as ApiErrorResponse;
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
   }
 }
 
