@@ -62,14 +62,7 @@ export function AuthForm<T extends FieldValues>({
       } else {
         router.push(Routes.HOME) // Send them home after successfully logging in
       }
-    } catch (error: unknown) {
-      const err = error as { digest?: string }
-
-      // Allow Next.js internal redirection errors to pass through successfully
-      if (err?.digest?.includes("NEXT_REDIRECT")) {
-        return
-      }
-
+    } catch{
       toast.error(
         formType === "SIGN_IN"
           ? "Unable to complete sign-in. Please try again."

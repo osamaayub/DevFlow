@@ -85,7 +85,7 @@ export async function signUpWithCredentials(
   }
 
   try {
-    await signIn("credentials", { email, password, redirect: true });
+    await signIn("credentials", { email, password, redirect: false });
     return { success: true };
   } catch (error: unknown) { // ✅ Explicitly typed as unknown
     if (error instanceof AuthError) {
