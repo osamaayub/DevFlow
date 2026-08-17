@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 
-import { Routes } from "@/constants/route";
+import Routes  from "@/constants/route";
 
 import NavLinks from "./navbar/NavLinks";
 import { Button } from "../ui/button";
@@ -23,7 +23,7 @@ const LeftSidebar = () => {
         <Button
           type="button"
           onClick={() => signOut()}
-          className="base-medium w-fit !bg-transparent px-4 py-3"
+          className="base-medium w-fit bg-transparent! px-4 py-3"
         >
           <LogOut className="size-5 text-black dark:text-white" />
           <span className="text-dark300_light900 max-lg:hidden">Logout</span>
@@ -31,7 +31,7 @@ const LeftSidebar = () => {
 
       ):(
         <>
-        <Button asChild className="small-medium  btn-secondary min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none">
+        <Button asChild className="small-medium  btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none">
           <Link href={Routes.SIGN_IN}>
           <Image src={"/icons/account.svg"} alt="Account Image" width={20} height={20}
           className="invert-colors lg:hidden"
@@ -39,7 +39,7 @@ const LeftSidebar = () => {
          <span className="primary-text-gradient max-lg:hidden"> Log In</span>
           </Link>
         </Button>
-        <Button asChild className="small-medium  btn-tertiary text-dark400_light900 min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none">
+        <Button asChild className="small-medium  btn-tertiary text-dark400_light900 min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none">
       <Link href={Routes.SIGN_UP}>
       <Image src={"/icons/sign-up.svg"} alt="sign Up" width={20} height={20}
       className="invert-colors lg:hidden"
@@ -55,4 +55,3 @@ const LeftSidebar = () => {
 }
 
 export default LeftSidebar
- 

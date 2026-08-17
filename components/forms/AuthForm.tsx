@@ -17,13 +17,15 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Routes } from "@/constants/route"
+import Routes from "@/constants/route"
 
+// Assuming ActionResponse is defined globally or imported.
+// If not, you may need to import it at the top of your file.
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodTypeAny
   formType: "SIGN_UP" | "SIGN_IN"
   defaultValues: T
-  onSubmitAction: (data: T) => Promise<ActionResponse>
+  onSubmitAction: (data: T) => Promise<{ success: boolean; error?: { message: string } }>
 }
 
 export function AuthForm<T extends FieldValues>({
@@ -51,7 +53,15 @@ export function AuthForm<T extends FieldValues>({
         formType === "SIGN_IN" ? "Signed in successfully!" : "Account created successfully!"
       )
 
-      router.push(Routes.HOME)
+      // FIX 1: Reset the form fields after successful submission
+      form.reset()
+
+      // FIX 2: Redirect conditionally based on the form type
+      if (formType === "SIGN_UP") {
+        router.push(Routes.SIGN_IN) // Send them to login after creating an account
+      } else {
+        router.push(Routes.HOME) // Send them home after successfully logging in
+      }
     } catch (error: unknown) {
       const err = error as { digest?: string }
 
@@ -96,6 +106,7 @@ export function AuthForm<T extends FieldValues>({
             )}
           />
         ))}
+
         {form.formState.errors.root && (
           <p className="text-sm text-red-500">{form.formState.errors.root.message}</p>
         )}

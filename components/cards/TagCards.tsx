@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
-import { Routes } from "@/constants/route"
+import  Routes  from "@/constants/route"
 import { getDevinconClassName } from "@/lib/utils"
 
 import { Badge } from "../ui/badge"
@@ -42,7 +42,6 @@ const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, 
     </>
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   {showCount && (
       <p className="small-medium text-dark500_light700">{questions}</p>
     )
@@ -54,7 +53,7 @@ const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, 
       </button>
     ) : (
       <>
-        <Link href={Routes.TAGS(_id)} className="flex justify-between gap-2">
+        <Link href={Routes.TAG(_id)} className="flex justify-between gap-2">
           {Content}
         </Link>
       </>

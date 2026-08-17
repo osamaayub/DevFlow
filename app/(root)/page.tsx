@@ -5,7 +5,7 @@ import HomeFilters from "@/components/filters/HomeFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { Button } from "@/components/ui/button"
 import { questions } from "@/constants/filter"
-import { Routes } from "@/constants/route"
+import Routes  from "@/constants/route"
 
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>
@@ -25,7 +25,7 @@ const Home = async ({ searchParams }: SearchParams) => {
       <section className="w-full flex flex-col-reverse sm:flex-row justify-between gap-4 sm:items-center">
         <h1 className=" h1-bold text-dark100_light900">All Questions</h1>
         <Button className="primary-gradient text-light-900! min-h-11.5 px-4 py-3" asChild>
-          <Link href={Routes.Ask_A_Question}>Ask a Question</Link>
+          <Link href={Routes.ASK_QUESTION}>Ask a Question</Link>
         </Button>
       </section>
       <section className="mt-11">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Routes } from "@/constants/route";
+import  Routes  from "@/constants/route";
 
 import TagCards from "./TagCards";
 import Metric from "../Metric";

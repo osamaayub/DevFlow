@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Routes } from "@/constants/route";
+import Routes  from "@/constants/route";
 
 import NavLinks from "./NavLinks";
 
