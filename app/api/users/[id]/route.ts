@@ -83,7 +83,8 @@ export async function DELETE(
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
     return NextResponse.json({
       success:false,
-      status:500
+      status:500,
+      errorMessage
     })
   }
 }
