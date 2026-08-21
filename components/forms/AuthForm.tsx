@@ -17,7 +17,17 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Routes } from "@/constants/route"
+import Routes from "@/constants/route"
+
+// Define what your Server Actions return
+interface ActionResponse {
+  success: boolean
+  status?: number
+  error?: {
+    message: string
+    details?: Record<string, string[]>
+  }
+}
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodTypeAny
@@ -36,6 +46,7 @@ export function AuthForm<T extends FieldValues>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>
   })
+
   const router = useRouter()
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
@@ -51,15 +62,19 @@ export function AuthForm<T extends FieldValues>({
         formType === "SIGN_IN" ? "Signed in successfully!" : "Account created successfully!"
       )
 
-      router.push(Routes.HOME)
-    } catch (error: unknown) {
-      const err = error as { digest?: string }
+      // FIX 1: Clear the form inputs after a successful submission
+      form.reset()
 
-      // Allow Next.js internal redirection errors to pass through successfully
-      if (err?.digest?.includes("NEXT_REDIRECT")) {
-        return
+      // FIX 2: Redirect the user manually to the correct page
+      if (formType === "SIGN_UP") {
+        router.push(Routes.SIGN_IN)
+      } else {
+        router.push(Routes.HOME)
       }
-
+    } catch {
+      // FIX 3: Removed the unused error binding to fix the ESLint warning.
+      // Since the server action returns `success: false` on expected errors,
+      // this catch block now only handles severe unexpected crashes.
       toast.error(
         formType === "SIGN_IN"
           ? "Unable to complete sign-in. Please try again."
@@ -96,6 +111,7 @@ export function AuthForm<T extends FieldValues>({
             )}
           />
         ))}
+
         {form.formState.errors.root && (
           <p className="text-sm text-red-500">{form.formState.errors.root.message}</p>
         )}
@@ -113,14 +129,14 @@ export function AuthForm<T extends FieldValues>({
         </Button>
 
         {formType === "SIGN_IN" ? (
-          <p className="text-sm text-center">
+          <p className="text-sm text-center mt-5">
             Don&#39;t have an account?{" "}
             <Link href={Routes.SIGN_UP} className="paragraph-semibold primary-text-gradient">
               SIGN UP
             </Link>
           </p>
         ) : (
-          <p className="text-sm text-center">
+          <p className="text-sm text-center mt-5">
             Already have an account?{" "}
             <Link href={Routes.SIGN_IN} className="paragraph-semibold primary-text-gradient">
               SIGN IN

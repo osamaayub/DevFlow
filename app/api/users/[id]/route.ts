@@ -81,6 +81,10 @@ export async function DELETE(
     return NextResponse.json({ success: true, data: user, status: 200 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-    return HandleError(errorMessage) as unknown as APIErrorResponse;
+    return NextResponse.json({
+      success:false,
+      status:500,
+      errorMessage
+    })
   }
 }

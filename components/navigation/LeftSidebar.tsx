@@ -1,58 +1,71 @@
-"use client";
-import { LogOut } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { LogOut } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import React from "react"
 
-import { Routes } from "@/constants/route";
+import { auth } from "@/auth"
+import ROUTES from "@/constants/route"
+import { logout } from "@/lib/actions/signOut.action"
 
-import NavLinks from "./navbar/NavLinks";
-import { Button } from "../ui/button";
+import NavLinks from "./navbar/NavLinks"
+import { Button } from "../ui/button"
 
-const LeftSidebar = () => {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
+const LeftSidebar = async () => {
+  const session = await auth()
+  const userId = session?.user?.id
 
   return (
-    <section className="custom-scrollbar background-light900_dark200  light-border sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto border-r p-6 pt-36 shadow-light-300 dark:shadow-none max-sm:hidden lg:w-[266px]">
-      <div className="flex flex-col gap-6 mb-5">
-        <NavLinks userId={userId}/>
+    <section className="custom-scrollbar background-light900_dark200 light-border sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto border-r p-6 pt-36 shadow-light-300 dark:shadow-none max-sm:hidden lg:w-[266px]">
+      <div className="flex flex-1 flex-col gap-6">
+        <NavLinks userId={userId} />
       </div>
-      <div className="flex flex-1 flex-col gap-3">
-      {userId ? (
-        <Button
-          type="button"
-          onClick={() => signOut()}
-          className="base-medium w-fit !bg-transparent px-4 py-3"
-        >
-          <LogOut className="size-5 text-black dark:text-white" />
-          <span className="text-dark300_light900 max-lg:hidden">Logout</span>
-        </Button>
 
-      ):(
-        <>
-        <Button asChild className="small-medium  btn-secondary min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none">
-          <Link href={Routes.SIGN_IN}>
-          <Image src={"/icons/account.svg"} alt="Account Image" width={20} height={20}
-          className="invert-colors lg:hidden"
-          />
-         <span className="primary-text-gradient max-lg:hidden"> Log In</span>
-          </Link>
-        </Button>
-        <Button asChild className="small-medium  btn-tertiary text-dark400_light900 min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none">
-      <Link href={Routes.SIGN_UP}>
-      <Image src={"/icons/sign-up.svg"} alt="sign Up" width={20} height={20}
-      className="invert-colors lg:hidden"
-      />
-      <span className="max-lg:hidden">Sign Up</span>
-      </Link>
-        </Button>
-        </>
-      )}
+      <div className="flex flex-col gap-3">
+        {userId ? (
+          <form action={logout}>
+            <Button type="submit" className="base-medium w-fit bg-transparent! px-4 py-3">
+              <LogOut className="size-5 text-black dark:text-white" />
+              <span className="text-dark300_light900 max-lg:hidden">Logout</span>
+            </Button>
+          </form>
+        ) : (
+          <>
+            <Button
+              className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none"
+              asChild
+            >
+              <Link href={ROUTES.SIGN_IN}>
+                <Image
+                  src="/icons/account.svg"
+                  alt="Account"
+                  width={20}
+                  height={20}
+                  className="invert-colors lg:hidden"
+                />
+                <span className="primary-text-gradient max-lg:hidden">Log In</span>
+              </Link>
+            </Button>
+
+            <Button
+              className="small-medium light-border-2 btn-tertiary text-dark400_light900 min-h-10.25 w-full rounded-lg border px-4 py-3 shadow-none"
+              asChild
+            >
+              <Link href={ROUTES.SIGN_UP}>
+                <Image
+                  src="/icons/sign-up.svg"
+                  alt="Account"
+                  width={20}
+                  height={20}
+                  className="invert-colors lg:hidden"
+                />
+                <span className="max-lg:hidden">Sign Up</span>
+              </Link>
+            </Button>
+          </>
+        )}
       </div>
     </section>
   )
 }
 
 export default LeftSidebar
- 
