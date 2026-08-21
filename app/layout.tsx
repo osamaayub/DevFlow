@@ -3,8 +3,8 @@ import { Inter, Space_Grotesk } from "next/font/google"
 import "./globals.css"
 import { ReactNode } from "react"
 
-import { auth } from "@/auth"
 import { Providers } from "@/app/Providers"
+import { auth } from "@/auth"
 
 const inter = Inter({
   variable: "--font-inter",
