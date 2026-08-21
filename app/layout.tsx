@@ -3,8 +3,8 @@ import { Inter, Space_Grotesk } from "next/font/google"
 import "./globals.css"
 import { ReactNode } from "react"
 
-import { auth } from "@/auth"
 import { Providers } from "@/app/Providers"
+import { auth } from "@/auth"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,7 +36,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
         <link
           rel="stylesheet"
           type="text/css"
-          href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+          href={"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"}
         />
       </head>
       <body className={`${inter.className} ${spaceGrotesk.variable} antialiased`}>
