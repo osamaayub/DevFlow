@@ -4,37 +4,61 @@ import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
 
-// Adjust these imports to match your project's exact folder structure
 import { Account, User } from "@/database"
+import logger from "@/lib/logger"
 import { dbConnect } from "@/lib/mongoose"
 
-export const { handlers, signIn, auth } = NextAuth({
+function buildOAuthUsername(
+  provider: string,
+  profile: Record<string, unknown> | undefined,
+  name: string,
+  email: string,
+  providerAccountId: string
+) {
+  if (provider === "github" && typeof profile?.login === "string") {
+    return profile.login
+  }
+
+  const fromName = name.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9._-]/g, "")
+  if (fromName) return fromName
+
+  const fromEmail = email.split("@")[0]?.toLowerCase().replace(/[^a-z0-9._-]/g, "")
+  if (fromEmail) return fromEmail
+
+  return `${provider}_${providerAccountId}`.slice(0, 30)
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
-    GitHub,
-    Google,
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET
+    }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET
+    }),
     Credentials({
       async authorize(credentials) {
-        // 1. Extract credentials directly (bypassing Zod here since the Server Action already validated it)
         const email = credentials?.email as string
         const password = credentials?.password as string
 
         if (!email || !password) {
-          console.log("❌ NextAuth Error: Missing credentials")
+          logger.error("❌ NextAuth Error: Missing credentials")
           return null
         }
 
         try {
-          // 2. Connect directly to the database
           await dbConnect()
 
-          // 3. Query the DB directly
           const existingAccount = (await Account.findOne({
             provider: "credentials",
             providerAccountId: email
           }).lean()) as { userId: string; password?: string } | null
 
           if (!existingAccount || !existingAccount.password) {
-            console.log("❌ NextAuth Error: Account not found")
+            logger.info("❌ NextAuth Error: Account not found")
             return null
           }
 
@@ -46,18 +70,17 @@ export const { handlers, signIn, auth } = NextAuth({
           } | null
 
           if (!existingUser) {
-            console.log("❌ NextAuth Error: User not found")
+            logger.error("❌ NextAuth Error: User not found")
             return null
           }
 
           const isValidPassword = await bcrypt.compare(password, existingAccount.password)
 
           if (!isValidPassword) {
-            console.log("❌ NextAuth Error: Invalid password")
+            logger.error("❌ NextAuth Error: Invalid password")
             return null
           }
 
-          // 4. Success! Return the user object
           return {
             id: existingUser._id.toString(),
             name: existingUser.name,
@@ -65,7 +88,7 @@ export const { handlers, signIn, auth } = NextAuth({
             image: existingUser.image
           }
         } catch (error) {
-          console.error("❌ NextAuth authorize error:", error)
+          logger.error(`❌ NextAuth authorize error: ${error}`)
           return null
         }
       }
@@ -87,7 +110,7 @@ export const { handlers, signIn, auth } = NextAuth({
         const existingAccount = (await Account.findOne(
           account.type === "credentials"
             ? { provider: "credentials", providerAccountId: providerId }
-            : { providerAccountId: providerId }
+            : { provider: account.provider, providerAccountId: providerId }
         ).lean()) as { userId: string } | null
 
         if (!existingAccount) return token
@@ -100,25 +123,32 @@ export const { handlers, signIn, auth } = NextAuth({
       return token
     },
     async signIn({ user, profile, account }) {
-      // Credentials login is already handled by the authorize function
       if (account?.type === "credentials") return true
       if (!account || !user) return false
 
-      // Ensure DB is connected for OAuth handling
+      const email = user.email?.trim()
+      if (!email) {
+        logger.error("❌ OAuth SignIn Error: Provider did not return an email")
+        return false
+      }
+
       await dbConnect()
 
+      const name = user.name?.trim() || email.split("@")[0] || "User"
       const userInfo = {
-        name: user.name || "No Name",
-        email: user.email || "",
+        name,
+        email,
         image: user.image || "",
-        username:
-          account.provider === "github"
-            ? (profile?.login as string)
-            : (user.name?.toLowerCase().replace(/\s/g, "") as string)
+        username: buildOAuthUsername(
+          account.provider,
+          profile as Record<string, unknown> | undefined,
+          name,
+          email,
+          account.providerAccountId
+        )
       }
 
       try {
-        // 1. Check if the user exists, if not, create them
         let existingUser = await User.findOne({ email: userInfo.email })
 
         if (!existingUser) {
@@ -130,7 +160,6 @@ export const { handlers, signIn, auth } = NextAuth({
           })
         }
 
-        // 2. Check if the OAuth account is linked, if not, create it
         const existingAccount = await Account.findOne({
           provider: account.provider,
           providerAccountId: account.providerAccountId
@@ -142,13 +171,13 @@ export const { handlers, signIn, auth } = NextAuth({
             provider: account.provider,
             providerAccountId: account.providerAccountId,
             name: userInfo.name,
-            email: userInfo.email
+            image: userInfo.image
           })
         }
 
         return true
       } catch (error) {
-        console.error("❌ OAuth SignIn Error:", error)
+        logger.error(`❌ OAuth SignIn Error: ${error}`)
         return false
       }
     }

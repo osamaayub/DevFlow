@@ -1,8 +1,12 @@
-export { auth as middleware } from "@/auth"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-// Optionally, you can add a matcher to optimize where the middleware runs:
+// Do not import `@/auth` here — it pulls Mongoose into the Edge runtime
+// and breaks Google/GitHub OAuth. Protect routes in Server Components via `auth()` instead.
+export function middleware(_request: NextRequest) {
+  return NextResponse.next()
+}
+
 export const config = {
-  // The matcher dictates which routes the middleware will run on.
-  // This regex excludes static files, next internals, and images.
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"]
 }
