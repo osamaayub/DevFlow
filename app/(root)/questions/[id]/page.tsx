@@ -1,7 +1,7 @@
 import React from "react"
 
-const  QuestionDetails=async (params:RouteParams)=> {
-   const {id}= await  params;
+const  QuestionDetails=async ({ params }: { params: Promise<{ id: string }> })=> {
+   const {id}=  await params;
 
   return (
     <div>
