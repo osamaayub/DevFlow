@@ -42,10 +42,6 @@ const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, 
     </>
   );
 
-  {showCount && (
-      <p className="small-medium text-dark500_light700">{questions}</p>
-    )
-  }
   return compact ? (
     isButton ? (
       <button className="flex justify-between gap-2">

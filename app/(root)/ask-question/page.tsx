@@ -1,15 +1,22 @@
-import { QuestionForm } from "@/components/forms/QuestionForm";
+import { redirect } from "next/navigation"
 
+import { auth } from "@/auth"
+import { QuestionForm } from "@/components/forms/QuestionForm"
 
-const AskQuestion = () => {
+export default async function AskQuestion() {
+  const session = await auth();
+  const userId = session?.user?.id ? String(session.user.id) : null;
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   return (
-    <>
-    <h1 className="h1-bold text-dark100_light900">Ask a Public Question</h1>
-    <div className="mt-9">
-     <QuestionForm/>
+    <div>
+      <h1 className="h1-bold text-dark100_light900">Ask a Public Question</h1>
+      <div className="mt-9">
+        <QuestionForm />
+      </div>
     </div>
-  </>
   );
-};
-
-export default AskQuestion;
+}

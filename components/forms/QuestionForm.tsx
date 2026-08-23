@@ -1,14 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MDXEditorMethods } from "@mdxeditor/editor";
-import dynamic from "next/dynamic";
-import { useRef, type KeyboardEvent } from "react";
+import { MDXEditorMethods } from "@mdxeditor/editor"
+import { LoaderIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import React, { useRef, type KeyboardEvent, useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner"
 import z from "zod";
 
+import { Editor } from "@/components/editor"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ROUTES from "@/constants/route"
+import { createQuestion } from "@/lib/actions/question.action"
 import { AskQuestionSchema } from "@/lib/validation";
 
 import TagCards from "../cards/TagCards";
@@ -22,6 +27,8 @@ import {
   FormMessage,
 } from "../ui/form";
 export function QuestionForm() {
+  const router=useRouter();
+  const [isPending,startTransition]=useTransition();
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
@@ -31,10 +38,16 @@ export function QuestionForm() {
     },
   });
   const editorRef = useRef<MDXEditorMethods>(null);
-  const Editor = dynamic(() => import("@/components/editor").then((mod) => mod.Editor), {
-    ssr: false,
-  });
-  const handleCreateQuestion = () => {
+  const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+     startTransition(async () => {
+       const result=await createQuestion(data);
+       if(result?.data){
+         toast.success("Question created successfully")
+         router.push(ROUTES.QUESTION(result.data._id));
+       } else {
+         toast.error(result?.error?.message || "Something went Wrong")
+       }
+     });
 
   };
   const handleTagRemove = (tag: string, field:{value:string[]}) => {
@@ -48,9 +61,7 @@ export function QuestionForm() {
     }
 
   }
-  const handleClick=(e:React.MouseEvent)=>{
-   e.preventDefault();
-  }
+
 
   const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>, field: { value: string[] }) => {
     if (e.key === "Enter") {
@@ -97,7 +108,7 @@ export function QuestionForm() {
                   type="text"
                   placeholder={`Enter ${field.name}`}
                   {...field}
-                  className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px]  border"
+                  className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-14  border"
                 />
               </FormControl>
               <FormDescription className="body-regular text-light-500 mt-2.5">
@@ -145,7 +156,7 @@ export function QuestionForm() {
                   <Input
                     placeholder='Add Tags...'
 
-                    className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px]  border"
+                    className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-14  border"
                     onKeyDown={(e) => { handleInputKeyDown(e, field) }}
                   />
                   {field.value.length > 0 && (
@@ -176,8 +187,18 @@ export function QuestionForm() {
           )}
         />
         <div className="mt-16 flex justify-end">
-          <Button onClick={handleClick} type="submit" className="primary-gradient !text-light-900 w-fit">
-            Ask a Question
+          <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="primary-gradient text-light-900! w-fit">
+            {isPending ? (
+              <>
+                <LoaderIcon className="mr-2 size-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Ask a Question"
+            )}
           </Button>
         </div>
       </form>

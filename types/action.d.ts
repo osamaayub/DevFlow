@@ -9,9 +9,14 @@ export type ActionOptions<T>={
     
 
 }
-export  interface AuthCredentials{
- name:string,
- username:string,
- email:string,
- password:string
+export interface AuthCredentials {
+  name: string
+  username: string
+  email: string
+  password: string
+}
+export interface createQuestionParams {
+  title: string
+  content: string
+  tags: string[]
 }
