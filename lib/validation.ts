@@ -86,4 +86,11 @@ export const signInOauthSchema = z.object({
     email: z.string().email({ message: "please Provide a Valid Email Address" }), 
   }),
   image: z.string().url({ message: "Image must be a valid URL." }).optional(),
-}); 
+});
+
+export const EditQuestionSchema=AskQuestionSchema.extend({
+questionId:z.string().min(1,{message:"QuestionId is required"})
+})
+export const GetQuestionSchema=z.object({
+  questionId:z.string().min(1,{message:"QuestionId is required"})
+})

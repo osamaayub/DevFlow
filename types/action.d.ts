@@ -20,3 +20,9 @@ export interface createQuestionParams {
   content: string
   tags: string[]
 }
+export interface  EditQuestionParams extends createQuestionParams {
+  questionId: string
+}
+export interface  GetQuestionParams{
+  questionId:string
+}
