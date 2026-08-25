@@ -33,8 +33,8 @@ const NavLinks = ({ isMobileNav,userId}:{isMobileNav?:boolean,userId?:string}) =
             className={cn(
               isActive
                 ? "primary-gradient rounded-lg text-light-900"
-                : "text-dark300_light900",
-              "flex items-center justify-start gap-4 bg-transparent p-1.5",
+                : "text-light-900 hover:bg-dark300/50",
+              "flex items-center justify-start gap-4 bg-transparent p-2 transition-colors",
             )}
           >
             <Image

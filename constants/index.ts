@@ -11,11 +11,6 @@ export const sidebarLinks = [
     label: "Home"
   },
   {
-    imgURL: "/icons/users.svg",
-    route: "/community",
-    label: "Community"
-  },
-  {
     imgURL: "/icons/star.svg",
     route: "/collection",
     label: "Collections"
@@ -31,6 +26,11 @@ export const sidebarLinks = [
     label: "Tags"
   },
   {
+    imgURL: "/icons/users.svg",
+    route: "/community",
+    label: "Communities"
+  },
+  {
     imgURL: "/icons/user.svg",
     route: "/profile",
     label: "Profile"
@@ -38,7 +38,7 @@ export const sidebarLinks = [
   {
     imgURL: "/icons/question.svg",
     route: "/ask-question",
-    label: "Ask a question"
+    label: "Ask a Question"
   }
 ]
 

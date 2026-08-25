@@ -3,12 +3,12 @@ import Image from "next/image"
 import Link from "next/link"
 import React from "react"
 
-import { auth } from "@/auth"
+import { auth, signOut } from "@/auth"
 import ROUTES from "@/constants/route"
-import { logout } from "@/lib/actions/signOut.action"
 
 import NavLinks from "./navbar/NavLinks"
 import { Button } from "../ui/button"
+
 
 const LeftSidebar = async () => {
   const session = await auth()
@@ -22,8 +22,14 @@ const LeftSidebar = async () => {
 
       <div className="flex flex-col gap-3">
         {userId ? (
-          <form action={logout}>
-            <Button type="submit" className="base-medium w-fit bg-transparent! px-4 py-3">
+          <form
+            action={async () => {
+              "use server"
+
+              await signOut()
+            }}
+          >
+            <Button type="submit" className="base-medium w-fit !bg-transparent px-4 py-3">
               <LogOut className="size-5 text-black dark:text-white" />
               <span className="text-dark300_light900 max-lg:hidden">Logout</span>
             </Button>

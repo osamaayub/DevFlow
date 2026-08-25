@@ -1,34 +1,31 @@
-import z from "zod";
+import z from "zod"
 
 export const SignUpSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Name must be at least 2 characters."
   }),
   username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: "Username must be at least 2 characters."
   }),
   email: z.string().email({ message: "please Provide a Valid Email Address" }),
   password: z
     .string()
     .min(6, { message: "password must be least of 6 characters" })
-    .max(10, { message: "password cannot exceed 10 characters" }),
-});
+    .max(10, { message: "password cannot exceed 10 characters" })
+})
 export const SignInSchema = z.object({
-  email: z
-    .string()
-    .email({ message: "please Provide a Valid Email Address" })
-    .min(1),
+  email: z.string().email({ message: "please Provide a Valid Email Address" }).min(1),
   password: z
     .string()
     .min(6, { message: "Password must be of at least 6 characters" })
-    .max(10, { message: "password cannot exceed 10 characters" }),
-});
+    .max(10, { message: "password cannot exceed 10 characters" })
+})
 
 export const AskQuestionSchema = z.object({
   title: z
     .string()
     .min(5, {
-      message: "Title must be at least 5 characters.",
+      message: "Title must be at least 5 characters."
     })
     .max(130, { message: "Title mustn't be longer then 130 characters." }),
   content: z.string().min(100, { message: "Minimum of 100 characters." }),
@@ -40,16 +37,15 @@ export const AskQuestionSchema = z.object({
         .max(15, { message: "Tag must not exceed 15 characters." })
     )
     .min(1, { message: "Add at least one tag." })
-    .max(3, { message: "Maximum of 3 tags." }),
-});
-
+    .max(3, { message: "Maximum of 3 tags." })
+})
 
 export const UserSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Name must be at least 2 characters."
   }),
   username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: "Username must be at least 2 characters."
   }),
   email: z.string().email({ message: "please Provide a Valid Email Address" }),
   reputation: z.number().min(0, { message: "Reputation cannot be negative." }),
@@ -58,39 +54,52 @@ export const UserSchema = z.object({
   portfolio: z.string().url({ message: "Portfolio must be a valid URL." }).optional(),
   image: z.string().url({ message: "Image must be a valid URL." }),
   joinedAt: z.date(),
-  password: z.string().min(6, { message: "password must be least of 6 characters" }).max(10, { message: "password cannot execede 10 characters" })
-
-
-});
+  password: z
+    .string()
+    .min(6, { message: "password must be least of 6 characters" })
+    .max(10, { message: "password cannot execede 10 characters" })
+})
 
 export const AccountUpdateSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Name must be at least 2 characters."
   }),
   image: z.string().url({ message: "Image must be a valid URL." }).optional(),
-  password: z.string().min(6, { message: "password must be least of 6 characters" }).max(10, { message: "password cannot execede 10 characters" }).optional(),
+  password: z
+    .string()
+    .min(6, { message: "password must be least of 6 characters" })
+    .max(10, { message: "password cannot execede 10 characters" })
+    .optional(),
   userId: z.string().min(1, { message: "User ID is required." }),
   provider: z.string().min(1, { message: "Provider is required." }),
-  providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
+  providerAccountId: z.string().min(1, { message: "Provider Account ID is required." })
 })
 export const signInOauthSchema = z.object({
   provider: z.enum(["google", "github"]),
   providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
   user: z.object({
     name: z.string().min(4, {
-      message: "Name must be at least 4 characters.",
+      message: "Name must be at least 4 characters."
     }),
     username: z.string().min(3, {
-      message: "Username must be at least 3 characters.",
+      message: "Username must be at least 3 characters."
     }),
-    email: z.string().email({ message: "please Provide a Valid Email Address" }), 
+    email: z.string().email({ message: "please Provide a Valid Email Address" })
   }),
-  image: z.string().url({ message: "Image must be a valid URL." }).optional(),
-});
-
-export const EditQuestionSchema=AskQuestionSchema.extend({
-questionId:z.string().min(1,{message:"QuestionId is required"})
+  image: z.string().url({ message: "Image must be a valid URL." }).optional()
 })
-export const GetQuestionSchema=z.object({
-  questionId:z.string().min(1,{message:"QuestionId is required"})
+
+export const EditQuestionSchema = AskQuestionSchema.extend({
+  questionId: z.string().min(1, { message: "QuestionId is required" })
+})
+export const GetQuestionSchema = z.object({
+  questionId: z.string().min(1, { message: "QuestionId is required" })
+})
+
+export const paginatedSearchParamsSchema = z.object({
+  page: z.number().int().positive().default(1),
+  pageSize: z.number().int().positive().default(10),
+  query: z.string().optional(),
+  filter: z.string().optional(),
+  sort: z.string().optional()
 })

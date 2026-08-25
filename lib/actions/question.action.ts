@@ -1,6 +1,6 @@
 "use server"
 
-import mongoose from "mongoose"
+import mongoose,{FilterQuery} from "mongoose"
 
 import { Question, TagQuestion } from "@/database"
 import {
@@ -8,6 +8,7 @@ import {
   AskQuestionSchema,
   EditQuestionSchema,
   GetQuestionSchema,
+  paginatedSearchParamsSchema,
   HandleError
 } from "@/lib"
 import { PopulatedTag, processTags, removeTags, TagProcessingResult } from "@/lib/tag-helpers"
@@ -167,7 +168,7 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
 export async function getQuestion(params: GetQuestionParams): Promise<ActionResponse<Question>> {
   const validationResult = await action({
     params,
-    schema: GetQuestionSchema,
+    schema: GetQuestionSchema
   })
   if (validationResult instanceof Error) {
     return HandleError(validationResult) as unknown as ErrorResponse
@@ -179,6 +180,78 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
       throw new Error(`Question with ${questionId} not found `)
     }
     return { success: true, data: JSON.parse(JSON.stringify(question)) }
+  } catch (error) {
+    if (error instanceof Error) {
+      return HandleError(error) as unknown as ErrorResponse
+    }
+    return HandleError(new Error(String(error))) as unknown as ErrorResponse
+  }
+}
+
+export async function getQuestions(
+  params: PaginatedSearchParams
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validateResult = await action({
+    params,
+    schema: paginatedSearchParamsSchema
+  })
+  if (validateResult instanceof Error) {
+    return HandleError(validateResult) as unknown as ErrorResponse
+  }
+
+  const { page = 1, pageSize = 10, filter, query } = validateResult.validatedData
+  const skip = (Number(page) - 1) * pageSize
+  const limit = Number(pageSize)
+
+  const filterQuery: FilterQuery<Question> = {}
+
+  if (filter === "recommended") {
+    return { success: true, data: { questions: [], isNext: false } }
+  }
+
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, "i") } },
+      { content: { $regex: new RegExp(query, "i") } }
+    ]
+  }
+
+  let sortCriteria: Record<string, 1 | -1> = {}
+  switch (filter) {
+    case "newest":
+      sortCriteria = { createdAt: -1 }
+      break
+    case "unanswered":
+      filterQuery.answers = 0
+      sortCriteria = { createdAt: -1 }
+      break
+    case "popular":
+      sortCriteria = { upvotes: -1 }
+      break
+    default:
+      sortCriteria = { createdAt: -1 }
+      break
+  }
+
+  try {
+    const questions = await Question.find(filterQuery)
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit)
+      .populate("tags",'name')
+      .populate("author",'name image')
+      .lean();
+
+    const totalQuestions = await Question.countDocuments(filterQuery)
+    const isNext = skip + limit < totalQuestions
+
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(questions)),
+        isNext
+      }
+    }
   } catch (error) {
     if (error instanceof Error) {
       return HandleError(error) as unknown as ErrorResponse
