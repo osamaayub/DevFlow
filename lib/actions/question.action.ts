@@ -75,7 +75,7 @@ export async function createQuestion(
   }
 }
 
-export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<IQuestion>> {
+export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<Question>> {
   const validationResult = await action({
     params,
     schema: EditQuestionSchema,
