@@ -37,7 +37,7 @@ interface Author {
   image: string;
 }
 
-interface Question {
+ interface Question {
   _id: string;
   title: string;
   content: string;
