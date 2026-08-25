@@ -2,7 +2,7 @@
 
 import mongoose,{FilterQuery} from "mongoose"
 
-import { Question, TagQuestion } from "@/database"
+import { IQuestion, Question, TagQuestion } from "@/database"
 import {
   action,
   AskQuestionSchema,
@@ -75,7 +75,7 @@ export async function createQuestion(
   }
 }
 
-export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<Question>> {
+export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<IQuestion>> {
   const validationResult = await action({
     params,
     schema: EditQuestionSchema,

@@ -17,13 +17,13 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-  const { query = "", filter = "", page = "1", pageSize = "10" } = await searchParams
+  const { query ,filter, page, pageSize } = await searchParams
 
   const response = await getQuestions({
-    query: query || undefined,
-    filter: filter || undefined,
-    page: Number(page),
-    pageSize: Number(pageSize),
+    query: query || "",
+    filter: filter ||"",
+    page: Number(page) || 1,
+    pageSize: Number(pageSize)||10,
   })
 
   if (!response.success) {
