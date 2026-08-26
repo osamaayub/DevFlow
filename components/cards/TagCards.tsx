@@ -19,7 +19,7 @@ interface Props {
   handleRemove?: () => void
 }
 
-const TagCards = ({ _id, name, questions, showCount, compact, remove, isButton, handleRemove }: Props) => {
+const TagCards = ({ _id, name, compact, remove, isButton, handleRemove }: Props) => {
   const iconClass = getDevinconClassName(name);
   const Content = (
     <>

@@ -1,2 +1,2 @@
-export * from "./QuestionCard"
-export * from "./TagCards"
+export {default as QuestionCard} from "./QuestionCard"
+export {default as TagCards} from "./TagCards"
