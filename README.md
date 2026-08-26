@@ -185,11 +185,8 @@ yarn lint         # Run ESLint checks
 
 ### 📋 Planned
 - [ ] Live demo deployment
-- [ ] Social features (notifications, bookmarks)
 - [ ] Admin dashboard
-- [ ] Email notifications
 - [ ] Advanced search algorithms
-- [ ] Mobile app version
 
 ---
 
