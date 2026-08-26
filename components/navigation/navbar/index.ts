@@ -1,3 +1,3 @@
 export * from "./navbar"
-export * from "./MobileNavigation"
-export * from "./NavLinks"
+export {default as MobileNavigation} from "./MobileNavigation"
+export {default as NavLinks} from "./NavLinks"

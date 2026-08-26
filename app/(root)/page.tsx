@@ -1,86 +1,64 @@
+import { Metadata } from "next"
 import Link from "next/link"
 
 import QuestionCard from "@/components/cards/QuestionCard"
-import HomeFilters from "@/components/filters/HomeFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
+import DataRenderer from "@/components/shared/DataRender"
 import { Button } from "@/components/ui/button"
-import Routes from "@/constants/route"
+import ROUTES from "@/constants/route"
+import { EMPTY_QUESTION } from "@/constants/states"
 import { getQuestions } from "@/lib/actions"
 
-interface SearchParams {
-  searchParams: Promise<{
-    query?: string
-    filter?: string
-    page?: string
-    pageSize?: string
-  }>
+export const metadata: Metadata = {
+  title: "Dev Overflow | Home",
+  description:
+    "Discover different programming questions and answers with recommendations from the community."
 }
 
-const Home = async ({ searchParams }: SearchParams) => {
-  const { query ,filter, page, pageSize } = await searchParams
+async function Home({ searchParams }: RouteParams) {
+  const { page, pageSize, query, filter } = await searchParams
 
-  const response = await getQuestions({
-    query: query || "",
-    filter: filter ||"",
+  const { success, data, error } = await getQuestions({
     page: Number(page) || 1,
-    pageSize: Number(pageSize)||10,
+    pageSize: Number(pageSize) || 10,
+    query,
+    filter
   })
-
-  if (!response.success) {
-    return (
-      <section className="w-full">
-        <h1 className="h1-bold text-dark100_light900">Error loading questions</h1>
-        <p className="text-red-500 mt-4">
-          {response.error?.message || "Failed to fetch questions"}
-        </p>
-      </section>
-    )
-  }
-
-  const { questions, isNext } = response.data || { questions: [], isNext: false }
+  const { questions } = data || {}
 
   return (
     <>
-      <section className="w-full flex flex-col-reverse sm:flex-row justify-between gap-4 sm:items-center">
+      <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="h1-bold text-dark100_light900">All Questions</h1>
-        <Button className="primary-gradient text-light-900! min-h-11.5 px-4 py-3" asChild>
-          <Link href={Routes.ASK_QUESTION}>Ask a Question</Link>
+        <Button className="primary-gradient min-h-11.5 px-4 py-3 text-light-900!" asChild>
+          <Link href={ROUTES.ASK_QUESTION} className="max-sm:w-full">
+            Ask a Question
+          </Link>
         </Button>
       </section>
-      <section className="mt-11">
+
+      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearchBar
-          route="/"
-          imgSrc={"/icons/search.svg"}
-          placeholder="Search Questions..."
-          otherClasses="flex-1 "
+          route={ROUTES.HOME}
+          imgSrc="/icons/search.svg"
+          placeholder="Search questions..."
+          otherClasses="flex-1"
         />
       </section>
-      <section className="mt-11">
-        <HomeFilters />
-        <div className="mt-10 flex w-full flex-col gap-6">
-          {questions.length > 0 ? (
-            questions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
-            ))
-          ) : (
-            <div className="text-center py-10">
-              <p className="text-dark200_light800 text-lg">
-                No questions found. Try adjusting your search!
-              </p>
-            </div>
-          )}
-        </div>
 
-        {isNext && (
-          <div className="mt-10 flex justify-center">
-            <Button asChild className="primary-gradient">
-              <Link href={`/?page=${Number(page) + 1}&filter=${filter}&query=${query}`}>
-                Load More
-              </Link>
-            </Button>
+      <DataRenderer
+        success={success}
+        error={error}
+        data={questions}
+        empty={EMPTY_QUESTION}
+        render={(questions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
           </div>
         )}
-      </section>
+      />
     </>
   )
 }

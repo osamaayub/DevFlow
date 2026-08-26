@@ -62,19 +62,14 @@ export function AuthForm<T extends FieldValues>({
         formType === "SIGN_IN" ? "Signed in successfully!" : "Account created successfully!"
       )
 
-      // FIX 1: Clear the form inputs after a successful submission
       form.reset()
 
-      // FIX 2: Redirect the user manually to the correct page
       if (formType === "SIGN_UP") {
         router.push(Routes.SIGN_IN)
       } else {
         router.push(Routes.HOME)
       }
     } catch {
-      // FIX 3: Removed the unused error binding to fix the ESLint warning.
-      // Since the server action returns `success: false` on expected errors,
-      // this catch block now only handles severe unexpected crashes.
       toast.error(
         formType === "SIGN_IN"
           ? "Unable to complete sign-in. Please try again."
