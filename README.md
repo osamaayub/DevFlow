@@ -366,12 +366,15 @@ This project is licensed under the [MIT License](LICENSE) — feel free to use i
 
 ---
 
-## 🙋 Support
+## 🙋 Support & Contribution
 
-- 📖 [Full Documentation](#)
-- 💬 [GitHub Discussions](https://github.com/osamaayub/DevFlow/discussions)
-- 🐛 [Report Issues](https://github.com/osamaayub/DevFlow/issues)
-- ⭐ [Star the repo](https://github.com/osamaayub/DevFlow) if you find it helpful!
+**Have questions or want to contribute?**
+
+- 💬 [GitHub Discussions](https://github.com/osamaayub/DevFlow/discussions) — Ask questions & discuss features
+- 🐛 [Report Issues](https://github.com/osamaayub/DevFlow/issues) — Found a bug? Let us know
+- 📖 [Documentation](#) — Coming soon with API guides & architecture
+- 👥 [Join Development](https://github.com/osamaayub/DevFlow) — We welcome contributors!
+- ⭐ [Star the repo](https://github.com/osamaayub/DevFlow) — Shows your support!
 
 ---
 
