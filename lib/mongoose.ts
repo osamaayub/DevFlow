@@ -1,9 +1,7 @@
-﻿import dns from "dns";
-import { MongoClient } from "mongodb";
-import mongoose, { Mongoose } from "mongoose";
-import logger from "./logger";
+﻿import { MongoClient } from "mongodb"
+import mongoose, { Mongoose } from "mongoose"
 
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+import logger from "./logger"
 
 const getMongoUri = (): string => {
   const uri = process.env.MONGODB_URI;
@@ -27,7 +25,7 @@ declare global {
 }
 
 // Initialize cached mongoose connection
-let cached = global.mongoose || { conn: null, promise: null };
+const cached = global.mongoose || { conn: null, promise: null };
 if (!global.mongoose) {
   global.mongoose = cached;
 }

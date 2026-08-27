@@ -1,5 +1,5 @@
-import {model,models} from "mongoose";
+import { model, models } from "mongoose"
 
-import { TagQuestionSchema, ITagQuestion } from "./TagQuestion.schema";
+import { TagQuestionSchema, ITagQuestion } from "./TagQuestion.schema"
 
-export const TagQuestion =models?.TagQuestion|| model<ITagQuestion>("TagQuestion",TagQuestionSchema);
+export const TagQuestion = models?.TagQuestion || model<ITagQuestion>("TagQuestion", TagQuestionSchema)

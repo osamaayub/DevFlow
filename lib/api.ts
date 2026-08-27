@@ -1,6 +1,6 @@
-import Routes  from "@/constants/route"
+import Routes from "@/constants/route"
 
-import { fetchHandler, FetchOptions } from "./fetch";
+import { fetchHandler, FetchOptions } from "./fetch"
 
 export type UserSignUpPayload = {
   name: string;

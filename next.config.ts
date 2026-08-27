@@ -20,6 +20,20 @@ const nextConfig: NextConfig = {
          hostname:"avatars.githubusercontent.com"
       }
    ]
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        fs: false,
+        dns: false,
+        mongodb: false,
+        mongoose: false,
+      };
+    }
+    return config;
   }
 };
 

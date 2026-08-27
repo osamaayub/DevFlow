@@ -1,6 +1,5 @@
-import {model,models} from "mongoose"
+import { model, models } from "mongoose"
 
-import {QuestionsSchema,IQuestion} from "@/database"
+import { QuestionsSchema, IQuestion } from "@/database"
 
-
-export const Question=models?.Question ||model<IQuestion>("Question",QuestionsSchema);
+export const Question = models?.Question || model<IQuestion>("Question", QuestionsSchema)

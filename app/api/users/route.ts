@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"
 
-import { User } from "@/database/models";
-import { HandleError } from "@/lib/handlers";
-import { dbConnect } from "@/lib/mongoose";
+import { User } from "@/database"
+import { dbConnect, HandleError } from "@/lib"
 
 export async function GET() {
   try {
