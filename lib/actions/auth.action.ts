@@ -7,7 +7,7 @@ import { AuthError } from "next-auth"
 import { signIn } from "@/auth"
 import { Account, User } from "@/database"
 import { action, NotFoundError, RequestError } from "@/lib"
-import { dbConnect } from "@/lib"
+import { dbConnect } from "@/lib/mongoose"
 import { SignInSchema, SignUpSchema } from "@/lib/validation"
 import { AuthCredentials } from "@/types"
 

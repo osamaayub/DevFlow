@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-turbo",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "postinstall": "patch-package"

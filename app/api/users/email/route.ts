@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 
-import { User } from "@/database/models";
-import { dbConnect } from "@/lib";
-import { HandleError } from "@/lib/handlers/errorHandler";
-import { ValidationError } from "@/lib/http-error";
+import { User } from "@/database"
+import { dbConnect } from "@/lib/mongoose"
+import { HandleError, ValidationError } from "@/lib"
 
 export async function POST(request: NextRequest) {
   try {
