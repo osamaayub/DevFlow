@@ -2,8 +2,8 @@ import { isValidObjectId } from "mongoose"
 import { NextRequest, NextResponse } from "next/server"
 
 import { Account } from "@/database"
-import { dbConnect } from "@/lib/mongoose"
 import { HandleError } from "@/lib"
+import { dbConnect } from "@/lib/mongoose"
 
 export const GET = async (
   _request: NextRequest,
