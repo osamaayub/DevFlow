@@ -1,5 +1,6 @@
 import { model, models } from "mongoose"
 
-import { IUser, UserSchema } from "@/database/models/User";
+import { IUser } from "./userSchema"
+import { UserSchema } from "./userSchema"
 
-export const User = models?.User || model<IUser>("User", UserSchema);
+export const User = models?.User || model<IUser>("User", UserSchema)

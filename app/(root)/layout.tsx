@@ -1,23 +1,23 @@
+import { ReactNode } from "react"
 
-import { ReactNode } from "react";
+import LeftSidebar from "@/components/navigation/LeftSidebar"
+import { Navbar } from "@/components/navigation/navbar/navbar"
+import RightSidebar from "@/components/navigation/RightSidebar"
 
-import LeftSidebar from "@/components/navigation/LeftSidebar";
-import { Navbar } from "@/components/navigation/navbar/navbar";
-import RightSidebar from "@/components/navigation/RightSidebar";
-
-const RootLayout = ({ children }: { children: ReactNode }) => {
+const RootLayout = async ({ children }: { children: ReactNode }) => {
+  // ← ADD async HERE
   return (
     <main className="background-light850_dark100 relative">
       <Navbar />
-      <div className="flex"> 
-        <LeftSidebar/>
+      <div className="flex">
+        <LeftSidebar />
         <section className="flex min-h-screen flex-1 flex-col px-6 pb-6 pt-24 max-md:pb-14 sm:px-14">
-              {children}
+          {children}
         </section>
-         <RightSidebar/>
-        </div>
+        <RightSidebar />
+      </div>
     </main>
-  );
-};
+  )
+}
 
-export default RootLayout;
+export default RootLayout

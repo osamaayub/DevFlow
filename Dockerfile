@@ -19,11 +19,20 @@ ARG MONGODB_URI=mongodb://localhost:27017/devflow-build
 ENV MONGODB_URI=$MONGODB_URI
 RUN yarn build
 
+# Verify the build output exists
+RUN if [ ! -d "/app/.next/standalone" ]; then \
+      echo "ERROR: .next/standalone not found after build!"; \
+      echo "Contents of .next:"; \
+      ls -la /app/.next/ 2>/dev/null || echo ".next directory not found"; \
+      exit 1; \
+    fi
+
 FROM node:22.13.0-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 

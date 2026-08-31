@@ -4,7 +4,8 @@ import { Session } from "next-auth"
 import { ZodError } from "zod"
 
 import { auth } from "@/auth"
-import { dbConnect, UnauthorizedError, ValidationError } from "@/lib"
+import { UnauthorizedError, ValidationError } from "@/lib"
+import { dbConnect } from "@/lib/mongoose"
 import { ActionOptions } from "@/types"
 
 type ActionResult<T> =

@@ -2,7 +2,7 @@
 
 import mongoose,{FilterQuery} from "mongoose"
 
-import { IQuestion, Question, TagQuestion } from "@/database"
+import { Question, TagQuestion } from "@/database"
 import {
   action,
   AskQuestionSchema,

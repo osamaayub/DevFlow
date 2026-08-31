@@ -1,11 +1,7 @@
-﻿import dns from "dns";
+﻿import { MongoClient } from "mongodb"
+import mongoose, { Mongoose } from "mongoose"
 
-import { MongoClient } from "mongodb";
-import mongoose, { Mongoose } from "mongoose";
-
-import logger from "./logger";
-
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+import logger from "./logger"
 
 const getMongoUri = (): string => {
   const uri = process.env.MONGODB_URI;
@@ -20,22 +16,25 @@ interface MongooseCache {
   promise: Promise<Mongoose> | null;
 }
 
-/* eslint-disable no-var */
+// Properly extend global namespace
 declare global {
+  // eslint-disable-next-line no-var
   var mongoose: MongooseCache;
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  // eslint-disable-next-line no-var
+  var _mongoClientPromise: Promise<MongoClient>;
 }
-/* eslint-enable no-var */
-let cached = global.mongoose;
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+// Initialize cached mongoose connection
+const cached = global.mongoose || { conn: null, promise: null };
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
 export const dbConnect = async (): Promise<Mongoose> => {
   if (cached.conn) {
     return cached.conn;
   }
+
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(getMongoUri(), {
@@ -52,49 +51,45 @@ export const dbConnect = async (): Promise<Mongoose> => {
             err: error,
             message: errorMessage,
           },
-          "MongoDB connection failed during initial connection",
+          "MongoDB connection failed during initial connection"
         );
         cached.promise = null;
         throw error;
       });
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 };
 
 // For NextAuth MongoDBAdapter
-let client: MongoClient;
-let clientPromise: Promise<MongoClient> | null = null;
-
 const createClientPromise = async (): Promise<MongoClient> => {
-  client = new MongoClient(getMongoUri())
+  const client = new MongoClient(getMongoUri());
   try {
-    return await client.connect()
+    await client.connect();
+    return client;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
       {
         err: error,
-        message: errorMessage
+        message: errorMessage,
       },
       "MongoDB connection failed for NextAuth client"
-    )
-    throw error
+    );
+    throw error;
   }
-}
+};
 
 const getClientPromise = (): Promise<MongoClient> => {
-  if (!clientPromise) {
-    if (process.env.NODE_ENV === "development") {
-      if (!global._mongoClientPromise) {
-        global._mongoClientPromise = createClientPromise();
-      }
-      clientPromise = global._mongoClientPromise;
-    } else {
-      clientPromise = createClientPromise();
+  if (process.env.NODE_ENV === "development") {
+    if (!global._mongoClientPromise) {
+      global._mongoClientPromise = createClientPromise();
     }
+    return global._mongoClientPromise;
+  } else {
+    return createClientPromise();
   }
-  return clientPromise;
 };
 
 export default getClientPromise;

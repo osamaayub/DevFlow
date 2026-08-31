@@ -1,5 +1,5 @@
-import {model,models}from "mongoose";
+import { model, models } from "mongoose"
 
-import { CollectionSchema, ICollection } from "./Collection.schema";
+import { CollectionSchema, ICollection } from "./Collection.schema"
 
-export const Collection = models?.Collection || model<ICollection>("Collection", CollectionSchema);
+export const Collection = models?.Collection || model<ICollection>("Collection", CollectionSchema)
