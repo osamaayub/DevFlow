@@ -1,3 +1,5 @@
+"use server"
+
 import { FilterQuery } from "mongoose"
 
 import { Question, Tag } from "@/database"

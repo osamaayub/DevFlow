@@ -1,5 +1,5 @@
 import { model, models } from "mongoose"
 
-import { AccountSchema, IAccount } from "@/database"
+import { IAccount,AccountSchema } from "./Account.schema"
 
 export const Account = models?.Account || model<IAccount>("Account", AccountSchema)

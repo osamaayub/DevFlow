@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import  Routes  from "@/constants/route";
+import ROUTES from "@/constants/route";
 
 import TagCards from "./TagCards";
 import Metric from "../Metric";
@@ -18,7 +18,7 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
       <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
         <div>
-          <Link href={Routes.QUESTION(_id)}>
+          <Link href={ROUTES.QUESTION(_id)}>
             <span
               className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">
               <RelativeTime date={createdAt} />
@@ -35,7 +35,7 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
       <div className="flex-between mt-6 w-full flex-wrap gap-3">
         <Metric imgUrl={author.image}
                 value={author.name}
-                alt={author.name} title={<RelativeTime date={createdAt} />} href={Routes.PROFILE(author._id)}
+                alt={author.name} title={<RelativeTime date={createdAt} />} href={ROUTES.PROFILE(author._id)}
                 textStyles="body-medium text-dark400_light700" isAuthor imgStyles={""} />
 
 
