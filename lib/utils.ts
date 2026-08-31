@@ -142,7 +142,7 @@ export function formatNumber(number: number) {
   }
 }
 
-export const getTimeStamp = (createdAt: Date): string => {
+export const getTimeStamp = (createdAt: Date | string): string => {
   const date = new Date(createdAt)
   const now = new Date()
 
