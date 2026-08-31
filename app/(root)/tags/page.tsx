@@ -34,7 +34,7 @@ const Tags = async ({searchParams}:RouteParams) => {
            render={(tags) => (
         <div className='mt-10 flex w-full gap-4 flex-wrap'>
           {tags.map((tag:Tag)=>(
-          <TagCards key={tag._id} {...tag}/>
+          <TagCards key={tag._id} {...tag} />
             ))}
         </div>
     )}
