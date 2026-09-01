@@ -175,7 +175,10 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
   }
   const { questionId } = validationResult.validatedData
   try {
-    const question = await Question.findById(questionId).populate("tags")
+    const question = await Question.findById(questionId).populate([
+      { path: "tags", select: "name" },
+      { path: "author", select: "name image _id" }
+    ])
     if (!question) {
       throw new Error(`Question with ${questionId} not found `)
     }

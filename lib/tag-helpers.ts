@@ -28,7 +28,7 @@ export async function processTags(
   for (const tag of tags) {
     const existingTag = await Tag.findOneAndUpdate(
       { name: { $regex: new RegExp(`^${tag}$`, "i") } },
-      { $setOnInsert: { name: tag }, $inc: { questions: 0 } },
+      { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
       { upsert: true, new: true, session }
     )
 
