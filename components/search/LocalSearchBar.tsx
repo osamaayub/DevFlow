@@ -1,82 +1,95 @@
-"use client"
-import Image from "next/image"
-import { useSearchParams,useRouter, usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+"use client";
 
-import { formUrlQuery, removeUrlQuery } from "@/lib/url"
+import Image from "next/image";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { Input } from "../ui/input"
+import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib/url";
 
+import { Input } from "../ui/input";
 
-
-interface Props{
-    route:string,
-    imgSrc:string,
-    placeholder:string,
-    otherClasses?:string,
-    iconPosition?:'left'|'right'
+interface Props {
+  route: string;
+  imgSrc: string;
+  placeholder: string;
+  otherClasses?: string;
+  iconPosition?: "left" | "right";
 }
 
-const LocalSearchBar = ({imgSrc,route,placeholder,otherClasses,iconPosition='left'}:Props) => {
-  const SearchParams = useSearchParams();
+const LocalSearch = ({
+  route,
+  imgSrc,
+  placeholder,
+  otherClasses,
+  iconPosition = "left",
+}: Props) => {
   const pathname = usePathname();
-  const query = SearchParams.get("query") || "";
-  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const paramsString = SearchParams.toString();
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query") || "";
 
-  useEffect(() => {
-    setSearchQuery(query);
-  }, [query]);
+  const [searchQuery, setSearchQuery] = useState(query);
+
+  const searchParamsString = searchParams.toString();
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      const currentUrl = `${window.location.pathname}${window.location.search}`;
-
       if (searchQuery) {
         const newUrl = formUrlQuery({
-          params: paramsString,
+          params: searchParamsString,
           key: "query",
           value: searchQuery,
         });
-        if (newUrl !== currentUrl) {
-          router.replace(newUrl, { scroll: false });
-        }
-      } else if (pathname === route) {
-        const newUrl = removeUrlQuery({
-          params: paramsString,
-          keysToRemove: ["query"],
-        });
-        if (newUrl !== currentUrl) {
-          router.replace(newUrl, { scroll: false });
+
+        router.push(newUrl, { scroll: false });
+      } else {
+        if (pathname === route) {
+          const newUrl = removeKeysFromUrlQuery({
+            params: searchParamsString,
+            keysToRemove: ["query"],
+          });
+
+          router.push(newUrl, { scroll: false });
         }
       }
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, route, paramsString, pathname, router]);
+  }, [searchQuery, searchParamsString, router, pathname, route]);
+
   return (
-    <div className={`background-light800_darkgradient flex min-[h-56px] grow items-center gap-4 rounded-[10px] px-4 ${otherClasses}`}>
-      {iconPosition==='left' &&<Image src={imgSrc} alt="search icon" width={24} height={24}
-        className="cursor-pointer"
-        />}
-        <Input type="text"  
-        placeholder={placeholder} 
-        value={searchQuery}
-        onChange={(e)=>{setSearchQuery(e.target.value)}}
-        className="paragraph-regular no-focus placeholder text-dark400_light800 border-none shadow-none outline-none"/>
-      {iconPosition==='right'
-        &&
+    <div
+      className={`background-light800_darkgradient flex min-h-[56px] grow items-center gap-4 rounded-[10px] px-4 ${otherClasses}`}
+    >
+      {iconPosition === "left" && (
         <Image
           src={imgSrc}
+          width={24}
+          height={24}
+          alt="Search"
+          className="cursor-pointer"
+        />
+      )}
 
-               alt="search icon"
-               width={15}
-               height={15}
-        className="cursor-pointer"
-        />}
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none outline-none"
+      />
+
+      {iconPosition === "right" && (
+        <Image
+          src={imgSrc}
+          width={15}
+          height={15}
+          alt="Search"
+          className="cursor-pointer"
+        />
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default LocalSearchBar
+export default LocalSearch;
