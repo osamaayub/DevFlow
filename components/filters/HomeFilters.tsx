@@ -2,7 +2,7 @@
 import {useSearchParams,useRouter} from "next/navigation";
 import { useEffect, useState } from "react"
 
-import { formUrlQuery, removeUrlQuery } from "@/lib/url";
+import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib";
 import { cn } from "@/lib/utils";
 
 import { Button } from "../ui/button"
@@ -23,6 +23,7 @@ const HomeFilters = () => {
   const router = useRouter();
   const SearchParams = useSearchParams();
   const filterParams = SearchParams.get("filter");
+  const searchParamsString = SearchParams.toString();
   const [active, setActive] = useState("");
 
   useEffect(() => {
@@ -37,14 +38,14 @@ const HomeFilters = () => {
 
     if (filter === active) {
       setActive("");
-      newUrl = removeUrlQuery({
-        params: SearchParams.toString(),
+      newUrl = removeKeysFromUrlQuery({
+        params: searchParamsString,
         keysToRemove: ["filter"],
       });
     } else {
       setActive(filter);
       newUrl = formUrlQuery({
-        params: SearchParams.toString(),
+        params: searchParamsString,
         key: "filter",
         value: filter.toLowerCase(),
       });
