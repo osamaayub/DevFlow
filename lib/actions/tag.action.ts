@@ -5,6 +5,7 @@ import { FilterQuery } from "mongoose"
 import { Question, Tag } from "@/database"
 import { action, GetTagQuestionsSchema, HandleError, paginatedSearchParamsSchema } from "@/lib"
 import { GetTagQuestionsParams } from "@/types"
+import { Types } from "mongoose"
 
 export const getTags = async (
   params: PaginatedSearchParams
@@ -98,8 +99,9 @@ export const getTagQuestions = async (
     const tag = await Tag.findById(tagId)
     if (!tag) throw new Error("Tag not found")
 
+    const tagObjectId = new Types.ObjectId(tagId)
     const filterQuery: FilterQuery<Question> = {
-      tags: { $in: [tagId] }
+      tags: { $in: [tagObjectId] }
     }
 
     if (query) {
