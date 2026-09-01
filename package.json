@@ -35,7 +35,7 @@
     "postcss": "^8.5.13",
     "prettier": "^3.5.3",
     "pretty-quick": "^4.2.2",
-    "query-string": "^9.2.2",
+    "query-string": "^9.5.1",
     "radix-ui": "^1.6.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
