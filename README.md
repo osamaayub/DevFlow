@@ -1,178 +1,384 @@
 # DevFlow
 
-> A modern, community-driven Q&A platform for developers — inspired by Stack Overflow.
+<div align="center">
 
-DevFlow lets developers ask and answer programming questions, organize content with tags, and collaborate with the community. It's built with the Next.js App Router, MongoDB, and NextAuth, and ships with a containerized Docker build and GitHub Actions CI/CD.
+![DevFlow Logo](https://img.shields.io/badge/DevFlow-Community%20Q%2FA-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-🚧%20In%20Development-orange?style=for-the-badge)
 
-## Table of Contents
+A modern, community-driven **Q&A platform for developers** — reimagined with the latest web technologies.
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Available Scripts](#available-scripts)
-- [API Reference](#api-reference)
-- [Project Structure](#project-structure)
-- [Docker](#docker)
-- [CI/CD](#cicd)
-- [Contributing](#contributing)
-- [License](#license)
+[![Next.js](https://img.shields.io/badge/Next.js%2016-000?logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React%2019-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Features
+[Documentation](#) • [Report Bug](https://github.com/osamaayub/DevFlow/issues) • [Request Feature](https://github.com/osamaayub/DevFlow/discussions)
 
-- **Ask & answer questions** — post questions, write detailed answers, and help others.
-- **Search & filters** — find questions via full-text search and tag/category filters.
-- **Tagging system** — organize questions with technology tags (React, JavaScript, etc.).
-- **Authentication** — sign in with Google, GitHub, or email via NextAuth.
-- **Dark / light theme** — seamless theme switching.
-- **Responsive design** — optimized for desktop and mobile.
-- **Rich editor** — Markdown/MDX editor for formatting questions and answers.
-- **Structured logging** — request and error logging with Pino.
+</div>
 
-## Tech Stack
+> 🚀 **Project Status:** Currently in active development. Core features are being implemented. Check back soon for the live demo!
 
-| Area | Technology |
-| --- | --- |
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack), [React 19](https://react.dev) |
-| Language | [TypeScript](https://www.typescriptlang.org/) |
-| Database | [MongoDB](https://www.mongodb.com/) via [Mongoose 8](https://mongoosejs.com/) |
-| Auth | [NextAuth.js v5](https://authjs.dev/) (Google, GitHub, Credentials) |
-| Styling | [Tailwind CSS 4](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/), [Lucide](https://lucide.dev/) |
-| Forms & validation | [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/) |
-| Editor | [MDX Editor](https://mdxeditor.dev/) |
-| Logging | [Pino](https://getpino.io/) |
 
-## Getting Started
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 💬 Ask & Answer
+Post questions, write detailed answers, and help others grow together.
+
+### 🔍 Powerful Search
+Full-text search with intelligent tag and category filtering.
+
+### 🏷️ Tagging System
+Organize content with technology tags (React, JavaScript, TypeScript, etc.).
+
+</td>
+<td width="50%">
+
+### 🔐 Authentication
+Sign in with Google, GitHub, or email via NextAuth.
+
+### 🌓 Dark / Light Theme
+Seamless theme switching for comfortable viewing.
+
+### 📱 Responsive Design
+Optimized for desktop, tablet, and mobile devices.
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+### ✍️ Rich Editor
+Markdown/MDX editor with live preview for formatting questions and answers.
+
+### 📊 Structured Logging
+Request and error logging with Pino for debugging and monitoring.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+| Layer | Technology |
+|:---:|:---|
+| **Frontend** | [Next.js 16](https://nextjs.org) (App Router, Turbopack) • [React 19](https://react.dev) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) |
+| **Database** | [MongoDB](https://www.mongodb.com/) via [Mongoose 8](https://mongoosejs.com/) |
+| **Auth** | [NextAuth.js v5](https://authjs.dev/) (Google, GitHub, Credentials) |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) • [shadcn/ui](https://ui.shadcn.com/) • [Radix UI](https://www.radix-ui.com/) • [Lucide](https://lucide.dev/) |
+| **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) • [Zod](https://zod.dev/) |
+| **Editor** | [MDX Editor](https://mdxeditor.dev/) |
+| **Logging** | [Pino](https://getpino.io/) |
+
+</div>
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) **≥ 22.13** (the project depends on packages that require this engine)
-- [Yarn](https://yarnpkg.com/) (the repo uses `yarn.lock`)
-- A [MongoDB](https://www.mongodb.com/) connection string (local or Atlas)
+```bash
+✓ Node.js ≥ 22.13
+✓ Yarn 4.x
+✓ MongoDB (local or Atlas)
+```
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/osamaayub/DevFlow.git
-   cd DevFlow
-   ```
+```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/osamaayub/DevFlow.git
+cd DevFlow
 
-2. **Install dependencies**
-   ```bash
-   yarn install
-   ```
+# 2️⃣ Install dependencies
+yarn install
 
-3. **Configure environment variables**
+# 3️⃣ Set up environment variables
+cp .env.example .env.local
 
-   Copy the example file and fill in your values:
-   ```bash
-   cp .env.example .env.local
-   ```
-   See [Environment Variables](#environment-variables) for what each value means.
+# 4️⃣ Configure your .env.local with:
+# MONGODB_URI, AUTH_SECRET, OAuth credentials (see below)
 
-4. **Run the development server**
-   ```bash
-   yarn dev
-   ```
+# 5️⃣ Start development server
+yarn dev
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Environment Variables
-
-Env files are loaded by environment:
-
-- `.env.local` — always loaded locally (gitignored); good for shared local overrides.
-- `.env.development.local` — used by `yarn dev`. Copy from `.env.development.example`.
-- `.env.production.local` — used by `yarn build` / `yarn start`. Copy from `.env.production.example`.
-
-In CI/CD, production values come from the `production` GitHub Environment secrets instead. Set the following in each:
-
-| Variable | Required | Description |
-| --- | --- | --- |
-| `MONGODB_URI` | Yes | MongoDB connection string. Required at build and runtime. |
-| `AUTH_SECRET` | Yes | Secret used by NextAuth to encrypt tokens. Generate with `npx auth secret`. |
-| `AUTH_GITHUB_ID` | For GitHub login | GitHub OAuth app client ID. |
-| `AUTH_GITHUB_SECRET` | For GitHub login | GitHub OAuth app client secret. |
-| `AUTH_GOOGLE_ID` | For Google login | Google OAuth client ID. |
-| `AUTH_GOOGLE_SECRET` | For Google login | Google OAuth client secret. |
-| `LOG_LEVEL` | No | Pino log level (`debug`, `info`, `warn`, `error`). Defaults to `debug` in development and `info` in production. |
-
-## Available Scripts
-
-| Script | Description |
-| --- | --- |
-| `yarn dev` | Start the dev server with Turbopack. |
-| `yarn build` | Create a production build. |
-| `yarn start` | Run the production server. |
-| `yarn lint` | Run ESLint. |
-
-## API Reference
-
-All API routes live under `app/api`. Successful responses use the envelope `{ success, data, statusCode }`; errors are normalized by `HandleError` into `{ success: false, statusCode, message, error? }`.
-
-### Users
-
-| Method | Route | Description |
-| --- | --- | --- |
-| `GET` | `/api/users` | List all users. |
-| `POST` | `/api/users` | Create a user (body = user fields). Returns `201`. |
-| `GET` | `/api/users/:id` | Get a single user by id. `404` if not found. |
-| `PATCH` | `/api/users/:id` | Update a user by id. `404` if not found. |
-| `DELETE` | `/api/users/:id` | Delete a user by id. `404` if not found. |
-
-### Auth
-
-| Method | Route | Description |
-| --- | --- | --- |
-| `GET`/`POST` | `/api/auth/[...nextauth]` | NextAuth.js handler (sign in, callbacks, session). |
-
-## Project Structure
-
-```
-app/          Next.js App Router — pages, layouts, and API routes
-components/   UI components (forms, navigation, cards, etc.)
-constants/    Static data and route definitions
-context/      React context providers (e.g., Theme)
-database/     Mongoose schemas, models, and connection logic
-lib/          Utilities: validation, error handling, logging, db connect
-types/        TypeScript type definitions
-public/       Static assets
-auth.ts       NextAuth configuration
-proxy.ts      Middleware / proxy configuration
+# 6️⃣ Open http://localhost:3000 in your browser 🎉
 ```
 
-## Docker
+---
 
-A multi-stage `Dockerfile` produces a slim, standalone Next.js image that runs as a non-root user on port `3000`.
+## 🔧 Environment Variables
+
+> 📝 **Note:** Env files are loaded per environment and are git-ignored for security.
+
+### Required Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `MONGODB_URI` | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/devflow` |
+| `AUTH_SECRET` | NextAuth encryption key | Generate with: `npx auth secret` |
+
+### OAuth Providers (Optional)
+
+| Variable | Provider | How to Get |
+|----------|----------|-----------|
+| `AUTH_GITHUB_ID` | GitHub OAuth | [GitHub OAuth Settings](https://github.com/settings/developers) |
+| `AUTH_GITHUB_SECRET` | GitHub OAuth | [GitHub OAuth Settings](https://github.com/settings/developers) |
+| `AUTH_GOOGLE_ID` | Google OAuth | [Google Cloud Console](https://console.cloud.google.com/) |
+| `AUTH_GOOGLE_SECRET` | Google OAuth | [Google Cloud Console](https://console.cloud.google.com/) |
+
+### Optional Variables
+
+| Variable | Default | Values |
+|----------|---------|--------|
+| `LOG_LEVEL` | `debug` (dev) / `info` (prod) | `debug`, `info`, `warn`, `error` |
+
+---
+
+## 📋 Available Scripts
+
+```bash
+# Development
+yarn dev          # Start dev server with Turbopack
+
+# Production
+yarn build        # Create optimized production build
+yarn start        # Run production server
+
+# Code Quality
+yarn lint         # Run ESLint checks
+```
+
+---
+
+## 🏗️ Development Status
+
+### ✅ Completed
+- [x] Project setup with Next.js 16 & TypeScript
+- [x] MongoDB & Mongoose integration
+- [x] NextAuth.js authentication (Google, GitHub, Email)
+- [x] Database models (Questions, Answers, Users, Tags)
+- [x] Server actions for CRUD operations
+- [x] Tailwind CSS & component styling
+- [x] Dark/Light theme support
+
+### 🚧 In Progress
+- [ ] Question & Answer functionality UI
+- [ ] Search & filtering optimization
+- [ ] Tag management system
+- [ ] User profiles & reputation system
+- [ ] Rich text editor integration
+- [ ] Performance optimizations
+
+### 📋 Planned
+- [ ] Live demo deployment
+- [ ] Admin dashboard
+- [ ] Advanced search algorithms
+
+---
+
+## 📁 Project Structure
+
+```
+DevFlow/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── layout.tsx         # Root layout
+│   └── [routes]/          # Page routes
+├── components/            # Reusable React components
+│   ├── cards/            # Question, answer, tag cards
+│   ├── forms/            # Ask, answer, search forms
+│   ├── filters/          # Filter components
+│   └── ui/               # Base UI components
+├── context/              # React context providers (Theme, etc.)
+├── database/             # Mongoose schemas & models
+│   ├── question.model.ts
+│   ├── answer.model.ts
+│   ├── user.model.ts
+│   └── tag.model.ts
+├── lib/                  # Utilities & helpers
+│   ├── actions/         # Server actions
+│   ├── validation/       # Zod schemas
+│   ├── error-handler/    # Error handling
+│   └── mongoose.ts      # DB connection
+├── types/               # TypeScript definitions
+├── constants/           # Static data (routes, filters, etc.)
+├── public/              # Static assets (images, icons)
+└── auth.ts             # NextAuth configuration
+```
+
+---
+
+## 🌐 API Reference
+
+All responses follow the standard envelope format:
+```json
+{ "success": true, "data": {...}, "statusCode": 200 }
+```
+
+### 👥 Users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/users` | List all users |
+| `POST` | `/api/users` | Create new user (201) |
+| `GET` | `/api/users/:id` | Get user by ID |
+| `PATCH` | `/api/users/:id` | Update user |
+| `DELETE` | `/api/users/:id` | Delete user |
+
+### 🔐 Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET/POST` | `/api/auth/[...nextauth]` | NextAuth.js handler |
+
+### ❓ Questions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/questions` | List questions with filters |
+| `POST` | `/api/questions` | Create new question |
+| `GET` | `/api/questions/:id` | Get single question |
+| `PATCH` | `/api/questions/:id` | Update question |
+| `DELETE` | `/api/questions/:id` | Delete question |
+
+---
+
+## 🐳 Docker
+
+Build and run DevFlow in a containerized environment:
 
 ```bash
 # Build the image
 docker build -t devflow .
 
-# Run it (provide your runtime environment variables)
+# Run the container
 docker run -p 3000:3000 \
-  -e MONGODB_URI="<your-mongodb-uri>" \
-  -e AUTH_SECRET="<your-secret>" \
+  -e MONGODB_URI="mongodb+srv://..." \
+  -e AUTH_SECRET="your-secret-key" \
+  -e AUTH_GITHUB_ID="your-github-id" \
+  -e AUTH_GITHUB_SECRET="your-github-secret" \
   devflow
 ```
 
-> The build passes a throwaway placeholder `MONGODB_URI` because `lib/mongoose.ts` requires it at import time; provide real values at runtime.
+The image runs as a non-root user on port `3000` for security.
 
-## CI/CD
+---
 
-GitHub Actions provide separate pipelines per branch:
+## 🔄 CI/CD Pipeline
 
-- **CI** (`.github/workflows/ci.yml`) — runs on pull requests and pushes to `main` and `dev`: installs dependencies, lints, and builds.
-- **Deploy (development)** (`.github/workflows/deploy-dev.yml`) — on push to `dev`, builds and pushes `ghcr.io/<owner>/devflow:dev` using the `development` GitHub Environment.
-- **Deploy (production)** (`.github/workflows/deploy-prod.yml`) — on push to `main`, builds and pushes `ghcr.io/<owner>/devflow:latest` using the `production` GitHub Environment.
+GitHub Actions automate testing and deployment:
 
-Configure environment-scoped secrets under **Settings → Environments** for each environment.
+### Workflows
 
-## Contributing
+| Workflow | Trigger | Action |
+|----------|---------|--------|
+| **CI** | PR to `main`/`dev` | Lint → Test → Build |
+| **Deploy (Dev)** | Push to `dev` | Build → Push `ghcr.io/.../devflow:dev` |
+| **Deploy (Prod)** | Push to `main` | Build → Push `ghcr.io/.../devflow:latest` |
 
-Contributions are welcome! Please open an issue to discuss substantial changes, and submit pull requests against the `dev` branch.
+### Setup
 
-## License
+1. Configure **Settings → Environments** in your GitHub repo
+2. Add secrets for `development` and `production` environments:
+   - `MONGODB_URI`
+   - `AUTH_SECRET`
+   - OAuth credentials
+   - Docker registry credentials (if using GHCR)
 
-Released under the [MIT](LICENSE) License.
+---
+
+## 📊 Performance
+
+- ⚡ **Turbopack** for near-instant HMR
+- 🎯 **Next.js App Router** with Server Components
+- 🗜️ **Optimized Bundle** with tree-shaking
+- 📦 **MongoDB Indexing** for fast queries
+- 🚀 **Docker Multi-stage Build** for minimal image size
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request against the `dev` branch
+
+### Guidelines
+
+- Follow the existing code style
+- Add tests for new features
+- Update documentation as needed
+- Reference related issues in your PR
+
+---
+
+## 🐛 Troubleshooting
+
+### MongoDB Connection Issues
+```bash
+# Check your MONGODB_URI format
+# Expected: mongodb+srv://username:password@cluster.mongodb.net/dbname
+# Make sure your IP is whitelisted in MongoDB Atlas
+```
+
+### NextAuth Errors
+```bash
+# Regenerate AUTH_SECRET
+npx auth secret
+
+# Verify OAuth credentials in your provider settings
+```
+
+### Build Fails
+```bash
+# Clear cache and reinstall
+rm -rf .next node_modules
+yarn install
+yarn build
+```
+
+---
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE) — feel free to use it in your projects!
+
+---
+
+## 🙋 Support & Contribution
+
+**Have questions or want to contribute?**
+
+- 💬 [GitHub Discussions](https://github.com/osamaayub/DevFlow/discussions) — Ask questions & discuss features
+- 🐛 [Report Issues](https://github.com/osamaayub/DevFlow/issues) — Found a bug? Let us know
+- 📖 [Documentation](#) — Coming soon with API guides & architecture
+- 👥 [Join Development](https://github.com/osamaayub/DevFlow) — We welcome contributors!
+- ⭐ [Star the repo](https://github.com/osamaayub/DevFlow) — Shows your support!
+
+---
+
+<div align="center">
+
+Made with ❤️ by [Osama Ayub](https://github.com/osamaayub)
+
+[⬆ Back to Top](#devflow)
+
+</div>
