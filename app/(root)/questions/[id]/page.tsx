@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import TagCards from "@/components/cards/TagCards";
 import { Preview } from "@/components/editor/preview";
 import Metric from "@/components/Metric";
-import UserAvatar from "@/components/UserAvatar";
+import UserAvatar from "@/components/userAvatar";
 import ROUTES from "@/constants/route";
 import { getQuestion } from "@/lib/actions";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
