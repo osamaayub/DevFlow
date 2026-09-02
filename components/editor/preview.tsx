@@ -1,5 +1,6 @@
 import { Code } from "bright";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import type { ComponentPropsWithoutRef } from "react";
 
 export const Preview = ({ content }: { content: string }) => {
   return (
@@ -9,25 +10,28 @@ export const Preview = ({ content }: { content: string }) => {
         // Tell the compiler to treat this as standard Markdown, not MDX
         options={{
           mdxOptions: {
-            format: "md", 
+            format: "md",
           },
         }}
         components={{
-          code: (props: any) => {
+          code: (props: ComponentPropsWithoutRef<"code">) => {
             const { children, className } = props;
-            const language = className?.replace("language-", "") || "javascript";
-            
+            const language =
+              typeof className === "string"
+                ? className.replace("language-", "")
+                : "javascript";
+
             return (
               <Code
-                code={children as string} // Cast to string for safety
-                lang={language}
+                code={String(children)}
+                lang={language || "javascript"}
                 theme="github-dark"
                 lineNumbers
                 className="shadow-light-200 dark:shadow-dark-200"
               />
             );
           },
-          pre: ({ children }: any) => <>{children}</>,
+          pre: ({ children }: ComponentPropsWithoutRef<"pre">) => <>{children}</>,
         }}
       />
     </section>
