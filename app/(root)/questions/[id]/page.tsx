@@ -51,14 +51,14 @@ const QuestionDetails = async ({ params }: RouteParams) => {
           imgUrl="/icons/message.svg"
           alt="message icon"
           value={answers}
-          title=""
+          title="Message"
           textStyles="small-regular text-dark400_light700"
         />
         <Metric
           imgUrl="/icons/eye.svg"
           alt="eye icon"
           value={formatNumber(views)}
-          title=""
+          title="Views"
           textStyles="small-regular text-dark400_light700"
         />
       </div>
