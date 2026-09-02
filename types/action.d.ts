@@ -1,13 +1,9 @@
 import { ZodSchema } from "zod"
 
-export type ActionOptions<T>={
-    params?:T,
-    schema?:ZodSchema<T>,
-    authorize?:boolean,
-
-
-    
-
+export type ActionOptions<T> = {
+  params?: T
+  schema?: ZodSchema<T>
+  authorize?: boolean
 }
 export interface AuthCredentials {
   name: string
@@ -20,12 +16,16 @@ export interface createQuestionParams {
   content: string
   tags: string[]
 }
-export interface  EditQuestionParams extends createQuestionParams {
+export interface EditQuestionParams extends createQuestionParams {
   questionId: string
 }
-export interface  GetTagQuestionsParams extends Omit<PaginatedSearchParams,"filter">{
-tagId:string
+export interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "filter"> {
+  tagId: string
 }
-export interface  GetQuestionParams{
-  questionId:string
+export interface GetQuestionParams {
+  questionId: string
+}
+
+export interface IncrementQuestionViewsParams {
+  questionId: string
 }

@@ -1,6 +1,7 @@
 "use server"
 
-import mongoose,{FilterQuery} from "mongoose"
+import mongoose, { FilterQuery } from "mongoose"
+import { revalidatePath } from "next/cache" // <-- Added for cache invalidation
 
 import { Question, TagQuestion } from "@/database"
 import {
@@ -9,10 +10,16 @@ import {
   EditQuestionSchema,
   GetQuestionSchema,
   paginatedSearchParamsSchema,
-  HandleError
+  HandleError,
+  IncrementQuestionViewsSchema
 } from "@/lib"
 import { PopulatedTag, processTags, removeTags, TagProcessingResult } from "@/lib/tag-helpers"
-import { createQuestionParams, EditQuestionParams, GetQuestionParams } from "@/types"
+import {
+  createQuestionParams,
+  EditQuestionParams,
+  GetQuestionParams,
+  IncrementQuestionViewsParams,
+} from "@/types"
 
 interface PopulatedQuestion {
   _id: mongoose.Types.ObjectId
@@ -62,6 +69,8 @@ export async function createQuestion(
     )
 
     await session.commitTransaction()
+    
+    revalidatePath("/") 
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) }
   } catch (error) {
@@ -154,6 +163,9 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
 
     await session.commitTransaction()
 
+    revalidatePath("/")
+    revalidatePath(`/questions/${questionId}`)
+
     return { success: true, data: JSON.parse(JSON.stringify(updatedQuestion)) }
   } catch (error) {
     await session.abortTransaction()
@@ -165,22 +177,26 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
     await session.endSession()
   }
 }
+
 export async function getQuestion(params: GetQuestionParams): Promise<ActionResponse<Question>> {
   const validationResult = await action({
     params,
     schema: GetQuestionSchema
   })
+  
   if (validationResult instanceof Error) {
     return HandleError(validationResult) as unknown as ErrorResponse
   }
+  
   const { questionId } = validationResult.validatedData
   try {
     const question = await Question.findById(questionId).populate([
       { path: "tags", select: "name" },
       { path: "author", select: "name image _id" }
-    ])
+    ]).lean();
+    
     if (!question) {
-      throw new Error(`Question with ${questionId} not found `)
+      throw new Error(`Question with ${questionId} not found`)
     }
     return { success: true, data: JSON.parse(JSON.stringify(question)) }
   } catch (error) {
@@ -198,6 +214,7 @@ export async function getQuestions(
     params,
     schema: paginatedSearchParamsSchema
   })
+  
   if (validateResult instanceof Error) {
     return HandleError(validateResult) as unknown as ErrorResponse
   }
@@ -229,7 +246,7 @@ export async function getQuestions(
       sortCriteria = { createdAt: -1 }
       break
     case "popular":
-      sortCriteria = { upvotes: -1 }
+      sortCriteria = { upvotes: -1 } 
       break
     default:
       sortCriteria = { createdAt: -1 }
@@ -241,9 +258,9 @@ export async function getQuestions(
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
-      .populate("tags",'name')
-      .populate("author",'name image')
-      .lean();
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .lean()
 
     const totalQuestions = await Question.countDocuments(filterQuery)
     const isNext = skip + limit < totalQuestions
@@ -259,6 +276,46 @@ export async function getQuestions(
     if (error instanceof Error) {
       return HandleError(error) as unknown as ErrorResponse
     }
+    return HandleError(new Error(String(error))) as unknown as ErrorResponse
+  }
+}
+
+export const incrementQuestionViews = async (
+  params: IncrementQuestionViewsParams
+): Promise<ActionResponse<{ views: number }>> => {
+  try {
+    const validationResult = await action({
+      params,
+      schema: IncrementQuestionViewsSchema
+    })
+    
+    if (validationResult instanceof Error) {
+      return HandleError(validationResult) as unknown as ErrorResponse
+    }
+    
+    const { questionId } = validationResult.validatedData
+    
+    if (!mongoose.Types.ObjectId.isValid(questionId)) {
+      return HandleError(new Error("Invalid questionId")) as unknown as ErrorResponse
+    }
+    
+    const updatedQuestion = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { views: 1 } },
+      { new: true }
+    ).lean()
+
+    if (!updatedQuestion) {
+      return HandleError(new Error("Question not found")) as unknown as ErrorResponse
+    }
+
+    revalidatePath(`/questions/${questionId}`)
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(updatedQuestion)) as unknown as { views: number }
+    }
+  } catch (error) {
     return HandleError(new Error(String(error))) as unknown as ErrorResponse
   }
 }

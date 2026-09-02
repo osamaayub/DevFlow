@@ -14,14 +14,16 @@ const EditQuestion = async ({ params }: RouteParams) => {
   if (!session) return redirect("/sign-in")
 
   const { data: question, success } = await getQuestion({ questionId: id })
-  if (!success) return notFound()
+  if (!success || !question) return notFound()
 
-  if (question?.author.toString() !== session?.user?.id) redirect(ROUTES.QUESTION(id))
+  if (question.author.toString() !== session?.user?.id) redirect(ROUTES.QUESTION(id))
+
+  const safeQuestion = JSON.parse(JSON.stringify(question)) as Question
 
   return (
     <main className="mt-9">
       <>
-        <QuestionForm question={question} isEdit />
+        <QuestionForm question={safeQuestion} isEdit />
       </>
     </main>
   )
