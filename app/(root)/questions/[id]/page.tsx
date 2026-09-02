@@ -1,31 +1,35 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import Link from "next/link"
+import { redirect } from "next/navigation"
 
-import TagCards from "@/components/cards/TagCards";
-import { Preview } from "@/components/editor/preview";
-import Metric from "@/components/Metric";
-import UserAvatar from "@/components/userAvatar";
-import ROUTES from "@/constants/route";
-import { getQuestion } from "@/lib/actions";
-import { formatNumber, getTimeStamp } from "@/lib/utils";
+import TagCards from "@/components/cards/TagCards"
+import { Preview } from "@/components/editor/preview"
+import Metric from "@/components/Metric"
+import UserAvatar from "@/components/userAvatar"
+import ROUTES from "@/constants/route"
+import { getQuestion } from "@/lib/actions"
+import { formatNumber, getTimeStamp } from "@/lib/utils"
 
-
-
+import View from "./view"
 
 const QuestionDetails = async ({ params }: RouteParams) => {
-  const { id } = await params;
-  const { success, data: question } = await getQuestion({ questionId: id });
+  const { id } = await params
+  const { success, data: question } = await getQuestion({ questionId: id })
 
-  if (!success || !question) return redirect("/404");
+  if (!success || !question) return redirect("/404")
 
-  const { author, createdAt, answers, views, tags, content, title } = question;
+  const { author, createdAt, answers, views, tags, content, title } = question
 
   return (
     <>
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
-            <UserAvatar id={author._id} name={author.name} className="size-[22px]" fallbackClassName="text-[10px]" />
+            <UserAvatar
+              id={author._id}
+              name={author.name}
+              className="size-[22px]"
+              fallbackClassName="text-[10px]"
+            />
             <Link href={ROUTES.PROFILE(author._id)}>
               <p className="paragraph-semibold text-dark300_light700">{author.name}</p>
             </Link>
@@ -65,13 +69,15 @@ const QuestionDetails = async ({ params }: RouteParams) => {
 
       <Preview content={content} />
 
+      <View questionId={id} />
+
       <div className="mt-8 flex flex-wrap gap-2">
         {tags.map((tag: Tag) => (
           <TagCards key={tag._id} _id={tag._id as string} name={tag.name} compact />
         ))}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default QuestionDetails;
+export default QuestionDetails
