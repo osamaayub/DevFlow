@@ -111,3 +111,6 @@ tagId:z.string().min(1,{message:"TagId is required"})
 export const IncrementQuestionViewsSchema=z.object({
   questionId:z.string().min(1,{message:"QuestionId is required"})
 })
+export const AnswerFormSchema=z.object({
+  content:z.string().min(100,{message:"Answer must be at least 100 characters."}),
+})

@@ -4,6 +4,7 @@ import { after } from "next/server"
 
 import TagCards from "@/components/cards/TagCards"
 import { Preview } from "@/components/editor/preview"
+import {AnswerForm} from "@/components/forms/AnswerForm"
 import Metric from "@/components/Metric"
 import UserAvatar from "@/components/userAvatar"
 import ROUTES from "@/constants/route"
@@ -79,6 +80,9 @@ const QuestionDetails = async ({ params }: RouteParams) => {
           <TagCards key={tag._id} _id={tag._id as string} name={tag.name} compact />
         ))}
       </div>
+      <section className="mt-5">
+        <AnswerForm/>
+      </section>
     </>
   )
 }
