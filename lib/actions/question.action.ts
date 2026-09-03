@@ -165,6 +165,7 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
 
     revalidatePath("/")
     revalidatePath(`/questions/${questionId}`)
+    revalidatePath("/")
 
     return { success: true, data: JSON.parse(JSON.stringify(updatedQuestion)) }
   } catch (error) {
