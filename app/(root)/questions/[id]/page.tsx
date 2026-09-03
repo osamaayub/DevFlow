@@ -1,15 +1,14 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { after } from "next/server"
 
 import TagCards from "@/components/cards/TagCards"
 import { Preview } from "@/components/editor/preview"
 import Metric from "@/components/Metric"
 import UserAvatar from "@/components/userAvatar"
 import ROUTES from "@/constants/route"
-import { getQuestion } from "@/lib/actions"
+import { getQuestion, incrementQuestionViews } from "@/lib/actions"
 import { formatNumber, getTimeStamp } from "@/lib/utils"
-
-import View from "./view"
 
 const QuestionDetails = async ({ params }: RouteParams) => {
   const { id } = await params
@@ -17,7 +16,13 @@ const QuestionDetails = async ({ params }: RouteParams) => {
 
   if (!success || !question) return redirect("/404")
 
-  const { author, createdAt, answers, views, tags, content, title } = question
+  after(async () => {
+    await incrementQuestionViews({ questionId: id })
+  })
+
+  const viewCount = question.views + 1
+
+  const { author, createdAt, answers, tags, content, title } = question
 
   return (
     <>
@@ -61,15 +66,13 @@ const QuestionDetails = async ({ params }: RouteParams) => {
         <Metric
           imgUrl="/icons/eye.svg"
           alt="eye icon"
-          value={formatNumber(views)}
+          value={formatNumber(viewCount)}
           title="Views"
           textStyles="small-regular text-dark400_light700"
         />
       </div>
 
       <Preview content={content} />
-
-      <View questionId={id} />
 
       <div className="mt-8 flex flex-wrap gap-2">
         {tags.map((tag: Tag) => (
