@@ -1,10 +1,10 @@
 import { Metadata } from "next"
 import Link from "next/link"
 
-import QuestionCard from "@/components/cards/QuestionCard"
-import LocalSearchBar from "@/components/search/LocalSearchBar"
-import DataRenderer from "@/components/shared/DataRender"
-import { Button } from "@/components/ui/button"
+import { QuestionCard } from "@/components/cards"
+import { LocalSearchBar } from "@/components/search"
+import { DataRender } from "@/components/shared"
+import { Button } from "@/components/ui"
 import ROUTES from "@/constants/route"
 import { EMPTY_QUESTION } from "@/constants/states"
 import { getQuestions } from "@/lib/actions"
@@ -46,7 +46,7 @@ async function Home({ searchParams }: RouteParams) {
         />
       </section>
 
-      <DataRenderer
+      <DataRender
         success={success}
         error={error}
         data={questions}

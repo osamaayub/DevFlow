@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
-import { SheetClose } from "@/components/ui/sheet";
+import { SheetClose } from "@/components/ui";
 import { sidebarLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 

@@ -1,1 +1,1 @@
-export * from './LocalSearchBar'
+export * from "./LocalSearchBar"

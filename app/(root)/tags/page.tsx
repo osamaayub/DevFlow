@@ -1,6 +1,6 @@
-import TagCards  from "@/components/cards/TagCards"
-import LocalSearchBar from "@/components/search/LocalSearchBar"
-import DataRenderer from "@/components/shared/DataRender"
+import { TagCards } from "@/components/cards"
+import { LocalSearchBar } from "@/components/search"
+import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { EMPTY_TAGS } from "@/constants/states"
 import {getTags} from "@/lib/actions"
@@ -26,7 +26,7 @@ const Tags = async ({searchParams}:RouteParams) => {
           otherClasses='flex-1'
         />
       </section>
-      <DataRenderer
+      <DataRender
               success={success}
               data={tags}
               empty={EMPTY_TAGS}

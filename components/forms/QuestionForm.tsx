@@ -10,13 +10,12 @@ import { toast } from "sonner"
 import z from "zod"
 
 import { Editor } from "@/components/editor"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button, Input } from "@/components/ui"
 import ROUTES from "@/constants/route"
 import { createQuestion, editQuestion } from "@/lib/actions/question.action"
 import { AskQuestionSchema } from "@/lib/validation"
 
-import TagCards from "../cards/TagCards"
+import { TagCards } from "../cards"
 import {
   Form,
   FormControl,

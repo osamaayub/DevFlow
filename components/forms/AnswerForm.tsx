@@ -9,8 +9,7 @@ import { useForm } from "react-hook-form"
 import type { z } from "zod"
 
 import { Editor } from "@/components/editor"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
+import { Button, Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui"
 import { AnswerFormSchema } from "@/lib"
 
 export function AnswerForm() {

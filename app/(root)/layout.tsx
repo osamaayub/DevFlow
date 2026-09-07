@@ -1,8 +1,6 @@
 import { ReactNode } from "react"
 
-import LeftSidebar from "@/components/navigation/LeftSidebar"
-import { Navbar } from "@/components/navigation/navbar/navbar"
-import RightSidebar from "@/components/navigation/RightSidebar"
+import { LeftSidebar, RightSidebar, Navbar } from "@/components/navigation"
 
 const RootLayout = async ({ children }: { children: ReactNode }) => {
   // ← ADD async HERE
