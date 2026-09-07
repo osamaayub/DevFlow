@@ -120,7 +120,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
 
       <section className="mt-5">
         {userId ? (
-          <AnswerForm questionId={id} authorId={userId} content={content} />
+          <AnswerForm questionId={id}  content={content} />
         ) : (
           <div className="mt-8 rounded-md border border-light-700 p-6 text-center dark:border-dark-400">
             <p className="text-dark400_light800 paragraph-semibold">
