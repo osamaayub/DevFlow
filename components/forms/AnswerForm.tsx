@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import type { MDXEditorMethods } from "@mdxeditor/editor"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import Image from "next/image"
-import { useRef, useState } from "react"
+import { useRef, useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import type { z } from "zod"
@@ -23,7 +23,11 @@ export function AnswerForm({ questionId, content }: Props) {
   type T = z.infer<typeof AnswerFormSchema>
   
   const editorRef = useRef<MDXEditorMethods>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Use transition for the form submission
+  const [isPending, startTransition] = useTransition()
+  
+  // Kept AI state as is
   const [isAISubmitting, setIsAISubmitting] = useState(false)
 
   const form = useForm<T>({
@@ -33,27 +37,24 @@ export function AnswerForm({ questionId, content }: Props) {
     }
   })
 
-  const handleCreateAnswer = async (data: T) => {
-    setIsSubmitting(true)
-    
-    try {
-      const result = await createAnswer({
-        content: data.content,
-        questionId,
-      })
+  const handleCreateAnswer = (data: T) => {
+    startTransition(async () => {
+      try {
+        const result = await createAnswer({
+          content: data.content,
+          questionId,
+        })
 
-      if (result.success) {
-        toast.success("Answer created successfully")
-        
-        form.reset()
-      } else {
-        toast.error(result?.error ? String(result.error) : "Failed to create answer")
+        if (result.success) {
+          toast.success("Answer created successfully")
+          form.reset()
+        } else {
+          toast.error(result?.error ? String(result.error) : "Failed to create answer")
+        }
+      } catch (error: unknown) {
+        toast.error(`An unexpected error occurred while posting your answer.${String(error)}`)
       }
-    } catch (error:unknown) {
-      toast.error(`An unexpected error occurred while posting your answer.${String(error)}`)
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   const generateAIAnswer = async () => {
@@ -63,6 +64,8 @@ export function AnswerForm({ questionId, content }: Props) {
     }
 
     setIsAISubmitting(true)
+    
+    // AI implementation goes here later
   }
 
   return (
@@ -119,10 +122,10 @@ export function AnswerForm({ questionId, content }: Props) {
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={isSubmitting || !form.formState.isDirty}
+              disabled={isPending || !form.formState.isDirty}
               className="primary-gradient w-fit"
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <ReloadIcon className="mr-2 size-4 animate-spin" />
                   Posting...
