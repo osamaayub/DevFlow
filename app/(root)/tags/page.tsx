@@ -1,5 +1,5 @@
 import { TagCards } from "@/components/cards"
-import { LocalSearchBar } from "@/components/search"
+import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { EMPTY_TAGS } from "@/constants/states"
