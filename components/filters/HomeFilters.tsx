@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib";
 import { cn } from "@/lib/utils";
 
-import { Button } from "../ui/button"
+import { Button } from "../ui"
 // import { homeFilters } from "@/constants/filter";
 
 

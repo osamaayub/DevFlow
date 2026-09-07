@@ -9,14 +9,9 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
+import { TagCards } from "@/components/cards"
 import { Editor } from "@/components/editor"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import ROUTES from "@/constants/route"
-import { createQuestion, editQuestion } from "@/lib/actions/question.action"
-import { AskQuestionSchema } from "@/lib/validation"
-
-import TagCards from "../cards/TagCards"
+import { Button, Input } from "@/components/ui"
 import {
   Form,
   FormControl,
@@ -25,7 +20,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "../ui/form"
+} from "@/components/ui"
+import ROUTES from "@/constants/route"
+import { createQuestion, editQuestion } from "@/lib/actions/question.action"
+import { AskQuestionSchema } from "@/lib/validation"
 
 interface QuestionFormProps {
   question?: Question

@@ -7,16 +7,7 @@ import { DefaultValues, FieldValues, Path, SubmitHandler, useForm } from "react-
 import { toast } from "sonner"
 import type { ZodTypeAny } from "zod"
 
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Button, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@/components/ui"
 import Routes from "@/constants/route"
 
 // Define what your Server Actions return

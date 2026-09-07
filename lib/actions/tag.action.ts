@@ -1,11 +1,11 @@
 "use server"
 
 import { FilterQuery } from "mongoose"
+import { Types } from "mongoose"
 
 import { Question, Tag } from "@/database"
 import { action, GetTagQuestionsSchema, HandleError, paginatedSearchParamsSchema } from "@/lib"
 import { GetTagQuestionsParams } from "@/types"
-import { Types } from "mongoose"
 
 export const getTags = async (
   params: PaginatedSearchParams

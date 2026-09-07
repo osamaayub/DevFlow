@@ -1,6 +1,6 @@
-import QuestionCard from "@/components/cards/QuestionCard";
+import { QuestionCard } from "@/components/cards"
 import LocalSearchBar from "@/components/search/LocalSearchBar";
-import DataRenderer from "@/components/shared/DataRender";
+import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions";
@@ -34,7 +34,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         />
       </section>
 
-      <DataRenderer
+      <DataRender
         success={success}
         error={error}
         data={questions}

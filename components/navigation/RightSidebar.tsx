@@ -1,11 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 
-import DataRenderer from "@/components/shared/DataRender"
+import { TagCards } from "@/components/cards"
+import { DataRender } from "@/components/shared"
 import Routes from "@/constants/route"
 import { getQuestions } from "@/lib/actions"
-
-import TagCards from "../cards/TagCards"
 
 const RightSidebar = async () => {
   const response = await getQuestions({
@@ -52,7 +51,7 @@ const RightSidebar = async () => {
       <div>
         <h3 className="h3-bold text-dark200_light900">Hot Questions</h3>
 
-        <DataRenderer
+        <DataRender
           success={response.success}
           error={response.error}
           data={response.data?.questions}

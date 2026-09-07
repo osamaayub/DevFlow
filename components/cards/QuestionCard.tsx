@@ -1,10 +1,11 @@
+
 import Link from "next/link";
 
-import ROUTES from "@/constants/route";
+import { TagCards } from "@/components/cards"
+import ROUTES from "@/constants/route"
 
-import TagCards from "./TagCards";
-import Metric from "../Metric";
-import RelativeTime from "../RelativeTime";
+import { Metric, RelativeTime } from "../shared"
+
 
 
 
