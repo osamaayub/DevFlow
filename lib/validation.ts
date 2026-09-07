@@ -117,3 +117,6 @@ export const AnswerFormSchema=z.object({
 export const CreateAnswerSchema=AnswerFormSchema.extend({
   questionId:z.string().min(1,{message:"Question Id is required"})
 })
+export const GetAnswersSchema=paginatedSearchParamsSchema.extend({
+  questionId:z.string().min(1,{message:"Question Id is required"})
+})

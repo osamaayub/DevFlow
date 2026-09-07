@@ -1,7 +1,7 @@
 "use server"
 
 import mongoose, { FilterQuery } from "mongoose"
-import { revalidatePath } from "next/cache" // <-- Added for cache invalidation
+import { revalidatePath } from "next/cache" 
 
 import { Question, TagQuestion } from "@/database"
 import {
@@ -15,10 +15,10 @@ import {
 } from "@/lib"
 import { PopulatedTag, processTags, removeTags, TagProcessingResult } from "@/lib/tag-helpers"
 import {
-  createQuestionParams,
+  CreateQuestionParams,
   EditQuestionParams,
   GetQuestionParams,
-  IncrementQuestionViewsParams,
+  IncrementQuestionViewsParams
 } from "@/types"
 
 interface PopulatedQuestion {
@@ -30,7 +30,7 @@ interface PopulatedQuestion {
 }
 
 export async function createQuestion(
-  params: createQuestionParams
+  params: CreateQuestionParams
 ): Promise<ActionResponse<Question>> {
   const validationResult = await action({
     params,
@@ -164,8 +164,7 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
     await session.commitTransaction()
 
     revalidatePath("/")
-    revalidatePath(`/questions/${questionId}`)
-    revalidatePath("/")
+    revalidatePath(`/questions/${questionId}`) // <-- Removed the redundant 3rd revalidatePath call here
 
     return { success: true, data: JSON.parse(JSON.stringify(updatedQuestion)) }
   } catch (error) {

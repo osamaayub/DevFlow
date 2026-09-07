@@ -5,23 +5,28 @@ export type ActionOptions<T> = {
   schema?: ZodSchema<T>
   authorize?: boolean
 }
+
 export interface AuthCredentials {
   name: string
   username: string
   email: string
   password: string
 }
-export interface createQuestionParams {
+
+export interface CreateQuestionParams { 
   title: string
   content: string
   tags: string[]
 }
-export interface EditQuestionParams extends createQuestionParams {
+
+export interface EditQuestionParams extends CreateQuestionParams {
   questionId: string
 }
+
 export interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "filter"> {
   tagId: string
 }
+
 export interface GetQuestionParams {
   questionId: string
 }
@@ -30,7 +35,11 @@ export interface IncrementQuestionViewsParams {
   questionId: string
 }
 
-export interface CreateAnswerParams{
-  questionId:string,
-  content:string
+export interface CreateAnswerParams {
+  questionId: string
+  content: string
+}
+
+export interface GetAnswersParams extends PaginatedSearchParams {
+  questionId: string
 }
