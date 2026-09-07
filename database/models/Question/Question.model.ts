@@ -1,6 +1,6 @@
 import { model, models } from "mongoose"
 
-import { IQuestion } from "./Question.schema"
-import { QuestionsSchema } from "./Question.schema"
+import { IQuestion } from "../../schemas/Question.schema"
+import { QuestionSchema } from "../../schemas/Question.schema"
 
-export const Question = models?.Question || model<IQuestion>("Question", QuestionsSchema)
+export const Question = models?.Question || model<IQuestion>("Question", QuestionSchema)
