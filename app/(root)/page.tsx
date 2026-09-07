@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 import { QuestionCard } from "@/components/cards"
-import { LocalSearchBar } from "@/components/search"
+import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import { Button } from "@/components/ui"
 import ROUTES from "@/constants/route"
