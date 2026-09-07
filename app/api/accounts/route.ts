@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { Account } from "@/database/models";
+import { Account } from "@/database";
 import { HandleError } from "@/lib/handlers";
 import { dbConnect } from "@/lib/mongoose";
 

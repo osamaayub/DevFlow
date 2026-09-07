@@ -1,7 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
-import { User } from "@/database/models";
+import { User } from "@/database";
 import { HandleError } from "@/lib/handlers";
 import { NotFoundError } from "@/lib/http-error";
 import { dbConnect } from "@/lib/mongoose";

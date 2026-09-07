@@ -5,7 +5,7 @@ export interface IInteraction{
     user:Types.ObjectId,
     action:string,
     question:Types.ObjectId,
-    tags:Types.ObjectId,
+    tags:Types.ObjectId[],
     answer:Types.ObjectId,
 
 }
