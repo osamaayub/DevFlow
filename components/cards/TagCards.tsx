@@ -2,10 +2,9 @@ import Image from "next/image"
 import Link from "next/link"
 import React from "react"
 
+import ROUTES from "@/constants/route"
 
 import { cn, getDevinconClassName, getTechDescription } from "@/lib/utils"
-
-import ROUTES from "@/constants/route"
 import { Badge } from "../ui"
 
 

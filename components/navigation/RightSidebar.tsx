@@ -1,11 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import { TagCards } from "@/components/cards"
 import { DataRender } from "@/components/shared"
 import Routes from "@/constants/route"
 import { getQuestions } from "@/lib/actions"
-
-import { TagCards } from "@/components/cards"
 
 const RightSidebar = async () => {
   const response = await getQuestions({

@@ -2,8 +2,9 @@ import Image from "next/image"
 import Link from "next/link"
 import React from "react"
 
-import { Button } from "../ui"
 import { DEFAULT_EMPTY, DEFAULT_ERROR } from "@/constants/states"
+
+import { Button } from "../ui"
 
 interface Props<T> {
   success: boolean

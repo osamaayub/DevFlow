@@ -2,9 +2,9 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { auth } from "@/auth"
+import { Theme } from "@/components/navigation"
 import { UserAvatar } from "@/components/shared"
 
-import { Theme } from "@/components/navigation"
 import MobileNavigation from "./MobileNavigation"
 
 export async function Navbar() {

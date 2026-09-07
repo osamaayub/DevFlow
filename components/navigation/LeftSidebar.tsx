@@ -6,8 +6,8 @@ import React from "react"
 import { auth, signOut } from "@/auth"
 import ROUTES from "@/constants/route"
 
-import NavLinks from "./navbar/NavLinks"
 import { Button } from "../ui"
+import NavLinks from "./navbar/NavLinks"
 
 
 const LeftSidebar = async () => {
