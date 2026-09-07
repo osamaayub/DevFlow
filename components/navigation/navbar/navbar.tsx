@@ -4,7 +4,7 @@ import Link from "next/link"
 import { auth } from "@/auth"
 import { UserAvatar } from "@/components/shared"
 
-import Theme from "../Theme"
+import { Theme } from "@/components/navigation"
 import MobileNavigation from "./MobileNavigation"
 
 export async function Navbar() {

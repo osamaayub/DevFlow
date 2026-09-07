@@ -7,7 +7,7 @@ import { auth, signOut } from "@/auth"
 import ROUTES from "@/constants/route"
 
 import NavLinks from "./navbar/NavLinks"
-import { Button } from "../ui/button"
+import { Button } from "../ui"
 
 
 const LeftSidebar = async () => {

@@ -5,7 +5,7 @@ import Link from "next/link"
 import ROUTES from "@/constants/route"
 import { cn } from "@/lib/utils"
 
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "../ui"
 
 interface Props {
   id: string

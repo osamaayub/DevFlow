@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import Routes from "@/constants/route"
 import logger from "@/lib/logger"
 
-import { Button } from "../ui/button"
+import { Button } from "../ui"
 
 const SocialAuthForm = () => {
   const ButtonClass =

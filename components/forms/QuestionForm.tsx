@@ -15,7 +15,7 @@ import ROUTES from "@/constants/route"
 import { createQuestion, editQuestion } from "@/lib/actions/question.action"
 import { AskQuestionSchema } from "@/lib/validation"
 
-import { TagCards } from "../cards"
+import { TagCards } from "@/components/cards"
 import {
   Form,
   FormControl,
@@ -24,7 +24,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "../ui/form"
+} from "@/components/ui"
 
 interface QuestionFormProps {
   question?: Question

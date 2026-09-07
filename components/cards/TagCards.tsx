@@ -5,8 +5,8 @@ import React from "react"
 
 import { cn, getDevinconClassName, getTechDescription } from "@/lib/utils"
 
-import ROUTES from "../../constants/route"
-import { Badge } from "../ui/badge"
+import ROUTES from "@/constants/route"
+import { Badge } from "../ui"
 
 
 interface Props {

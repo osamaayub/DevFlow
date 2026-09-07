@@ -5,7 +5,7 @@ import { DataRender } from "@/components/shared"
 import Routes from "@/constants/route"
 import { getQuestions } from "@/lib/actions"
 
-import { TagCards } from "../cards"
+import { TagCards } from "@/components/cards"
 
 const RightSidebar = async () => {
   const response = await getQuestions({
