@@ -8,6 +8,8 @@ export interface IAnswer {
     question: Types.ObjectId,
     upvotes: number,
     downvotes: number,
+    createdAt:Date,
+    updatedAt:Date
 }
 export const AnswerSchema = new Schema({
     author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -15,4 +17,4 @@ export const AnswerSchema = new Schema({
     question: { type: Schema.Types.ObjectId, ref: 'Question', required: true },
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
-})
+},{timestamps:true})

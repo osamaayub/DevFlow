@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { Preview } from "@/components/editor/preview"
-import UserAvatar from "@/components/shared/userAvatar";
 import ROUTES from "@/constants/route";
-import { cn, getTimeStamp } from "@/lib";
+import { cn } from "@/lib";
+
+import  { RelativeTime, UserAvatar } from "../shared";
 
 interface Props extends Answer {
   containerClasses?: string;
@@ -17,8 +18,6 @@ const AnswerCard = ({
   author,
   content,
   createdAt,
-  upvotes,
-  downvotes,
   question,
   containerClasses,
   showReadMore = false,
@@ -39,23 +38,23 @@ const AnswerCard = ({
       <div className="mb-5 flex flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <div className="flex flex-1 items-start gap-1 sm:items-center">
           <UserAvatar
-            id={author._id}
-            name={author.name}
-            image={author.image}
+            id={author?._id}
+            name={author?.name}
+            image={author?.image}
             className="size-5 rounded-full object-cover max-sm:mt-2"
           />
 
           <Link
-            href={ROUTES.PROFILE(author._id)}
+            href={ROUTES.PROFILE(author?._id ?? "")}
             className="flex flex-col max-sm:ml-1 sm:flex-row sm:items-center"
           >
             <p className="body-semibold text-dark300_light700">
-              {author.name ?? "Anonymous"}
+              {author?.name}
             </p>
 
             <p className="small-regular text-light400_light500 ml-0.5 mt-0.5 line-clamp-1">
               <span className="max-sm:hidden"> • </span>
-              answered {getTimeStamp(createdAt)}
+              answered <RelativeTime date={createdAt} />
             </p>
           </Link>
         </div>

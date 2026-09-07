@@ -71,7 +71,7 @@ export async function createAnswer(
 }
 
 export async function getAnswers(
-  params:GetAnswersParams
+  params: GetAnswersParams
 ): Promise<ActionResponse<{
   answers: Answer[],
   totalAnswers: number,
@@ -86,7 +86,7 @@ export async function getAnswers(
     return HandleError(validationResult) as unknown as ErrorResponse;
   }
 
-  const { questionId, page = 1, pageSize = 10, filter } =validationResult.validatedData;
+  const { questionId, page = 1, pageSize = 10, filter } = validationResult.validatedData;
   const skip = (Number(page) - 1) * pageSize;
   const limit = Number(pageSize);
 
@@ -111,6 +111,10 @@ export async function getAnswers(
     const totalAnswers = await Answer.countDocuments(query);
     
     const answers = await Answer.find(query)
+      .populate({
+        path: "author",
+        select: "_id name image", // Populates the author properties required by your frontend components
+      })
       .sort(sortCriteria)
       .skip(skip)   
       .limit(limit);
