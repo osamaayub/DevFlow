@@ -29,3 +29,8 @@ export interface GetQuestionParams {
 export interface IncrementQuestionViewsParams {
   questionId: string
 }
+
+export interface CreateAnswerParams{
+  questionId:string,
+  content:string
+}
