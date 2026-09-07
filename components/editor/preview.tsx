@@ -1,13 +1,12 @@
 import { Code } from "bright";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ReactElement } from "react";
 
 export const Preview = ({ content }: { content: string }) => {
   return (
     <section className="markdown prose grid wrap-break-words">
       <MDXRemote
         source={content}
-        // Tell the compiler to treat this as standard Markdown, not MDX
         options={{
           mdxOptions: {
             format: "md",
@@ -16,14 +15,26 @@ export const Preview = ({ content }: { content: string }) => {
         components={{
           code: (props: ComponentPropsWithoutRef<"code">) => {
             const { children, className } = props;
+            return (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+          pre: ({ children }: ComponentPropsWithoutRef<"pre">) => {
+            const childElement = children as ReactElement<{
+              className?: string;
+              children?: React.ReactNode;
+            }>;
+            const codeProps = childElement?.props || {};
             const language =
-              typeof className === "string"
-                ? className.replace("language-", "")
+              typeof codeProps.className === "string"
+                ? codeProps.className.replace("language-", "")
                 : "javascript";
 
             return (
               <Code
-                code={String(children)}
+                code={String(codeProps.children || "")}
                 lang={language || "javascript"}
                 theme="github-dark"
                 lineNumbers
@@ -31,7 +42,6 @@ export const Preview = ({ content }: { content: string }) => {
               />
             );
           },
-          pre: ({ children }: ComponentPropsWithoutRef<"pre">) => <>{children}</>,
         }}
       />
     </section>

@@ -15,7 +15,6 @@ import { createAnswer } from "@/lib/actions/answer.action"
 
 interface Props {
   questionId: string;
-  authorId: string;
   content: string; 
 }
 
@@ -23,11 +22,7 @@ export function AnswerForm({ questionId, content }: Props) {
   type T = z.infer<typeof AnswerFormSchema>
   
   const editorRef = useRef<MDXEditorMethods>(null)
-  
-  // Use transition for the form submission
   const [isPending, startTransition] = useTransition()
-  
-  // Kept AI state as is
   const [isAISubmitting, setIsAISubmitting] = useState(false)
 
   const form = useForm<T>({
@@ -48,6 +43,7 @@ export function AnswerForm({ questionId, content }: Props) {
         if (result.success) {
           toast.success("Answer created successfully")
           form.reset()
+          editorRef.current?.setMarkdown("")
         } else {
           toast.error(result?.error ? String(result.error) : "Failed to create answer")
         }
@@ -64,8 +60,13 @@ export function AnswerForm({ questionId, content }: Props) {
     }
 
     setIsAISubmitting(true)
-    
-    // AI implementation goes here later
+    try {
+      toast.info("AI generation feature coming soon!")
+    } catch {
+      toast.error("Failed to generate AI answer")
+    } finally {
+      setIsAISubmitting(false)
+    }
   }
 
   return (
@@ -140,3 +141,5 @@ export function AnswerForm({ questionId, content }: Props) {
     </div>
   )
 }
+
+export default AnswerForm
