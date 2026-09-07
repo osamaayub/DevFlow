@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { after } from "next/server"
 
 import { TagCards } from "@/components/cards"
-import { Preview } from "@/components/editor"
+import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
 import { Metric, UserAvatar } from "@/components/shared"
 import ROUTES from "@/constants/route"
