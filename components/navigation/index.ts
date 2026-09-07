@@ -3,3 +3,4 @@ export { default as RightSidebar } from "./RightSidebar"
 export { default as Theme } from "./Theme"
 export { Navbar } from "./navbar"
 
+export * from "./Pagination"
