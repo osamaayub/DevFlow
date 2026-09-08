@@ -13,7 +13,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-8-47A248?style=for-the-badge\&logo=mongodb\&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge\&logo=tailwindcss\&logoColor=white)](https://tailwindcss.com/)
-[![NextAuth](https://img.shields.io/badge/Auth.js-v5-purple?style=for-the-badge)](https://authjs.dev/)
+[![Auth.js](https://img.shields.io/badge/Auth.js-v5-purple?style=for-the-badge)](https://authjs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 <br />
@@ -47,6 +47,18 @@ The project emphasizes:
 
 ---
 
+## 🎨 Figma Design
+
+The DevFlow interface was designed in **Figma**, with a focus on creating a clean, modern, and developer-friendly user experience.
+
+### 🔗 Design File
+
+[**View the DevFlow Figma Design →**](https://www.figma.com/design/2vtjgodtBxTdg0zOUHPvXh/JSM-Pro---DevOverflow?node-id=1-49&p=f&t=GbSYbwXhig7D5tjw-0)
+
+> The Figma design contains the UI/UX concepts and visual direction that inspired the DevFlow application.
+
+---
+
 ## ✨ Core Features
 
 ### 💬 Questions & Answers
@@ -58,7 +70,7 @@ Developers can create questions and provide detailed answers, creating a knowled
 * Edit content
 * View question details
 * Manage answers
-* Structured question/answer data models
+* Structured question and answer data models
 
 ---
 
@@ -86,13 +98,13 @@ Tags make technical content easier to organize and discover.
 
 DevFlow is designed around discovering relevant developer content.
 
-The application supports structured filtering and query handling for finding questions based on relevant criteria.
+The platform supports structured filtering and query handling for finding questions based on relevant criteria.
 
 ---
 
 ### 🔐 Authentication
 
-Authentication is handled through **Auth.js / NextAuth** with support for multiple authentication strategies.
+Authentication is handled through **Auth.js / NextAuth.js** with support for multiple authentication strategies.
 
 Supported providers include:
 
@@ -222,8 +234,6 @@ Logging is useful for:
 | **Database Adapter** | Auth.js MongoDB Adapter            |
 | **Deployment**       | Docker-ready                       |
 
-The current dependency configuration confirms the project's Next.js 16, React 19, Mongoose 8, Auth.js v5, Tailwind CSS 4, MDX Editor, Pino, React Hook Form, Zod, Axios, and related tooling.
-
 ---
 
 # 🏗️ Architecture
@@ -232,30 +242,30 @@ DevFlow follows a layered architecture designed to separate UI, application logi
 
 ```text
 ┌─────────────────────────────────────────────┐
-│                 Client / UI                 │
+│                  Client / UI                │
 │                                             │
-│   Next.js • React • Tailwind • Radix UI     │
+│    Next.js • React • Tailwind • Radix UI    │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
-│              Server Actions                 │
+│               Server Actions                │
 │                                             │
-│       Business Logic • Authorization        │
+│        Business Logic • Authorization       │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
-│             Validation Layer                │
+│              Validation Layer               │
 │                                             │
-│                   Zod                       │
+│                    Zod                      │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
-│             Database Layer                  │
+│               Database Layer                │
 │                                             │
-│          Mongoose • MongoDB                 │
+│           Mongoose • MongoDB                │
 └─────────────────────────────────────────────┘
 ```
 
@@ -316,24 +326,22 @@ DevFlow/
 └── README.md
 ```
 
-The current repository contains dedicated `app`, `components`, `constants`, `context`, `database`, `lib`, `public`, and `types` directories, with separate database models/schemas and application handlers/utilities.
-
 ---
 
 # 🚀 Getting Started
 
 ## Prerequisites
 
-Make sure you have:
+Make sure you have the following installed:
 
-* Node.js 22+
+* [Node.js](https://nodejs.org/) 22+
 * npm or Yarn
 * MongoDB local instance or MongoDB Atlas
 * Git
 
 ---
 
-## 1. Clone the repository
+## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/osamaayub/DevFlow.git
@@ -345,7 +353,7 @@ cd DevFlow
 
 ---
 
-## 2. Install dependencies
+## 2. Install Dependencies
 
 Using npm:
 
@@ -361,9 +369,9 @@ yarn install
 
 ---
 
-## 3. Configure environment variables
+## 3. Configure Environment Variables
 
-Create a `.env.local` file:
+Create a `.env.local` file in the root directory:
 
 ```env
 MONGODB_URI=your_mongodb_connection_string
@@ -381,21 +389,25 @@ LOG_LEVEL=debug
 
 ### Generate an Auth Secret
 
+You can generate a secure Auth.js secret using:
+
 ```bash
 npx auth secret
 ```
 
-> Never commit `.env.local` or any production credentials to Git.
+> **Important:** Never commit `.env.local` or production credentials to Git.
 
 ---
 
-## 4. Start the development server
+## 4. Start the Development Server
+
+Using npm:
 
 ```bash
 npm run dev
 ```
 
-Or:
+Or Yarn:
 
 ```bash
 yarn dev
@@ -411,9 +423,9 @@ http://localhost:3000
 
 # 🔐 Authentication Configuration
 
-DevFlow uses Auth.js / NextAuth for authentication.
+DevFlow uses **Auth.js / NextAuth.js v5** for authentication.
 
-### GitHub
+## GitHub
 
 Create an OAuth application through GitHub Developer Settings and configure:
 
@@ -422,24 +434,24 @@ AUTH_GITHUB_ID=...
 AUTH_GITHUB_SECRET=...
 ```
 
-### Google
+## Google
 
-Create OAuth credentials through Google Cloud Console:
+Create OAuth credentials through Google Cloud Console and configure:
 
 ```env
 AUTH_GOOGLE_ID=...
 AUTH_GOOGLE_SECRET=...
 ```
 
-### Credentials
+## Credentials
 
-The project also supports credentials-based authentication.
+The application also supports credentials-based authentication for users who prefer traditional email/password authentication.
 
 ---
 
 # 🗄️ Database
 
-DevFlow uses **MongoDB with Mongoose**.
+DevFlow uses **MongoDB with Mongoose** for data persistence.
 
 The database layer is organized into:
 
@@ -451,6 +463,8 @@ database/
 ```
 
 This separation keeps persistence logic independent from UI and application-level logic.
+
+MongoDB provides the persistence layer, while Mongoose provides schema definitions, models, validation, and database interaction.
 
 ---
 
@@ -470,7 +484,7 @@ npm run start
 npm run lint
 ```
 
-The current project scripts use Webpack for the development server (`next dev --webpack`), while production uses the standard Next.js build/start workflow.
+The development configuration uses Webpack for the Next.js development server, while production uses the standard Next.js build and start workflow.
 
 ---
 
@@ -478,13 +492,13 @@ The current project scripts use Webpack for the development server (`next dev --
 
 DevFlow includes a Dockerfile for containerized deployments.
 
-### Build
+## Build
 
 ```bash
 docker build -t devflow .
 ```
 
-### Run
+## Run
 
 ```bash
 docker run -p 3000:3000 \
@@ -516,35 +530,39 @@ npm run lint
 
 # 📈 Engineering Highlights
 
-DevFlow demonstrates several real-world full-stack development patterns:
+DevFlow demonstrates several real-world full-stack development patterns.
 
-### Type-safe application development
+### Type-Safe Application Development
 
-TypeScript is used throughout the application to reduce runtime errors and improve developer experience.
+TypeScript is used throughout the application to improve developer experience, maintainability, and type safety.
 
-### Server-side business logic
+### Server-Side Business Logic
 
 Application operations are organized into server actions rather than placing business logic directly inside UI components.
 
-### Database abstraction
+### Database Abstraction
 
-Mongoose models and schemas provide a structured interface for MongoDB.
+Mongoose models and schemas provide a structured interface for interacting with MongoDB.
 
-### Centralized validation
+### Centralized Validation
 
-Zod schemas provide consistent input validation.
+Zod schemas provide consistent and reusable input validation across application operations.
 
-### Authentication & authorization
+### Authentication & Authorization
 
-Auth.js handles authentication while application logic controls protected operations.
+Auth.js handles authentication while application-level authorization controls access to protected functionality.
 
-### Centralized error handling
+### Centralized Error Handling
 
-Dedicated handlers and HTTP error utilities provide a consistent error-management approach.
+Dedicated handlers and HTTP error utilities provide a consistent approach to application errors.
 
-### Structured logging
+### Structured Logging
 
-Pino provides structured logs suitable for debugging and production environments.
+Pino provides structured logs suitable for debugging, development diagnostics, and production monitoring.
+
+### Modular Architecture
+
+Reusable components, utilities, actions, database models, schemas, and validation logic are separated into dedicated modules.
 
 ---
 
@@ -552,7 +570,7 @@ Pino provides structured logs suitable for debugging and production environments
 
 DevFlow is actively evolving.
 
-### Completed
+## ✅ Completed
 
 * [x] Next.js App Router foundation
 * [x] TypeScript architecture
@@ -572,7 +590,7 @@ DevFlow is actively evolving.
 * [x] Centralized error handling
 * [x] Docker configuration
 
-### 🚧 In Progress
+## 🚧 In Progress
 
 * [ ] Expand question/answer workflows
 * [ ] Improve search and discovery
@@ -582,12 +600,12 @@ DevFlow is actively evolving.
 * [ ] Performance improvements
 * [ ] Production deployment
 
-### 🔮 Future
+## 🔮 Future
 
 * [ ] Advanced developer search
 * [ ] Notifications
 * [ ] Bookmarks
-* [ ] Voting/reputation enhancements
+* [ ] Voting and reputation enhancements
 * [ ] Moderation tools
 * [ ] Analytics dashboard
 * [ ] Admin dashboard
@@ -596,55 +614,63 @@ DevFlow is actively evolving.
 
 # 🤝 Contributing
 
-Contributions are welcome.
+Contributions are welcome and appreciated.
 
-### 1. Fork the repository
+## 1. Fork the Repository
 
 ```bash
 git clone https://github.com/osamaayub/DevFlow.git
 ```
 
-### 2. Create a feature branch
+## 2. Create a Feature Branch
 
 ```bash
 git checkout -b feature/your-feature
 ```
 
-### 3. Make your changes
+## 3. Make Your Changes
 
 Follow the existing project structure and coding conventions.
 
-### 4. Run linting
+## 4. Run Linting
 
 ```bash
 npm run lint
 ```
 
-### 5. Commit
+## 5. Commit Your Changes
 
 ```bash
 git commit -m "feat: add your feature"
 ```
 
-### 6. Push
+## 6. Push Your Branch
 
 ```bash
 git push origin feature/your-feature
 ```
 
-### 7. Open a Pull Request
+## 7. Open a Pull Request
 
-Describe the changes and include any relevant screenshots or technical notes.
+Describe your changes and include any relevant screenshots, technical notes, or implementation details.
 
 ---
 
 # 🐛 Issues & Feature Requests
 
-Found a bug or have an idea?
+Found a bug or have an idea for improving DevFlow?
 
-**Open an issue:**
+Feel free to open an issue:
 
-https://github.com/osamaayub/DevFlow/issues
+[**Report an Issue →**](https://github.com/osamaayub/DevFlow/issues)
+
+When reporting a bug, please include:
+
+* A clear description of the problem
+* Steps to reproduce it
+* Expected behavior
+* Actual behavior
+* Relevant screenshots or error logs when applicable
 
 ---
 
@@ -662,13 +688,17 @@ See [`LICENSE`](LICENSE) for more information.
 
 ### Osama Ayub
 
-Full-Stack Developer
+**Full-Stack Developer**
 
 Building modern web applications with **Next.js, React, TypeScript, Node.js, MongoDB, and modern backend architecture.**
 
 <br />
 
 [![GitHub](https://img.shields.io/badge/GitHub-osamaayub-181717?style=for-the-badge\&logo=github)](https://github.com/osamaayub)
+
+<br />
+
+[**GitHub Profile →**](https://github.com/osamaayub)
 
 </div>
 
