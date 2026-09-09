@@ -61,7 +61,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
             <UserAvatar
               id={author._id}
               name={author.name}
-              className="size-[22px]"
+              className="size-5.5"
               fallbackClassName="text-[10px]"
             />
             <Link href={ROUTES.PROFILE(author._id)}>
@@ -109,6 +109,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
         ))}
       </div>
 
+     <section className="my-5">
       <AllAnswers
         data={answersData}
         success={answersSuccess}
@@ -117,6 +118,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
         isNext={isNext}
         totalAnswers={totalAnswers}
       />
+      </section>
 
       <section className="mt-5">
         {userId ? (
