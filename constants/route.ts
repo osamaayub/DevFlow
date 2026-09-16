@@ -11,7 +11,8 @@ const ROUTES = {
   PROFILE: (id: string) => `/profile/${id}`,
   QUESTION: (id: string) => `/questions/${id}`,
   TAG: (id: string) => `/tags/${id}`,
-  SIGN_IN_WITH_OAUTH: `signin-with-oauth`
+  SIGN_IN_WITH_OAUTH: `signin-with-oauth`,
+  AI_ANSWER: `/api/ai/answers`,
 }
 
 export default ROUTES

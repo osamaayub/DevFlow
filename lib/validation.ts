@@ -104,19 +104,27 @@ export const paginatedSearchParamsSchema = z.object({
   sort: z.string().optional()
 })
 
-export const GetTagQuestionsSchema=paginatedSearchParamsSchema.extend({
-tagId:z.string().min(1,{message:"TagId is required"})
+export const GetTagQuestionsSchema = paginatedSearchParamsSchema.extend({
+  tagId: z.string().min(1, { message: "TagId is required" })
 })
 
-export const IncrementQuestionViewsSchema=z.object({
-  questionId:z.string().min(1,{message:"QuestionId is required"})
+export const IncrementQuestionViewsSchema = z.object({
+  questionId: z.string().min(1, { message: "QuestionId is required" })
 })
-export const AnswerFormSchema=z.object({
-  content:z.string().min(100,{message:"Answer must be at least 100 characters."}),
+export const AnswerFormSchema = z.object({
+  content: z.string().min(100, { message: "Answer must be at least 100 characters." })
 })
-export const CreateAnswerSchema=AnswerFormSchema.extend({
-  questionId:z.string().min(1,{message:"Question Id is required"})
+export const CreateAnswerSchema = AnswerFormSchema.extend({
+  questionId: z.string().min(1, { message: "Question Id is required" })
 })
-export const GetAnswersSchema=paginatedSearchParamsSchema.extend({
-  questionId:z.string().min(1,{message:"Question Id is required"})
+export const GetAnswersSchema = paginatedSearchParamsSchema.extend({
+  questionId: z.string().min(1, { message: "Question Id is required" })
+})
+
+export const AIAnswerSchema = z.object({
+  question: z
+    .string()
+    .min(5, { message: "Question is required" })
+    .max(120, { message: "Question can't exceed 120 characters" }),
+  content: z.string().min(120, { message: "Answer can't exceed more than 120 characters" })
 })
