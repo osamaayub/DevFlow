@@ -61,6 +61,9 @@ Markdown/MDX editor with live preview for formatting questions and answers.
 ### 📊 Structured Logging
 Request and error logging with Pino for debugging and monitoring.
 
+### 🤖 AI-Powered Answers
+Generate intelligent answers using OpenAI integration.
+
 </td>
 </tr>
 </table>
@@ -80,6 +83,7 @@ Request and error logging with Pino for debugging and monitoring.
 | **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) • [shadcn/ui](https://ui.shadcn.com/) • [Radix UI](https://www.radix-ui.com/) • [Lucide](https://lucide.dev/) |
 | **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) • [Zod](https://zod.dev/) |
 | **Editor** | [MDX Editor](https://mdxeditor.dev/) |
+| **AI** | [OpenAI](https://openai.com/) via [Vercel AI SDK](https://sdk.vercel.ai/) |
 | **Logging** | [Pino](https://getpino.io/) |
 
 </div>
@@ -130,6 +134,7 @@ yarn dev
 |----------|-------------|---------|
 | `MONGODB_URI` | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/devflow` |
 | `AUTH_SECRET` | NextAuth encryption key | Generate with: `npx auth secret` |
+| `OPENAI_API_KEY` | OpenAI API key for AI answers | Get from [OpenAI Platform](https://platform.openai.com/) |
 
 ### OAuth Providers (Optional)
 
@@ -168,25 +173,73 @@ yarn lint         # Run ESLint checks
 
 ### ✅ Completed
 - [x] Project setup with Next.js 16 & TypeScript
-- [x] MongoDB & Mongoose integration
-- [x] NextAuth.js authentication (Google, GitHub, Email)
-- [x] Database models (Questions, Answers, Users, Tags)
-- [x] Server actions for CRUD operations
-- [x] Tailwind CSS & component styling
-- [x] Dark/Light theme support
+- [x] MongoDB & Mongoose integration with multiple models
+- [x] NextAuth.js authentication (Google, GitHub, Email/Password)
+- [x] Complete database models (Questions, Answers, Users, Tags, Accounts, Collections, Interactive, Votes, QuestionView, TagQuestion)
+- [x] Server actions for CRUD operations (questions, answers, tags, auth)
+- [x] Tailwind CSS & component styling with shadcn/ui
+- [x] Dark/Light theme support with context provider
+- [x] Rich text editor with MDX support
+- [x] Tag management system with tag-question relationships
+- [x] Search functionality with filtering
+- [x] Pagination system
+- [x] Error handling with custom error handler
+- [x] Validation schemas with Zod
+- [x] AI Answer API endpoint with OpenAI integration
+- [x] API client functions and centralized route constants
+- [x] Core UI pages (home, sign-in, sign-up, ask-question, questions detail, tags)
+- [x] React components (forms, cards, navigation, editor, search, filters, shared utilities)
+- [x] User authentication flow (sign up, sign in, OAuth)
+- [x] Question creation and editing
+- [x] Answer creation
+- [x] Question view tracking
+- [x] Responsive design across implemented pages
+- [x] Local search bar with filtering
+- [x] Navigation sidebar and mobile navigation
+- [x] Theme toggle component
+- [x] User avatar components
+- [x] Relative time display
+- [x] Toast notifications with Sonner
+- [x] Form validation with React Hook Form
+- [x] Database connection management
+- [x] Structured logging with Pino
+- [x] API route handlers for users, accounts, auth, and AI
+- [x] OAuth callback handling and user account creation
+- [x] Password hashing with bcrypt
+- [x] Username generation for OAuth users
+- [x] Session management and JWT callbacks
+- [x] MongoDB transaction support for complex operations
+- [x] Tag processing and helper functions
+- [x] Question filtering (newest, unanswered, popular)
+- [x] URL utilities and helpers
 
 ### 🚧 In Progress
-- [ ] Question & Answer functionality UI
-- [ ] Search & filtering optimization
-- [ ] Tag management system
-- [ ] User profiles & reputation system
-- [ ] Rich text editor integration
-- [ ] Performance optimizations
+- [ ] AI Answer UI integration (API implemented, UI pending)
+- [ ] Complete HomeFilters implementation (currently hardcoded)
+- [ ] Profile page implementation (placeholder exists)
+- [ ] Collection page implementation (placeholder exists)
+- [ ] Community page implementation (placeholder exists)
+- [ ] Jobs page implementation (placeholder exists)
 
 ### 📋 Planned
+- [ ] Vote system (upvotes/downvotes) - Schema exists, actions pending
+- [ ] User collections functionality - Schema exists, actions pending
+- [ ] Interaction tracking - Schema exists, implementation pending
+- [ ] Question deletion action
+- [ ] Answer editing and deletion
+- [ ] User profile editing
+- [ ] User management actions
 - [ ] Live demo deployment
 - [ ] Admin dashboard
-- [ ] Advanced search algorithms
+- [ ] Real-time notifications
+- [ ] Advanced analytics and reporting
+- [ ] Community features (comments, discussions)
+- [ ] Badge system and gamification
+- [ ] API rate limiting
+- [ ] Additional OAuth providers
+- [ ] Enhanced search algorithms
+- [ ] Performance optimizations
+- [ ] Additional unit and integration tests
 
 ---
 
@@ -194,30 +247,68 @@ yarn lint         # Run ESLint checks
 
 ```
 DevFlow/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   ├── layout.tsx         # Root layout
-│   └── [routes]/          # Page routes
-├── components/            # Reusable React components
-│   ├── cards/            # Question, answer, tag cards
-│   ├── forms/            # Ask, answer, search forms
-│   ├── filters/          # Filter components
-│   └── ui/               # Base UI components
-├── context/              # React context providers (Theme, etc.)
-├── database/             # Mongoose schemas & models
-│   ├── question.model.ts
-│   ├── answer.model.ts
-│   ├── user.model.ts
-│   └── tag.model.ts
-├── lib/                  # Utilities & helpers
-│   ├── actions/         # Server actions
-│   ├── validation/       # Zod schemas
-│   ├── error-handler/    # Error handling
-│   └── mongoose.ts      # DB connection
-├── types/               # TypeScript definitions
-├── constants/           # Static data (routes, filters, etc.)
-├── public/              # Static assets (images, icons)
-└── auth.ts             # NextAuth configuration
+├── app/                          # Next.js App Router
+│   ├── (auth)/                  # Authentication routes
+│   │   ├── sign-in/
+│   │   └── sign-up/
+│   ├── (root)/                  # Main application routes
+│   │   ├── ask-question/
+│   │   ├── collection/
+│   │   ├── community/
+│   │   ├── jobs/
+│   │   ├── profile/[id]/
+│   │   ├── questions/[id]/
+│   │   ├── tags/
+│   │   └── page.tsx (home)
+│   ├── api/                     # API routes
+│   │   ├── accounts/
+│   │   ├── ai/answers/
+│   │   ├── auth/[...nextauth]/
+│   │   └── users/
+│   ├── layout.tsx               # Root layout
+│   └── Providers.tsx            # Context providers
+├── components/                  # Reusable React components
+│   ├── answers/                 # Answer components
+│   ├── cards/                   # Question, answer, tag cards
+│   ├── editor/                  # MDX editor
+│   ├── filters/                 # Filter components
+│   ├── forms/                   # Auth, question, answer forms
+│   ├── navigation/              # Navigation components
+│   ├── search/                  # Search components
+│   ├── shared/                  # Shared utilities
+│   └── ui/                      # Base UI components (shadcn/ui)
+├── context/                     # React context providers
+│   └── Theme.tsx               # Theme context
+├── database/                    # Mongoose schemas & models
+│   ├── models/                 # Mongoose models
+│   │   ├── Account/
+│   │   ├── Answer/
+│   │   ├── Collection/
+│   │   ├── Interactive/
+│   │   ├── Question/
+│   │   ├── QuestionView/
+│   │   ├── Tag/
+│   │   ├── TagQuestion/
+│   │   ├── User/
+│   │   └── Vote/
+│   └── schemas/                # Mongoose schemas
+├── lib/                         # Utilities & helpers
+│   ├── actions/                # Server actions
+│   ├── handlers/               # Error and action handlers
+│   ├── api.ts                  # API client functions
+│   ├── fetch.ts                # Fetch utilities
+│   ├── validation.ts           # Zod schemas
+│   ├── mongoose.ts             # DB connection
+│   ├── logger.ts               # Pino logger
+│   └── utils.ts                # General utilities
+├── types/                       # TypeScript definitions
+├── constants/                   # Static data
+│   ├── filter.ts               # Filter constants
+│   ├── route.ts                # Route constants
+│   ├── states.ts               # Empty states
+│   └── techMap.ts              # Technology mappings
+├── public/                      # Static assets
+└── auth.ts                     # NextAuth configuration
 ```
 
 ---
@@ -229,6 +320,8 @@ All responses follow the standard envelope format:
 { "success": true, "data": {...}, "statusCode": 200 }
 ```
 
+> **Note:** Questions, Answers, and Tags use **Server Actions** instead of REST API endpoints for better performance and type safety.
+
 ### 👥 Users
 
 | Method | Endpoint | Description |
@@ -238,22 +331,50 @@ All responses follow the standard envelope format:
 | `GET` | `/api/users/:id` | Get user by ID |
 | `PATCH` | `/api/users/:id` | Update user |
 | `DELETE` | `/api/users/:id` | Delete user |
+| `POST` | `/api/users/email` | Get user by email |
+
+### 🔐 Accounts
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/accounts` | List all accounts |
+| `POST` | `/api/accounts` | Create new account |
+| `GET` | `/api/accounts/:id` | Get account by ID |
+| `PATCH` | `/api/accounts/:id` | Update account |
+| `DELETE` | `/api/accounts/:id` | Delete account |
+| `POST` | `/api/accounts/email` | Get account by email |
+| `POST` | `/api/accounts/provider` | Get account by provider |
 
 ### 🔐 Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET/POST` | `/api/auth/[...nextauth]` | NextAuth.js handler |
+| `GET/POST` | `/api/auth/[...nextauth]` | NextAuth.js handler (Google, GitHub, Credentials) |
 
-### ❓ Questions
+### 🤖 AI
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/questions` | List questions with filters |
-| `POST` | `/api/questions` | Create new question |
-| `GET` | `/api/questions/:id` | Get single question |
-| `PATCH` | `/api/questions/:id` | Update question |
-| `DELETE` | `/api/questions/:id` | Delete question |
+| `POST` | `/api/ai/answers` | Generate AI-powered answers with OpenAI |
+
+### ⚡ Server Actions
+
+Questions, Answers, and Tags are handled via Server Actions instead of REST API:
+
+| Feature | Action | Description |
+|---------|--------|-------------|
+| **Questions** | `createQuestion` | Create new question with tags |
+| | `editQuestion` | Edit existing question |
+| | `getQuestion` | Get single question by ID |
+| | `getQuestions` | Get paginated questions with filters |
+| | `incrementQuestionViews` | Track question views |
+| **Answers** | `createAnswer` | Create answer for question |
+| | `getAnswers` | Get paginated answers with filters |
+| **Tags** | `getTags` | Get paginated tags with filters |
+| | `getTagQuestions` | Get questions for specific tag |
+| **Auth** | `signUpWithCredentials` | User registration |
+| | `signInWithCredentials` | User login |
+| | `logout` | User sign out |
 
 ---
 
