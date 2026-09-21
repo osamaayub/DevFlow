@@ -12,13 +12,15 @@ import { Editor } from "@/components/editor"
 import { Button, Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui"
 import { AnswerFormSchema } from "@/lib"
 import { createAnswer } from "@/lib/actions/answer.action"
+import { getAnswerAI } from "@/lib/api"
 
 interface Props {
   questionId: string;
   content: string; 
+  question: string;
 }
 
-export function AnswerForm({ questionId, content }: Props) {
+export function AnswerForm({ questionId, content, question }: Props) {
   type T = z.infer<typeof AnswerFormSchema>
   
   const editorRef = useRef<MDXEditorMethods>(null)
@@ -54,16 +56,37 @@ export function AnswerForm({ questionId, content }: Props) {
   }
 
   const generateAIAnswer = async () => {
-    if (!content) {
+    if (!question) {
       toast.error("Missing question context to generate an AI answer.")
       return
     }
 
+    // Use existing content from the form if user has started typing, otherwise use question context
+    const existingContent = form.getValues("content") || content
+
     setIsAISubmitting(true)
     try {
-      toast.info("AI generation feature coming soon!")
-    } catch {
-      toast.error("Failed to generate AI answer")
+      const aiAnswer = await getAnswerAI.getAnswers(question, existingContent)
+      
+      if (aiAnswer) {
+        form.setValue("content", aiAnswer)
+        editorRef.current?.setMarkdown(aiAnswer)
+        toast.success(existingContent ? "AI answer enhanced successfully!" : "AI answer generated successfully!")
+      } else {
+        toast.error("Failed to generate AI answer")
+      }
+    } catch (error: unknown) {
+      const errorMessage = String(error)
+      
+      if (errorMessage.includes("credits") || errorMessage.includes("402")) {
+        toast.error("OpenAI API credits exhausted. Please add credits to your OpenAI account.")
+      } else if (errorMessage.includes("API key") || errorMessage.includes("401")) {
+        toast.error("OpenAI API key is missing or invalid. Please check your environment configuration.")
+      } else if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
+        toast.error("OpenAI API rate limit exceeded. Please try again later.")
+      } else {
+        toast.error(`Failed to generate AI answer: ${errorMessage}`)
+      }
     } finally {
       setIsAISubmitting(false)
     }
