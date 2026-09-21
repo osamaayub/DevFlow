@@ -148,7 +148,7 @@ export const authApi = {
     }),
 };
 export const getAnswerAI = {
-  getAnswers: async (question: string, content: string): Promise<string> => {
+  getAnswers: async (question: string, content?: string): Promise<string> => {
     const response = await apiRequest<{ text: string }>(Routes.AI_ANSWER, {
       method: "POST",
       json: { question, content },
