@@ -8,6 +8,7 @@ import { TagCards } from "@/components/cards"
 import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
 import { Metric, UserAvatar } from "@/components/shared"
+import Votes from "@/components/votes/Votes"
 import ROUTES from "@/constants/route"
 import { getAnswers, getQuestion, incrementQuestionViews } from "@/lib/actions"
 import { formatNumber, getTimeStamp } from "@/lib/utils"
@@ -70,7 +71,12 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           </div>
 
           <div className="flex justify-end">
-            <p>Votes</p>
+            <Votes
+              upvotes={question.upvotes}
+              downvotes={question.downvotes}
+              hasUpVoted={true}
+              hasDownVoted={false}
+            />
           </div>
         </div>
 
@@ -109,15 +115,15 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
         ))}
       </div>
 
-     <section className="my-5">
-      <AllAnswers
-        data={answersData}
-        success={answersSuccess}
-        error={answersError}
-        page={Number(page)}
-        isNext={isNext}
-        totalAnswers={totalAnswers}
-      />
+      <section className="my-5">
+        <AllAnswers
+          data={answersData}
+          success={answersSuccess}
+          error={answersError}
+          page={Number(page)}
+          isNext={isNext}
+          totalAnswers={totalAnswers}
+        />
       </section>
 
       <section className="mt-5">
