@@ -1,18 +1,18 @@
-name: Deploy (dev)
+name: "Deploy: Production"
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-dev
-  cancel-in-progress: true
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   docker:
     runs-on: ubuntu-latest
-    environment: development
+    environment: production
     permissions:
       contents: read
       packages: write
@@ -34,8 +34,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=dev
-            type=sha,prefix=dev-
+            type=raw,value=latest
+            type=raw,value=prod
+            type=sha,prefix=prod-
 
       - name: Build and push image
         uses: docker/build-push-action@v6
