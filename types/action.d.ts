@@ -13,7 +13,7 @@ export interface AuthCredentials {
   password: string
 }
 
-export interface CreateQuestionParams { 
+export interface CreateQuestionParams {
   title: string
   content: string
   tags: string[]
@@ -42,4 +42,13 @@ export interface CreateAnswerParams {
 
 export interface GetAnswersParams extends PaginatedSearchParams {
   questionId: string
+}
+
+export interface UpdateVoteCountParams extends CreateVoteParams {
+  change: 1 | -1
+}
+export interface CreateVoteParams {
+  targetId: string
+  targetType: "question" | "answer"
+  voteType: "upvote" | "downvote"
 }

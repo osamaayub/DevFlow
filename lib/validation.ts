@@ -129,3 +129,13 @@ export const AIAnswerSchema = z.object({
   content: z.string().optional(),
   userAnswer: z.string().optional()
 })
+
+export const CreateVoteSchema = z.object({
+  targetId: z.string().min(1, { message: "Target Id is required" }),
+  targetType: z.enum(["answer", "question"], { message: "Target Type is required" }),
+  voteType: z.enum(["upvote", "downvote"], { message: "Vote Type is required" })
+})
+
+export const updateVoteCountSchema = CreateVoteSchema.extend({
+  change: z.number().int().min(-1).max(1)
+})
