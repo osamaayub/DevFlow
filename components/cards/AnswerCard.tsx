@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { Preview } from "@/components/editor/preview"
+import Votes from "@/components/votes/Votes"
 import ROUTES from "@/constants/route";
 import { cn } from "@/lib";
 
@@ -11,6 +11,8 @@ interface Props extends Answer {
   containerClasses?: string;
   showReadMore?: boolean;
   showActionBtns?: boolean;
+  hasUpVoted?: boolean;
+  hasDownVoted?: boolean;
 }
 
 const AnswerCard = ({
@@ -19,9 +21,13 @@ const AnswerCard = ({
   content,
   createdAt,
   question,
+  upvotes,
+  downvotes,
   containerClasses,
   showReadMore = false,
   showActionBtns = false,
+  hasUpVoted = false,
+  hasDownVoted = false,
 }: Props) => {
   return (
     <article
@@ -60,8 +66,14 @@ const AnswerCard = ({
         </div>
 
         <div className="flex justify-end">
-          <Suspense fallback={<div>Loading...</div>}>
-          </Suspense>
+          <Votes
+            targetId={_id}
+            targetType="answer"
+            upvotes={upvotes}
+            downvotes={downvotes}
+            hasUpVoted={hasUpVoted}
+            hasDownVoted={hasDownVoted}
+          />
         </div>
       </div>
 
