@@ -26,7 +26,6 @@ function getVoteSuccessMessage(
   before: VoteState
 ): string {
   const isAnswer = targetType === "answer"
-  const subject = isAnswer ? "this answer" : "this question"
 
   if (voteType === "upvote") {
     if (before.hasUpVoted) {
