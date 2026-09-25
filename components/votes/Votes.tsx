@@ -1,46 +1,182 @@
 "use client"
 
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { formatNumber, HandleError } from "@/lib"
+import { formatNumber } from "@/lib"
+import { CreateVote } from "@/lib/actions/vote.action"
 
 interface VoteParams {
+  targetId: string
+  targetType: "question" | "answer"
   upvotes: number
   downvotes: number
   hasUpVoted: boolean
   hasDownVoted: boolean
 }
 
-const Votes = ({ upvotes, downvotes, hasUpVoted, hasDownVoted }: VoteParams) => {
-    const session= useSession();
-    const userId=session.data?.user?.id;
+type VoteState = Pick<VoteParams, "hasUpVoted" | "hasDownVoted">
+
+function getVoteSuccessMessage(
+  targetType: VoteParams["targetType"],
+  voteType: "upvote" | "downvote",
+  before: VoteState
+): string {
+  const isAnswer = targetType === "answer"
+  const subject = isAnswer ? "this answer" : "this question"
+
+  if (voteType === "upvote") {
+    if (before.hasUpVoted) {
+      return isAnswer
+        ? "Upvote removed — your feedback on this answer was cleared."
+        : "Upvote removed from this question."
+    }
+    if (before.hasDownVoted) {
+      return isAnswer
+        ? "Vote updated — you switched this answer to an upvote."
+        : "Vote updated — you switched this question to an upvote."
+    }
+    return isAnswer
+      ? "Upvote recorded — thanks for highlighting this answer!"
+      : "Upvote recorded on this question."
+  }
+
+  if (before.hasDownVoted) {
+    return isAnswer
+      ? "Downvote removed — your feedback on this answer was cleared."
+      : "Downvote removed from this question."
+  }
+  if (before.hasUpVoted) {
+    return isAnswer
+      ? "Vote updated — you switched this answer to a downvote."
+      : "Vote updated — you switched this question to a downvote."
+  }
+  return isAnswer
+    ? "Downvote recorded on this answer."
+    : "Downvote recorded on this question."
+}
+
+function getVoteErrorMessage(
+  targetType: VoteParams["targetType"],
+  serverMessage?: string
+): string {
+  if (serverMessage?.trim()) {
+    return serverMessage
+  }
+
+  return targetType === "answer"
+    ? "Could not update your vote on this answer. Check your connection and try again."
+    : "Could not update your vote on this question. Check your connection and try again."
+}
+
+const Votes = ({
+  targetId,
+  targetType,
+  upvotes: initialUpvotes,
+  downvotes: initialDownvotes,
+  hasUpVoted: initialHasUpVoted,
+  hasDownVoted: initialHasDownVoted
+}: VoteParams) => {
+  const session = useSession()
+  const router = useRouter()
+  const userId = session.data?.user?.id
+
+  const [upvotes, setUpvotes] = useState(initialUpvotes)
+  const [downvotes, setDownvotes] = useState(initialDownvotes)
+  const [hasUpVoted, setHasUpVoted] = useState(initialHasUpVoted)
+  const [hasDownVoted, setHasDownVoted] = useState(initialHasDownVoted)
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    setUpvotes(initialUpvotes)
+    setDownvotes(initialDownvotes)
+    setHasUpVoted(initialHasUpVoted)
+    setHasDownVoted(initialHasDownVoted)
+  }, [initialUpvotes, initialDownvotes, initialHasUpVoted, initialHasDownVoted])
+
+  const applyOptimisticVote = (voteType: "upvote" | "downvote") => {
+    if (voteType === "upvote") {
+      if (hasUpVoted) {
+        setUpvotes((count) => count - 1)
+        setHasUpVoted(false)
+        return
+      }
+      if (hasDownVoted) {
+        setDownvotes((count) => count - 1)
+        setHasDownVoted(false)
+      }
+      setUpvotes((count) => count + 1)
+      setHasUpVoted(true)
+      return
+    }
+
+    if (hasDownVoted) {
+      setDownvotes((count) => count - 1)
+      setHasDownVoted(false)
+      return
+    }
+    if (hasUpVoted) {
+      setUpvotes((count) => count - 1)
+      setHasUpVoted(false)
+    }
+    setDownvotes((count) => count + 1)
+    setHasDownVoted(true)
+  }
+
   const handleVote = async (voteType: "upvote" | "downvote") => {
-    if(!userId)
-        return toast.error("Please log in to vote")
-    setIsLoading(true);
-    try{
-     const voteAction = voteType === "upvote" ? "Upvote" : "Downvote"
-     const voteStatus = voteType === "upvote" ? (hasUpVoted ? "removed" : "added") : (hasDownVoted ? "removed" : "added")
-     toast.success(`${voteAction} ${voteStatus}`)
+    if (!userId) {
+      return toast.error(
+        targetType === "answer"
+          ? "Sign in to upvote or downvote answers."
+          : "Sign in to upvote or downvote questions."
+      )
     }
-    catch(error){
-        toast.error("Failed to vote. Please try again.")
-        return HandleError(String(error)) as unknown as ErrorResponse;
+
+    const previous = { upvotes, downvotes, hasUpVoted, hasDownVoted }
+    const voteStateBefore: VoteState = {
+      hasUpVoted: previous.hasUpVoted,
+      hasDownVoted: previous.hasDownVoted
     }
-    finally{
-        setIsLoading(false);
+    setIsLoading(true)
+    applyOptimisticVote(voteType)
+
+    try {
+      const result = await CreateVote({
+        targetId,
+        targetType,
+        voteType
+      })
+
+      if (!result.success) {
+        setUpvotes(previous.upvotes)
+        setDownvotes(previous.downvotes)
+        setHasUpVoted(previous.hasUpVoted)
+        setHasDownVoted(previous.hasDownVoted)
+        toast.error(getVoteErrorMessage(targetType, result.error?.message))
+        return
+      }
+
+      if (targetType === "answer") {
+        toast.success(getVoteSuccessMessage(targetType, voteType, voteStateBefore))
+      }
+
+      router.refresh()
+    } catch {
+      setUpvotes(previous.upvotes)
+      setDownvotes(previous.downvotes)
+      setHasUpVoted(previous.hasUpVoted)
+      setHasDownVoted(previous.hasDownVoted)
+      toast.error(getVoteErrorMessage(targetType))
+    } finally {
+      setIsLoading(false)
     }
   }
 
-
   return (
     <div className="flex-center gap-2.5">
-      {/* Upvote Section */}
       <div className="flex-center gap-1.5">
         <Image
           src={hasUpVoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"}
@@ -56,7 +192,6 @@ const Votes = ({ upvotes, downvotes, hasUpVoted, hasDownVoted }: VoteParams) => 
         </div>
       </div>
 
-      {/* Downvote Section */}
       <div className="flex-center gap-1.5">
         <Image
           src={hasDownVoted ? "/icons/downvoted.svg" : "/icons/downvote.svg"}

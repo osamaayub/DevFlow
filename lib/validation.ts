@@ -139,3 +139,8 @@ export const CreateVoteSchema = z.object({
 export const updateVoteCountSchema = CreateVoteSchema.extend({
   change: z.number().int().min(-1).max(1)
 })
+
+export const GetUserVotesForTargetsSchema = z.object({
+  targetIds: z.array(z.string().min(1)).min(1),
+  targetType: z.enum(["answer", "question"], { message: "Target Type is required" })
+})

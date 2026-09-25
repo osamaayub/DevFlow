@@ -10,7 +10,12 @@ import { AnswerForm } from "@/components/forms"
 import { Metric, UserAvatar } from "@/components/shared"
 import Votes from "@/components/votes/Votes"
 import ROUTES from "@/constants/route"
-import { getAnswers, getQuestion, incrementQuestionViews } from "@/lib/actions"
+import {
+  getAnswers,
+  getQuestion,
+  getUserVotesForTargets,
+  incrementQuestionViews
+} from "@/lib/actions"
 import { formatNumber, getTimeStamp } from "@/lib/utils"
 
 interface RouteParams {
@@ -54,6 +59,37 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const isNext = answersSuccess && answersResult.data ? answersResult.data.isNext : false
   const answersError = !answersSuccess ? answersResult.error : undefined
 
+  let questionVote: "upvote" | "downvote" | undefined
+  let answerVotes: Record<string, "upvote" | "downvote"> = {}
+
+  if (userId) {
+    const voteRequests: [
+      ReturnType<typeof getUserVotesForTargets>,
+      ReturnType<typeof getUserVotesForTargets> | null
+    ] = [
+      getUserVotesForTargets({ targetIds: [id], targetType: "question" }),
+      answersData.length > 0
+        ? getUserVotesForTargets({
+            targetIds: answersData.map((answer) => answer._id),
+            targetType: "answer"
+          })
+        : null
+    ]
+
+    const [questionVotesResult, answerVotesResult] = await Promise.all([
+      voteRequests[0],
+      voteRequests[1] ?? Promise.resolve({ success: true as const, data: {} })
+    ])
+
+    if (questionVotesResult.success && questionVotesResult.data) {
+      questionVote = questionVotesResult.data[id]
+    }
+
+    if (answerVotesResult.success && answerVotesResult.data) {
+      answerVotes = answerVotesResult.data
+    }
+  }
+
   return (
     <>
       <div className="flex-start w-full flex-col">
@@ -72,10 +108,12 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
 
           <div className="flex justify-end">
             <Votes
+              targetId={id}
+              targetType="question"
               upvotes={question.upvotes}
               downvotes={question.downvotes}
-              hasUpVoted={true}
-              hasDownVoted={false}
+              hasUpVoted={questionVote === "upvote"}
+              hasDownVoted={questionVote === "downvote"}
             />
           </div>
         </div>
@@ -123,6 +161,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           page={Number(page)}
           isNext={isNext}
           totalAnswers={totalAnswers}
+          answerVotes={answerVotes}
         />
       </section>
 

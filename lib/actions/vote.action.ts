@@ -1,13 +1,47 @@
 "use server"
 
 import mongoose, { ClientSession } from "mongoose"
+import { revalidatePath } from "next/cache"
 
+import ROUTES from "@/constants/route"
 import { Vote } from "@/database"
 import { Question, Answer } from "@/database"
 import { CreateVoteParams, UpdateVoteCountParams } from "@/types"
 
 import { action, HandleError } from "../handlers"
-import { CreateVoteSchema, updateVoteCountSchema } from "../validation"
+import {
+  CreateVoteSchema,
+  GetUserVotesForTargetsSchema,
+  updateVoteCountSchema
+} from "../validation"
+
+async function revalidateVoteTarget(
+  targetType: "question" | "answer",
+  targetId: string
+): Promise<void> {
+  try {
+    if (targetType === "question") {
+      revalidatePath(ROUTES.QUESTION(targetId))
+      return
+    }
+
+    const answer = await Answer.findById(targetId).select("question")
+    if (answer?.question) {
+      revalidatePath(ROUTES.QUESTION(String(answer.question)))
+    }
+  } catch {
+    // Revalidation must not fail the vote response after a successful commit.
+  }
+}
+
+async function commitVoteTransaction(
+  session: ClientSession,
+  targetType: "question" | "answer",
+  targetId: string
+): Promise<void> {
+  await session.commitTransaction()
+  await revalidateVoteTarget(targetType, targetId)
+}
 
 export async function UpdateVote(
   params: UpdateVoteCountParams,
@@ -40,10 +74,7 @@ export async function UpdateVote(
       ) as unknown as ErrorResponse
     }
 
-    return {
-      success: true,
-      data: result
-    }
+    return { success: true }
   } catch (error) {
     return HandleError(new Error(String(error))) as unknown as ErrorResponse
   }
@@ -74,13 +105,13 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
     // Check if vote already exists
     const existingVote = await Vote.findOne({
       author: userId,
-      actionId: targetId,
-      actionType: targetType
+      id: targetId,
+      type: targetType
     }).session(session)
 
     if (existingVote) {
       // If same vote type, remove it (toggle behavior)
-      if (existingVote.VoteType === voteType) {
+      if (existingVote.value === voteType) {
         await Vote.deleteOne({ _id: existingVote._id }).session(session)
 
         // Decrement the vote count
@@ -99,15 +130,12 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
           return updateResult
         }
 
-        await session.commitTransaction()
+        await commitVoteTransaction(session, targetType, targetId)
 
-        return {
-          success: true,
-          data: null
-        }
+        return { success: true }
       } else {
         // Vote type changed (upvote → downvote or vice versa)
-        const oldVoteType = existingVote.VoteType
+        const oldVoteType = existingVote.value
 
         // Decrement old vote type
         const decrementResult = await UpdateVote(
@@ -142,23 +170,20 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
         }
 
         // Update the vote document
-        existingVote.VoteType = voteType
+        existingVote.value = voteType
         await existingVote.save({ session })
 
-        await session.commitTransaction()
+        await commitVoteTransaction(session, targetType, targetId)
 
-        return {
-          success: true,
-          data: existingVote
-        }
+        return { success: true }
       }
     } else {
       // Create new vote if it doesn't exist
       const newVote = new Vote({
         author: userId,
-        actionId: targetId,
-        actionType: targetType,
-        VoteType: voteType
+        id: targetId,
+        type: targetType,
+        value: voteType
       })
 
       await newVote.save({ session })
@@ -179,17 +204,56 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
         return updateResult
       }
 
-      await session.commitTransaction()
+      await commitVoteTransaction(session, targetType, targetId)
 
-      return {
-        success: true,
-        data: newVote
-      }
+      return { success: true }
     }
   } catch (error) {
     await session.abortTransaction()
     return HandleError(new Error(String(error))) as unknown as ErrorResponse
   } finally {
     await session.endSession()
+  }
+}
+
+export async function getUserVotesForTargets(params: {
+  targetIds: string[]
+  targetType: "question" | "answer"
+}): Promise<ActionResponse<Record<string, "upvote" | "downvote">>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserVotesForTargetsSchema,
+    authorize: true
+  })
+
+  if (validationResult instanceof Error) {
+    return HandleError(validationResult) as unknown as ErrorResponse
+  }
+
+  const { targetIds, targetType } = validationResult.validatedData
+  const userId = validationResult.session?.user?.id
+
+  if (!userId) {
+    return { success: true, data: {} }
+  }
+
+  try {
+    const votes = await Vote.find({
+      author: userId,
+      id: { $in: targetIds },
+      type: targetType
+    }).select("id value")
+
+    const voteMap = votes.reduce<Record<string, "upvote" | "downvote">>((acc, vote) => {
+      acc[String(vote.id)] = vote.value
+      return acc
+    }, {})
+
+    return {
+      success: true,
+      data: voteMap
+    }
+  } catch (error) {
+    return HandleError(new Error(String(error))) as unknown as ErrorResponse
   }
 }
