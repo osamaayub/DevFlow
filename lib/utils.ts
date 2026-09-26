@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import { BADGE_CRITERIA } from "@/constants"
+import { VoteParams, VoteState } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -223,4 +224,55 @@ export function processJobTitle(title: string | undefined | null): string {
   const processedTitle = validWords.join(" ")
 
   return processedTitle
+}
+
+export function getVoteSuccessMessage(
+  targetType: VoteParams["targetType"],
+  voteType: "upvote" | "downvote",
+  before: VoteState
+): string {
+  const isAnswer = targetType === "answer"
+
+  if (voteType === "upvote") {
+    if (before.hasUpVoted) {
+      return isAnswer
+        ? "Upvote removed — your feedback on this answer was cleared."
+        : "Upvote removed from this question."
+    }
+    if (before.hasDownVoted) {
+      return isAnswer
+        ? "Vote updated — you switched this answer to an upvote."
+        : "Vote updated — you switched this question to an upvote."
+    }
+    return isAnswer
+      ? "Upvote recorded — thanks for highlighting this answer!"
+      : "Upvote recorded on this question."
+  }
+
+  if (before.hasDownVoted) {
+    return isAnswer
+      ? "Downvote removed — your feedback on this answer was cleared."
+      : "Downvote removed from this question."
+  }
+  if (before.hasUpVoted) {
+    return isAnswer
+      ? "Vote updated — you switched this answer to a downvote."
+      : "Vote updated — you switched this question to a downvote."
+  }
+  return isAnswer
+    ? "Downvote recorded on this answer."
+    : "Downvote recorded on this question."
+}
+
+export function getVoteErrorMessage(
+  targetType: VoteParams["targetType"],
+  serverMessage?: string
+): string {
+  if (serverMessage?.trim()) {
+    return serverMessage
+  }
+
+  return targetType === "answer"
+    ? "Could not update your vote on this answer. Check your connection and try again."
+    : "Could not update your vote on this question. Check your connection and try again."
 }

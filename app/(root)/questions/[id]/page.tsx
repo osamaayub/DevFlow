@@ -10,18 +10,16 @@ import { AnswerForm } from "@/components/forms"
 import { Metric, UserAvatar } from "@/components/shared"
 import Votes from "@/components/votes/Votes"
 import ROUTES from "@/constants/route"
+import { formatNumber, getTimeStamp } from "@/lib"
 import {
   getAnswers,
   getQuestion,
   getUserVotesForTargets,
   incrementQuestionViews
 } from "@/lib/actions"
-import { formatNumber, getTimeStamp } from "@/lib/utils"
+import { RouteParams } from "@/types"
 
-interface RouteParams {
-  params: Promise<{ id: string }>
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
-}
+
 
 const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params
