@@ -18,6 +18,7 @@
 /.vscode/
 # next.js
 /.next/
+/.cursor/
 /out/
 
 # production

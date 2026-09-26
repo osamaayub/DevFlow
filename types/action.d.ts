@@ -52,3 +52,19 @@ export interface CreateVoteParams {
   targetType: "question" | "answer"
   voteType: "upvote" | "downvote"
 }
+
+export type VoteState = Pick<VoteParams, "hasUpVoted" | "hasDownVoted">
+
+
+export interface VoteParams {
+  targetId: string
+  targetType: "question" | "answer"
+  upvotes: number
+  downvotes: number
+  hasUpVoted: boolean
+  hasDownVoted: boolean
+}
+export interface RouteParams {
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
