@@ -1,16 +1,8 @@
-import type { UserVoteFlags, VoteKind, VoteTargetType } from "@/lib/vote-state"
-
-const TARGET_LABEL: Record<VoteTargetType, string> = {
-  answer: "answer",
-  question: "question"
-}
+import type { UserVoteFlags, VoteKind, VoteTargetType } from "@/lib"
 
 type VoteOutcome = "added" | "removed" | "switched"
 
-function outcome(
-  voteType: VoteKind,
-  before: UserVoteFlags
-): VoteOutcome {
+function getOutcome(voteType: VoteKind, before: UserVoteFlags): VoteOutcome {
   const hadSame =
     voteType === "upvote" ? before.hasUpVoted : before.hasDownVoted
   const hadOpposite =
@@ -26,48 +18,72 @@ export function getVoteSuccessMessage(
   voteType: VoteKind,
   before: UserVoteFlags
 ): string {
-  const label = TARGET_LABEL[targetType]
-  const voteLabel = voteType === "upvote" ? "Upvote" : "Downvote"
-  const result = outcome(voteType, before)
+  const isAnswer = targetType === "answer"
+  const target = isAnswer ? "answer" : "question"
+  const outcome = getOutcome(voteType, before)
 
-  if (targetType === "answer") {
-    switch (result) {
+  if (voteType === "upvote") {
+    switch (outcome) {
       case "removed":
-        return `${voteLabel} removed — your feedback on this answer was cleared.`
+        return isAnswer
+          ? "Upvote removed — your feedback on this answer was cleared."
+          : "Upvote removed from this question."
       case "switched":
-        return `Vote updated — you switched this answer to ${voteType === "upvote" ? "an upvote" : "a downvote"}.`
+        return isAnswer
+          ? "Vote updated — you switched this answer to an upvote."
+          : "Vote updated — you switched this question to an upvote."
       case "added":
-        return voteType === "upvote"
+        return isAnswer
           ? "Upvote recorded — thanks for highlighting this answer!"
-          : "Downvote recorded on this answer."
+          : "Upvote recorded on this question."
     }
   }
 
-  switch (result) {
+  switch (outcome) {
     case "removed":
-      return `${voteLabel} removed from this ${label}.`
+      return isAnswer
+        ? "Downvote removed — your feedback on this answer was cleared."
+        : "Downvote removed from this question."
     case "switched":
-      return `Vote updated — you switched this ${label} to ${voteType === "upvote" ? "an upvote" : "a downvote"}.`
+      return isAnswer
+        ? "Vote updated — you switched this answer to a downvote."
+        : "Vote updated — you switched this question to a downvote."
     case "added":
-      return `${voteLabel} recorded on this ${label}.`
+      return `Downvote recorded on this ${target}.`
   }
 }
 
 export function getVoteErrorMessage(
   targetType: VoteTargetType,
+  voteType?: VoteKind,
   serverMessage?: string
 ): string {
   if (serverMessage?.trim()) {
     return serverMessage
   }
 
-  return targetType === "answer"
-    ? "Could not update your vote on this answer. Check your connection and try again."
-    : "Could not update your vote on this question. Check your connection and try again."
+  const action =
+    voteType === "upvote"
+      ? "upvote"
+      : voteType === "downvote"
+        ? "downvote"
+        : "vote"
+  const target = targetType === "answer" ? "answer" : "question"
+
+  return `Could not ${action} this ${target}. Check your connection and try again.`
 }
 
-export function getSignInToVoteMessage(targetType: VoteTargetType): string {
-  return targetType === "answer"
-    ? "Sign in to upvote or downvote answers."
-    : "Sign in to upvote or downvote questions."
+export function getSignInToVoteMessage(
+  targetType: VoteTargetType,
+  voteType?: VoteKind
+): string {
+  const action =
+    voteType === "upvote"
+      ? "upvote"
+      : voteType === "downvote"
+        ? "downvote"
+        : "upvote or downvote"
+  const target = targetType === "answer" ? "answers" : "questions"
+
+  return `Sign in to ${action} ${target}.`
 }

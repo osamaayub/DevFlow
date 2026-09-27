@@ -53,16 +53,22 @@ export interface CreateVoteParams {
   voteType: "upvote" | "downvote"
 }
 
-export type VoteState = Pick<VoteParams, "hasUpVoted" | "hasDownVoted">
+export interface HasVotedParams {
+  targetId: string
+  targetType: "question" | "answer"
+}
 
+export type VoteState = {
+  hasUpVoted: boolean
+  hasDownVoted: boolean
+}
 
 export interface VoteParams {
   targetId: string
   targetType: "question" | "answer"
   upvotes: number
   downvotes: number
-  hasUpVoted: boolean
-  hasDownVoted: boolean
+  hasVotedPromise: Promise<ActionResponse<VoteState>>
 }
 export interface RouteParams {
   params: Promise<{ id: string }>

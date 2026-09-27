@@ -6,12 +6,13 @@ import { revalidatePath } from "next/cache"
 import ROUTES from "@/constants/route"
 import { Vote } from "@/database"
 import { Question, Answer } from "@/database"
-import { CreateVoteParams, UpdateVoteCountParams } from "@/types"
+import { CreateVoteParams, HasVotedParams, UpdateVoteCountParams, VoteState } from "@/types"
 
 import { action, HandleError } from "../handlers"
 import {
   CreateVoteSchema,
   GetUserVotesForTargetsSchema,
+  HasVotedSchema,
   updateVoteCountSchema
 } from "../validation"
 
@@ -213,6 +214,58 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
     return HandleError(new Error(String(error))) as unknown as ErrorResponse
   } finally {
     await session.endSession()
+  }
+}
+
+export async function hasVoted(
+  params: HasVotedParams
+): Promise<ActionResponse<VoteState>> {
+  const validationResult = await action({
+    params,
+    schema: HasVotedSchema,
+    authorize: true
+  })
+
+  if (validationResult instanceof Error) {
+    return {
+      success: true,
+      data: { hasUpVoted: false, hasDownVoted: false }
+    }
+  }
+
+  const { targetId, targetType } = validationResult.validatedData
+  const userId = validationResult.session?.user?.id
+
+  if (!userId) {
+    return {
+      success: true,
+      data: { hasUpVoted: false, hasDownVoted: false }
+    }
+  }
+
+  try {
+    const vote = await Vote.findOne({
+      author: userId,
+      id: targetId,
+      type: targetType
+    }).select("value")
+
+    if (!vote) {
+      return {
+        success: true,
+        data: { hasUpVoted: false, hasDownVoted: false }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        hasUpVoted: vote.value === "upvote",
+        hasDownVoted: vote.value === "downvote"
+      }
+    }
+  } catch (error) {
+    return HandleError(new Error(String(error))) as unknown as ErrorResponse
   }
 }
 
