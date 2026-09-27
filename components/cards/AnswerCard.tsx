@@ -1,18 +1,18 @@
-import Link from "next/link";
+import Link from "next/link"
 
 import { Preview } from "@/components/editor/preview"
-import Votes from "@/components/votes/Votes"
-import ROUTES from "@/constants/route";
-import { cn } from "@/lib";
+import { Votes } from "@/components/votes"
+import ROUTES from "@/constants/route"
+import { cn } from "@/lib"
+import type { VoteState } from "@/types"
 
-import  { RelativeTime, UserAvatar } from "../shared";
+import { RelativeTime, UserAvatar } from "../shared"
 
 interface Props extends Answer {
-  containerClasses?: string;
-  showReadMore?: boolean;
-  showActionBtns?: boolean;
-  hasUpVoted?: boolean;
-  hasDownVoted?: boolean;
+  containerClasses?: string
+  showReadMore?: boolean
+  showActionBtns?: boolean
+  hasVotedPromise: Promise<ActionResponse<VoteState>>
 }
 
 const AnswerCard = ({
@@ -26,8 +26,7 @@ const AnswerCard = ({
   containerClasses,
   showReadMore = false,
   showActionBtns = false,
-  hasUpVoted = false,
-  hasDownVoted = false,
+  hasVotedPromise
 }: Props) => {
   return (
     <article
@@ -71,8 +70,7 @@ const AnswerCard = ({
             targetType="answer"
             upvotes={upvotes}
             downvotes={downvotes}
-            hasUpVoted={hasUpVoted}
-            hasDownVoted={hasDownVoted}
+            hasVotedPromise={hasVotedPromise}
           />
         </div>
       </div>

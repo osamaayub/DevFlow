@@ -1,15 +1,14 @@
-import {Pagination} from "@/components/navigation"
+import { Pagination } from "@/components/navigation"
 import { DataRender } from "@/components/shared"
 import { EMPTY_ANSWERS } from "@/constants/states"
+import { hasVoted } from "@/lib"
 
-import AnswerCard from "../cards/AnswerCard";
-
+import AnswerCard from "../cards/AnswerCard"
 
 interface Props extends ActionResponse<Answer[]> {
-  page: number;
-  isNext: boolean;
-  totalAnswers: number;
-  answerVotes?: Record<string, "upvote" | "downvote">;
+  page: number
+  isNext: boolean
+  totalAnswers: number
 }
 
 const AllAnswers = ({
@@ -18,8 +17,7 @@ const AllAnswers = ({
   data,
   success,
   error,
-  totalAnswers,
-  answerVotes = {},
+  totalAnswers
 }: Props) => {
   return (
     <div className="mt-11">
@@ -39,8 +37,10 @@ const AllAnswers = ({
             <AnswerCard
               key={answer._id}
               {...answer}
-              hasUpVoted={answerVotes[answer._id] === "upvote"}
-              hasDownVoted={answerVotes[answer._id] === "downvote"}
+              hasVotedPromise={hasVoted({
+                targetId: answer._id,
+                targetType: "answer"
+              })}
             />
           ))
         }
@@ -48,7 +48,7 @@ const AllAnswers = ({
 
       <Pagination pageNumber={page} isNext={isNext} />
     </div>
-  );
-};
+  )
+}
 
-export default AllAnswers;
+export default AllAnswers

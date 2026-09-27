@@ -8,33 +8,34 @@ import { TagCards } from "@/components/cards"
 import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
 import { Metric, UserAvatar } from "@/components/shared"
-import Votes from "@/components/votes/Votes"
+import { Votes } from "@/components/votes"
 import ROUTES from "@/constants/route"
-import { formatNumber, getTimeStamp } from "@/lib"
 import {
+  formatNumber,
   getAnswers,
   getQuestion,
-  getUserVotesForTargets,
+  getTimeStamp,
+  hasVoted,
   incrementQuestionViews
-} from "@/lib/actions"
+} from "@/lib"
 import { RouteParams } from "@/types"
-
-
 
 const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params
   const resolvedSearchParams = await searchParams
 
   const page = resolvedSearchParams?.page ? Number(resolvedSearchParams.page) : 1
-  const pageSize = resolvedSearchParams?.pageSize ? Number(resolvedSearchParams.pageSize) : 10
+  const pageSize = resolvedSearchParams?.pageSize
+    ? Number(resolvedSearchParams.pageSize)
+    : 10
   const filter =
-    typeof resolvedSearchParams?.filter === "string" ? resolvedSearchParams.filter : undefined
+    typeof resolvedSearchParams?.filter === "string"
+      ? resolvedSearchParams.filter
+      : undefined
 
-  // 1. Fetch the logged-in user's session
   const session = await auth()
   const userId = session?.user?.id
 
-  // 2. Fetch the question details and answers concurrently for performance
   const [{ success, data: question }, answersResult] = await Promise.all([
     getQuestion({ questionId: id }),
     getAnswers({ questionId: id, page, pageSize, filter })
@@ -42,7 +43,6 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
 
   if (!success || !question) return redirect("/404")
 
-  // 3. Increment views non-blockingly
   after(async () => {
     await incrementQuestionViews({ questionId: id })
   })
@@ -50,43 +50,19 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const viewCount = question.views + 1
   const { author, createdAt, answers, tags, content, title } = question
 
-  // Extract pagination and data attributes safely from answersResult
   const answersSuccess = answersResult.success
-  const answersData = answersSuccess && answersResult.data ? answersResult.data.answers : []
-  const totalAnswers = answersSuccess && answersResult.data ? answersResult.data.totalAnswers : 0
-  const isNext = answersSuccess && answersResult.data ? answersResult.data.isNext : false
+  const answersData =
+    answersSuccess && answersResult.data ? answersResult.data.answers : []
+  const totalAnswers =
+    answersSuccess && answersResult.data ? answersResult.data.totalAnswers : 0
+  const isNext =
+    answersSuccess && answersResult.data ? answersResult.data.isNext : false
   const answersError = !answersSuccess ? answersResult.error : undefined
 
-  let questionVote: "upvote" | "downvote" | undefined
-  let answerVotes: Record<string, "upvote" | "downvote"> = {}
-
-  if (userId) {
-    const voteRequests: [
-      ReturnType<typeof getUserVotesForTargets>,
-      ReturnType<typeof getUserVotesForTargets> | null
-    ] = [
-      getUserVotesForTargets({ targetIds: [id], targetType: "question" }),
-      answersData.length > 0
-        ? getUserVotesForTargets({
-            targetIds: answersData.map((answer) => answer._id),
-            targetType: "answer"
-          })
-        : null
-    ]
-
-    const [questionVotesResult, answerVotesResult] = await Promise.all([
-      voteRequests[0],
-      voteRequests[1] ?? Promise.resolve({ success: true as const, data: {} })
-    ])
-
-    if (questionVotesResult.success && questionVotesResult.data) {
-      questionVote = questionVotesResult.data[id]
-    }
-
-    if (answerVotesResult.success && answerVotesResult.data) {
-      answerVotes = answerVotesResult.data
-    }
-  }
+  const questionHasVotedPromise = hasVoted({
+    targetId: id,
+    targetType: "question"
+  })
 
   return (
     <>
@@ -110,8 +86,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
               targetType="question"
               upvotes={question.upvotes}
               downvotes={question.downvotes}
-              hasUpVoted={questionVote === "upvote"}
-              hasDownVoted={questionVote === "downvote"}
+              hasVotedPromise={questionHasVotedPromise}
             />
           </div>
         </div>
@@ -159,7 +134,6 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           page={Number(page)}
           isNext={isNext}
           totalAnswers={totalAnswers}
-          answerVotes={answerVotes}
         />
       </section>
 
