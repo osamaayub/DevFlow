@@ -2,8 +2,8 @@
 
 import type { VoteParams } from "@/types"
 
-import VoteButton from "./VoteButton"
 import { useVote } from "./useVote"
+import VoteButton from "./VoteButton"
 
 const VoteContent = (props: VoteParams) => {
   const { optimisticState, isPending, handleVote } = useVote(props)

@@ -50,3 +50,12 @@ export const EMPTY_ANSWERS = {
   title: "Answers Are Empty",
   message: "The answer board is empty. Make it rain with your brilliant answer."
 }
+
+export const EMPTY_USERS = {
+  title: "No Users Found",
+  message: "The community is quiet. Be the first to join and start the conversation!",
+  button: {
+    text: "Sign Up",
+    href: ROUTES.SIGN_UP
+  }
+}

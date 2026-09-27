@@ -56,6 +56,25 @@ export const homeFilters: HomeFilter[] = [
 ]
 
 // ============================================
+// COMMUNITY FILTERS
+// ============================================
+
+export const communityFilters: HomeFilter[] = [
+  {
+    name: "Highest Reputation",
+    value: "reputation"
+  },
+  {
+    name: "Popular",
+    value: "popular"
+  },
+  {
+    name: "Moderators",
+    value: "moderators"
+  },
+]
+
+// ============================================
 // QUESTIONS DATA
 // ============================================
 
