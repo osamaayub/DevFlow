@@ -445,7 +445,3 @@ code {
   color: inherit !important;
 }
 
-[data-lexical-editor="true"] {
-  height: 350px !important;
-  overflow-y: auto !important;
-}
