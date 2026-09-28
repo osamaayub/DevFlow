@@ -3,7 +3,7 @@ import CommonFilter from "@/components/filters/CommonFilters"
 import { Pagination } from "@/components/navigation"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
-import { communityFilters } from "@/constants/filter" // Added import for your filter constants
+import { communityFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route"
 import { EMPTY_USERS } from "@/constants/states"
 import { getUsers } from "@/lib/actions"
