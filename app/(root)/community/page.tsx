@@ -30,6 +30,7 @@ const Community = async ({ searchParams }: RouteParams) => {
         <LocalSearchBar
           route={ROUTES.COMMUNITY}
           imgSrc="/icons/search.svg"
+          iconPosition="left"
           placeholder="Search by Username..."
           otherClasses="flex-1"
         />
