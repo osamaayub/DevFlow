@@ -5,7 +5,7 @@ import React from "react"
 import ROUTES from "@/constants/route"
 import { cn, getDevinconClassName, getTechDescription } from "@/lib/utils"
 
-import { Badge } from "../ui"
+import { Badge } from "../ui/badge"
 
 
 interface Props {
@@ -29,7 +29,7 @@ const TagCard = ({
   isButton,
   handleRemove
 }: Props) => {
-  const iconClass =getDevinconClassName(name)
+  const iconClass = getDevinconClassName(name)
   const iconDescription = getTechDescription(name)
 
   const handleClick = (e: React.MouseEvent) => {
