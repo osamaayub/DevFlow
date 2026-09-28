@@ -215,7 +215,7 @@ yarn lint         # Run ESLint checks
 - [x] AI Answer UI integration (API implemented, UI Implemented)
 - [X] Vote system (upvotes/downvotes) - Schema exists, actions complete
 
-
+-[X] Community UI implementation complete 
 
 ### 🚧 In Progress
 - [ ] Complete HomeFilters implementation (currently hardcoded)
@@ -235,7 +235,6 @@ yarn lint         # Run ESLint checks
 - [ ] Admin dashboard
 - [ ] Real-time notifications
 - [ ] Advanced analytics and reporting
-- [ ] Community features (comments, discussions)
 - [ ] Badge system and gamification
 - [ ] API rate limiting
 - [ ] Additional OAuth providers
