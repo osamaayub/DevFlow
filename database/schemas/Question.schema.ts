@@ -1,6 +1,7 @@
 import { Schema, Types } from "mongoose"
 
 export interface IQuestion {
+    _id: string
   title: string
   content: string
   tags: Types.ObjectId[]
@@ -8,7 +9,8 @@ export interface IQuestion {
   upvotes: number
   downvotes: number
   answers: number
-  author: Types.ObjectId
+  author: Types.ObjectId,
+  createdAt:Date
 }
 
 export const QuestionSchema = new Schema(
