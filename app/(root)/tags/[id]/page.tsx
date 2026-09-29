@@ -6,7 +6,6 @@ import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions";
 import { RouteParams, Question } from "@/types";
 
-
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
   const resolvedSearchParams = await searchParams
@@ -38,7 +37,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
       <DataRender
         success={success}
         error={error}
-        data={questions}
+        data={questions as unknown as Question[] | undefined}
         empty={EMPTY_QUESTION}
         render={(questions: Question[]) => (
           <div className="mt-10 flex w-full flex-col gap-6">
