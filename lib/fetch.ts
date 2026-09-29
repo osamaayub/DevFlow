@@ -1,3 +1,5 @@
+import { ActionResponse } from "@/types";
+
 export type FetchOptions = RequestInit & {
     json?: unknown;
     timeoutMs?: number; // per-request timeout
