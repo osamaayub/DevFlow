@@ -9,7 +9,7 @@ import { Account, User } from "@/database"
 import { action, NotFoundError, RequestError } from "@/lib"
 import { dbConnect } from "@/lib/mongoose"
 import { SignInSchema, SignUpSchema } from "@/lib/validation"
-import { AuthCredentials } from "@/types"
+import { ActionResponse, AuthCredentials } from "@/types"
 
 
 

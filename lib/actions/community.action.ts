@@ -2,12 +2,13 @@
 
 import { FilterQuery } from "mongoose"
 
-import { User } from "@/database"
+import { IUser,User } from "@/database"
 import { action, HandleError, paginatedSearchParamsSchema } from "@/lib"
+import { ActionResponse, ErrorResponse, PaginatedSearchParams } from "@/types";
 
 export async function getUsers(
   params: PaginatedSearchParams
-): Promise<ActionResponse<{ users: User[]; isNext: boolean }>> {
+): Promise<ActionResponse<{ users: IUser[]; isNext: boolean }>> {
   const validationResult = await action({
     params,
     schema: paginatedSearchParamsSchema

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 import ROUTES from "@/constants/route"
 import { Vote } from "@/database"
 import { Question, Answer } from "@/database"
-import { CreateVoteParams, HasVotedParams, UpdateVoteCountParams, VoteState } from "@/types"
+import { ActionResponse, CreateVoteParams, ErrorResponse, HasVotedParams, UpdateVoteCountParams, VoteState } from "@/types"
 
 import { action, HandleError } from "../handlers"
 import {

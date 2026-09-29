@@ -3,7 +3,7 @@
 import mongoose, { FilterQuery } from "mongoose"
 import { revalidatePath } from "next/cache" 
 
-import { Question, TagQuestion } from "@/database"
+import {IQuestion, Question, TagQuestion } from "@/database"
 import {
   action,
   AskQuestionSchema,
@@ -15,10 +15,13 @@ import {
 } from "@/lib"
 import { PopulatedTag, processTags, removeTags, TagProcessingResult } from "@/lib/tag-helpers"
 import {
+  ActionResponse,
   CreateQuestionParams,
   EditQuestionParams,
+  ErrorResponse,
   GetQuestionParams,
-  IncrementQuestionViewsParams
+  IncrementQuestionViewsParams,
+  PaginatedSearchParams
 } from "@/types"
 
 interface PopulatedQuestion {
@@ -31,7 +34,7 @@ interface PopulatedQuestion {
 
 export async function createQuestion(
   params: CreateQuestionParams
-): Promise<ActionResponse<Question>> {
+): Promise<ActionResponse<IQuestion>> {
   const validationResult = await action({
     params,
     schema: AskQuestionSchema,
@@ -84,7 +87,7 @@ export async function createQuestion(
   }
 }
 
-export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<Question>> {
+export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<IQuestion>> {
   const validationResult = await action({
     params,
     schema: EditQuestionSchema,
@@ -178,7 +181,7 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
   }
 }
 
-export async function getQuestion(params: GetQuestionParams): Promise<ActionResponse<Question>> {
+export async function getQuestion(params: GetQuestionParams): Promise<ActionResponse<IQuestion>> {
   const validationResult = await action({
     params,
     schema: GetQuestionSchema
@@ -209,7 +212,7 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
 
 export async function getQuestions(
   params: PaginatedSearchParams
-): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+): Promise<ActionResponse<{ questions: IQuestion[]; isNext: boolean }>> {
   const validateResult = await action({
     params,
     schema: paginatedSearchParamsSchema
@@ -223,7 +226,7 @@ export async function getQuestions(
   const skip = (Number(page) - 1) * pageSize
   const limit = Number(pageSize)
 
-  const filterQuery: FilterQuery<Question> = {}
+  const filterQuery: FilterQuery<IQuestion> = {}
 
   if (filter === "recommended") {
     return { success: true, data: { questions: [], isNext: false } }

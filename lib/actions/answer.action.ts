@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import ROUTES from "@/constants/route"
 import { IAnswer, Question, Answer } from "@/database";
-import { CreateAnswerParams, GetAnswersParams } from "@/types";
+import { ActionResponse, CreateAnswerParams, ErrorResponse, GetAnswersParams} from "@/types";
 
 import { action, HandleError } from "../handlers";
 import { CreateAnswerSchema, GetAnswersSchema } from "../validation";
@@ -73,7 +73,7 @@ export async function createAnswer(
 export async function getAnswers(
   params: GetAnswersParams
 ): Promise<ActionResponse<{
-  answers: Answer[],
+  answers: IAnswer[],
   totalAnswers: number,
   isNext: boolean
 }>> {

@@ -3,13 +3,13 @@
 import { FilterQuery } from "mongoose"
 import { Types } from "mongoose"
 
-import { Question, Tag } from "@/database"
+import { ITag,Question, Tag,IQuestion } from "@/database"
 import { action, GetTagQuestionsSchema, HandleError, paginatedSearchParamsSchema } from "@/lib"
-import { GetTagQuestionsParams } from "@/types"
+import { ActionResponse, ErrorResponse, GetTagQuestionsParams, PaginatedSearchParams } from "@/types"
 
 export const getTags = async (
   params: PaginatedSearchParams
-): Promise<ActionResponse<{ tags: Tag[]; isNext: boolean }>> => {
+): Promise<ActionResponse<{ tags: ITag[]; isNext: boolean }>> => {
   const validationResult = await action({
     params,
     schema: paginatedSearchParamsSchema
@@ -79,7 +79,7 @@ export const getTags = async (
 export const getTagQuestions = async (
   params: GetTagQuestionsParams
 ): Promise<
-  ActionResponse<{ tag: Tag; questions: Question[]; isNext: boolean }>
+  ActionResponse<{ tag: ITag; questions: IQuestion[]; isNext: boolean }>
 > => {
   const validationResult = await action({
     params,
@@ -100,7 +100,7 @@ export const getTagQuestions = async (
     if (!tag) throw new Error("Tag not found")
 
     const tagObjectId = new Types.ObjectId(tagId)
-    const filterQuery: FilterQuery<Question> = {
+    const filterQuery: FilterQuery<IQuestion> = {
       tags: { $in: [tagObjectId] }
     }
 
