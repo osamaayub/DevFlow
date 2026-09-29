@@ -16,18 +16,20 @@ import {
   getQuestion,
   getTimeStamp,
   hasVoted,
-  incrementQuestionViews
+  incrementQuestionViews,
 } from "@/lib"
-import { RouteParams, Tag } from "@/types"
+import { Answer, RouteParams } from "@/types"
 
-const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
+const QuestionDetails = async ({
+  params,
+  searchParams,
+}: RouteParams) => {
   const { id } = await params
   const resolvedSearchParams = await searchParams
 
-  const page = resolvedSearchParams?.page ? Number(resolvedSearchParams.page) : 1
-  const pageSize = resolvedSearchParams?.pageSize
-    ? Number(resolvedSearchParams.pageSize)
-    : 10
+  const page = Number(resolvedSearchParams?.page) || 1
+  const pageSize = Number(resolvedSearchParams?.pageSize) || 10
+
   const filter =
     typeof resolvedSearchParams?.filter === "string"
       ? resolvedSearchParams.filter
@@ -36,32 +38,63 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const session = await auth()
   const userId = session?.user?.id
 
-  const [{ success, data: question }, answersResult] = await Promise.all([
-    getQuestion({ questionId: id }),
-    getAnswers({ questionId: id, page, pageSize, filter })
-  ])
+  const [{ success, data: question }, answersResult] =
+    await Promise.all([
+      getQuestion({
+        questionId: id,
+      }),
+      getAnswers({
+        questionId: id,
+        page,
+        pageSize,
+        filter,
+      }),
+    ])
 
-  if (!success || !question) return redirect("/404")
+  if (!success || !question) {
+    redirect("/404")
+  }
 
   after(async () => {
-    await incrementQuestionViews({ questionId: id })
+    await incrementQuestionViews({
+      questionId: id,
+    })
   })
 
   const viewCount = question.views + 1
-  const { author, createdAt, answers, tags, content, title } = question
+
+  const {
+    author,
+    createdAt,
+    answers,
+    tags,
+    content,
+    title,
+  } = question
 
   const answersSuccess = answersResult.success
+
   const answersData =
-    answersSuccess && answersResult.data ? answersResult.data.answers : []
+    answersSuccess && answersResult.data
+      ? (answersResult.data.answers as unknown as Answer[])
+      : []
+
   const totalAnswers =
-    answersSuccess && answersResult.data ? answersResult.data.totalAnswers : 0
+    answersSuccess && answersResult.data
+      ? answersResult.data.totalAnswers
+      : 0
+
   const isNext =
-    answersSuccess && answersResult.data ? answersResult.data.isNext : false
-  const answersError = !answersSuccess ? answersResult.error : undefined
+    answersSuccess && answersResult.data
+      ? answersResult.data.isNext
+      : false
+
+  const answersError =
+    !answersSuccess ? answersResult.error : undefined
 
   const questionHasVotedPromise = hasVoted({
     targetId: id,
-    targetType: "question"
+    targetType: "question",
   })
 
   return (
@@ -70,13 +103,18 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
             <UserAvatar
-              id={author._id}
+              id={author._id.toString()}
               name={author.name}
               className="size-5.5"
               fallbackClassName="text-[10px]"
             />
-            <Link href={ROUTES.PROFILE(author._id)}>
-              <p className="paragraph-semibold text-dark300_light700">{author.name}</p>
+
+            <Link
+              href={ROUTES.PROFILE(author._id.toString())}
+            >
+              <p className="paragraph-semibold text-dark300_light700">
+                {author.name}
+              </p>
             </Link>
           </div>
 
@@ -91,7 +129,9 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           </div>
         </div>
 
-        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">{title}</h2>
+        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">
+          {title}
+        </h2>
       </div>
 
       <div className="mt-5 mb-8 flex flex-wrap gap-4">
@@ -102,6 +142,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           title=""
           textStyles="small-regular text-dark400_light700"
         />
+
         <Metric
           imgUrl="/icons/message.svg"
           alt="message icon"
@@ -109,6 +150,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           title="Answers"
           textStyles="small-regular text-dark400_light700"
         />
+
         <Metric
           imgUrl="/icons/eye.svg"
           alt="eye icon"
@@ -121,8 +163,13 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
       <Preview content={content} />
 
       <div className="mt-8 flex flex-wrap gap-2">
-        {tags.map((tag:Tag) => (
-          <TagCards key={tag._id} _id={tag._id as string} name={tag.name} compact />
+        {tags.map((tag) => (
+          <TagCards
+            key={tag._id.toString()}
+            _id={tag._id.toString()}
+            name={tag.name}
+            compact
+          />
         ))}
       </div>
 
@@ -131,7 +178,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           data={answersData}
           success={answersSuccess}
           error={answersError}
-          page={Number(page)}
+          page={page}
           isNext={isNext}
           totalAnswers={totalAnswers}
         />
@@ -139,12 +186,19 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
 
       <section className="mt-5">
         {userId ? (
-          <AnswerForm questionId={id} content={content} question={title} />
+          <AnswerForm
+            questionId={id}
+            content={content}
+            question={title}
+          />
         ) : (
           <div className="mt-8 rounded-md border border-light-700 p-6 text-center dark:border-dark-400">
             <p className="text-dark400_light800 paragraph-semibold">
               Please{" "}
-              <Link href={ROUTES.SIGN_IN || "/sign-in"} className="text-primary-500 underline">
+              <Link
+                href={ROUTES.SIGN_IN || "/sign-in"}
+                className="text-primary-500 underline"
+              >
                 log in
               </Link>{" "}
               to write an answer.
@@ -157,3 +211,4 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
 }
 
 export default QuestionDetails
+

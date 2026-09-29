@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 import { ITag, Tag, TagQuestion } from "@/database"
 
-export interface PopulatedTag extends ITag {
+export type PopulatedTag = Omit<ITag, "_id"> & {
   _id: mongoose.Types.ObjectId
 }
 
@@ -28,7 +28,7 @@ export async function processTags(
   for (const tag of tags) {
     const existingTag = await Tag.findOneAndUpdate(
       { name: { $regex: new RegExp(`^${tag}$`, "i") } },
-      { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
+      { $setOnInsert: { name: tag },$inc: { questions: 1 } },
       { upsert: true, new: true, session }
     )
 
