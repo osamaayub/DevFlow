@@ -10,13 +10,12 @@ import { RouteParams, Question } from "@/types";
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
   const resolvedSearchParams = await searchParams
-  const { page, pageSize, query } = resolvedSearchParams || {};
+  const { page, pageSize} = resolvedSearchParams || {};
 
   const { success, data, error } = await getTagQuestions({
     tagId: id,
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 10,
-    query,
   });
 
   const { tag, questions } = data || {};
