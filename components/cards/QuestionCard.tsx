@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { TagCards } from "@/components/cards"
 import ROUTES from "@/constants/route"
+import { Question, Tag } from "@/types";
 
 import { Metric, RelativeTime } from "../shared"
 

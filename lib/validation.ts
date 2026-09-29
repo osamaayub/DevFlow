@@ -149,3 +149,7 @@ export const HasVotedSchema = z.object({
   targetId: z.string().min(1, { message: "Target Id is required" }),
   targetType: z.enum(["answer", "question"], { message: "Target Type is required" })
 })
+export const CollectionSchema=z.object({
+  questionId:z.string().min(1,{message:'Question Id is required'})
+
+})

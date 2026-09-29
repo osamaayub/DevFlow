@@ -20,6 +20,8 @@
 /.next/
 /.cursor/
 /out/
+/.kilo/
+/.qodo/
 
 # production
 /build

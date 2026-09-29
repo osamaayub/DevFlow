@@ -7,17 +7,19 @@ import { communityFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route"
 import { EMPTY_USERS } from "@/constants/states"
 import { getUsers } from "@/lib/actions"
+import { RouteParams } from "@/types"
 
 
 const Community = async ({ searchParams }: RouteParams) => {
-  const { page, pageSize, query, filter } = await searchParams
+  const resolvedSearchParams = await searchParams
+  const { page, pageSize, query, filter } = resolvedSearchParams || {}
 
-  const { success, data, error } = await getUsers({
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-    query,
-    filter
-  })
+const { success, data, error } = await getUsers({
+  page: Number(page) || 1,
+  pageSize: Number(pageSize) || 10,
+  query: typeof query === "string" ? query : undefined,
+  filter: typeof filter === "string" ? filter : undefined,
+})
 
   const { users, isNext } = data || {}
   const pageNumber = Number(page) || 1
@@ -48,7 +50,7 @@ const Community = async ({ searchParams }: RouteParams) => {
         error={error}
         render={(users) => (
           <div className="mt-12 flex flex-wrap gap-5">
-            {users.map((user: User) => (
+            {users.map((user) => (
               <UserCard key={user._id} {...user} />
             ))}
           </div>

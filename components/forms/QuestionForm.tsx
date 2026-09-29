@@ -24,6 +24,7 @@ import {
 import ROUTES from "@/constants/route"
 import { createQuestion, editQuestion } from "@/lib/actions/question.action"
 import { AskQuestionSchema } from "@/lib/validation"
+import { Question, Tag } from "@/types"
 
 interface QuestionFormProps {
   question?: Question

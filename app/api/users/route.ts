@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { User } from "@/database"
 import { HandleError } from "@/lib"
 import { dbConnect } from "@/lib/mongoose"
+import { APIErrorResponse } from "@/types";
 
 export async function GET() {
   try {

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { Account } from "@/database"
 import { HandleError } from "@/lib"
 import { dbConnect } from "@/lib/mongoose"
+import { APIErrorResponse } from "@/types"
 
 export const GET = async (
   _request: NextRequest,

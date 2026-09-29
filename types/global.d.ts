@@ -1,4 +1,4 @@
-type ActionResponse<T = null> = {
+export type ActionResponse<T = null> = {
   success: boolean;
   data?: T;
   error?: {
@@ -8,36 +8,36 @@ type ActionResponse<T = null> = {
   status?: number;
 };
 
-type SuccessResponse<T = null> = ActionResponse<T> & { success: true };
-type ErrorResponse = ActionResponse<undefined> & { success: false };
+export type SuccessResponse<T = null> = ActionResponse<T> & { success: true };
+export type ErrorResponse = ActionResponse<undefined> & { success: false };
 
-type APIErrorResponse = NextResponse<ErrorResponse>;
-type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
+export type APIErrorResponse = NextResponse<ErrorResponse>;
+export type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
 
-interface UrlQueryParams {
+export interface UrlQueryParams {
   params: string;
   key: string;
   value: string | null;
 }
 
-interface RemoveUrlQueryParams {
+export interface RemoveUrlQueryParams {
   params: string;
   keysToRemove: string[];
 }
 
-interface Tag {
+export interface Tag {
   _id: string;
   name: string;
   questions?: number;
 }
 
-interface Author {
+export interface Author {
   _id: string;
   name: string;
   image: string;
 }
 
- interface Question {
+export interface Question {
   _id: string;
   title: string;
   content: string;
@@ -50,7 +50,7 @@ interface Author {
   views: number;
 }
 
-interface Answer {
+export interface Answer {
   _id: string;
   author: Author;
   content: string;
@@ -60,12 +60,12 @@ interface Answer {
   createdAt: Date;
 }
 
-interface RouteParams {
+export interface RouteParams {
   params: Promise<Record<string, string>>;
-  searchParams: Promise<Record<string, string>>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-interface PaginatedSearchParams {
+export interface PaginatedSearchParams {
   page?: number;
   pageSize?: number;
   query?: string;
@@ -73,13 +73,13 @@ interface PaginatedSearchParams {
   sort?: string;
 }
 
-interface Collection {
+export interface Collection {
   _id: string;
   author: string | Author;
   question: Question;
 }
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   username: string;
@@ -92,13 +92,13 @@ interface User {
   createdAt: Date;
 }
 
-interface Badges {
+export interface Badges {
   GOLD: number;
   SILVER: number;
   BRONZE: number;
 }
 
-interface Job {
+export interface Job {
   id?: string;
   employer_name?: string;
   employer_logo?: string | undefined;
@@ -112,13 +112,13 @@ interface Job {
   job_country?: string;
 }
 
-interface Country {
+export interface Country {
   name: {
     common: string;
   };
 }
 
-interface GlobalSearchedItem {
+export interface GlobalSearchedItem {
   id: string;
   type: "question" | "answer" | "user" | "tag";
   title: string;

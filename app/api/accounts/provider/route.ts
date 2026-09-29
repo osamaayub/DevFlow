@@ -4,6 +4,7 @@ import { NextResponse, NextRequest } from "next/server"
 import { Account } from "@/database"
 import { ValidationError, HandleError } from "@/lib"
 import { dbConnect } from "@/lib/mongoose"
+import { APIErrorResponse } from "@/types";
 
 export async function POST(request: NextRequest) {
     try {

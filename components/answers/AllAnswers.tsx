@@ -2,6 +2,7 @@ import { Pagination } from "@/components/navigation"
 import { DataRender } from "@/components/shared"
 import { EMPTY_ANSWERS } from "@/constants/states"
 import { hasVoted } from "@/lib"
+import { ActionResponse, Answer } from "@/types"
 
 import AnswerCard from "../cards/AnswerCard"
 

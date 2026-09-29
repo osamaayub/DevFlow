@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import { BADGE_CRITERIA } from "@/constants"
-import { VoteParams, VoteState } from "@/types"
+import { Badges, VoteParams, VoteState } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

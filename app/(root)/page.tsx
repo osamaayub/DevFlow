@@ -8,6 +8,7 @@ import { Button } from "@/components/ui"
 import ROUTES from "@/constants/route"
 import { EMPTY_QUESTION } from "@/constants/states"
 import { getQuestions } from "@/lib/actions"
+import { RouteParams } from "@/types"
 
 export const metadata: Metadata = {
   title: "Dev Overflow | Home",
@@ -16,22 +17,47 @@ export const metadata: Metadata = {
 }
 
 async function Home({ searchParams }: RouteParams) {
-  const { page, pageSize, query, filter } = await searchParams
+  const resolvedSearchParams = await searchParams
 
-  const { success, data, error } = await getQuestions({
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
+  const {
+    page = "1",
+    pageSize = "10",
     query,
     filter
+  } = resolvedSearchParams || {}
+
+  const normalizedQuery = Array.isArray(query)
+    ? query[0]
+    : query
+
+  const normalizedFilter = Array.isArray(filter)
+    ? filter[0]
+    : filter
+
+  const { success, data, error } = await getQuestions({
+    page: Number(page),
+    pageSize: Number(pageSize),
+    query: normalizedQuery,
+    filter: normalizedFilter
   })
+
   const { questions } = data || {}
 
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="h1-bold text-dark100_light900">All Questions</h1>
-        <Button className="primary-gradient min-h-11.5 px-4 py-3 text-light-900!" asChild>
-          <Link href={ROUTES.ASK_QUESTION} className="max-sm:w-full">
+        <h1 className="h1-bold text-dark100_light900">
+          All Questions
+        </h1>
+
+        <Button
+          className="primary-gradient min-h-11.5 px-4 py-3 text-light-900!"
+          asChild
+        >
+          <Link
+            href={ROUTES.ASK_QUESTION}
+            className="max-sm:w-full"
+          >
             Ask a Question
           </Link>
         </Button>
@@ -54,7 +80,10 @@ async function Home({ searchParams }: RouteParams) {
         render={(questions) => (
           <div className="mt-10 flex w-full flex-col gap-6">
             {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
+              <QuestionCard
+                key={question._id}
+                question={question}
+              />
             ))}
           </div>
         )}
@@ -64,3 +93,4 @@ async function Home({ searchParams }: RouteParams) {
 }
 
 export default Home
+

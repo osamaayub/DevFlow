@@ -1,4 +1,4 @@
-import { ZodSchema } from "zod"
+import { PaginatedSearchParams } from "./global"
 
 export type ActionOptions<T> = {
   params?: T
@@ -70,7 +70,9 @@ export interface VoteParams {
   downvotes: number
   hasVotedPromise: Promise<ActionResponse<VoteState>>
 }
-export interface RouteParams {
-  params: Promise<{ id: string }>
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+
+
+export interface collectionBaseParams{
+  questionId:string,
+  
 }
