@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import { QuestionForm } from "@/components/forms"
 import ROUTES from "@/constants/route"
 import { getQuestion } from "@/lib/actions/question.action"
+import { RouteParams, Question } from "@/types"
 
 const EditQuestion = async ({ params }: RouteParams) => {
   const { id } = await params
@@ -18,7 +19,7 @@ const EditQuestion = async ({ params }: RouteParams) => {
 
   if (question.author.toString() !== session?.user?.id) redirect(ROUTES.QUESTION(id))
 
-  const safeQuestion = JSON.parse(JSON.stringify(question)) as Question
+  const safeQuestion = JSON.parse(JSON.stringify(question))
 
   return (
     <main className="mt-9">

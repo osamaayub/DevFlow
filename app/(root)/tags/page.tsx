@@ -4,10 +4,12 @@ import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { EMPTY_TAGS } from "@/constants/states"
 import {getTags} from "@/lib/actions"
+import { RouteParams, Tag } from "@/types"
 
 
 const Tags = async ({searchParams}:RouteParams) => {
-  const {page,pageSize,query,filter}=await searchParams;
+  const resolvedSearchParams = await searchParams
+  const {page,pageSize,query,filter}=resolvedSearchParams || {};
    const {success,data,error}=await  getTags({
      page:Number(page)||1,
      pageSize:Number(pageSize)||10,
@@ -31,9 +33,9 @@ const Tags = async ({searchParams}:RouteParams) => {
               data={tags}
               empty={EMPTY_TAGS}
               error={error}
-           render={(tags) => (
+           render={(tags: Tag[]) => (
         <div className='mt-10 flex w-full gap-4 flex-wrap'>
-          {tags.map((tag:Tag)=>(
+          {tags.map((tag)=>(
           <TagCards key={tag._id} {...tag} />
             ))}
         </div>

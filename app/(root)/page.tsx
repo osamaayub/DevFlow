@@ -8,6 +8,7 @@ import { Button } from "@/components/ui"
 import ROUTES from "@/constants/route"
 import { EMPTY_QUESTION } from "@/constants/states"
 import { getQuestions } from "@/lib/actions"
+import { RouteParams, Question } from "@/types"
 
 export const metadata: Metadata = {
   title: "Dev Overflow | Home",
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
 }
 
 async function Home({ searchParams }: RouteParams) {
-  const { page, pageSize, query, filter } = await searchParams
+  const resolvedSearchParams = await searchParams
+  const { page, pageSize, query, filter } = resolvedSearchParams || {}
 
   const { success, data, error } = await getQuestions({
     page: Number(page) || 1,
@@ -51,7 +53,7 @@ async function Home({ searchParams }: RouteParams) {
         error={error}
         data={questions}
         empty={EMPTY_QUESTION}
-        render={(questions) => (
+        render={(questions: Question[]) => (
           <div className="mt-10 flex w-full flex-col gap-6">
             {questions.map((question) => (
               <QuestionCard key={question._id} question={question} />

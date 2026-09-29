@@ -16,9 +16,7 @@ type ActionResult<T> =
   | Error
 
 export async function action<T>({
-  schema,
-  params,
-  authorize = false
+    schema, params, authorize = false
 }: ActionOptions<T>): Promise<ActionResult<T>> {
   try {
     if (!schema || !params) {

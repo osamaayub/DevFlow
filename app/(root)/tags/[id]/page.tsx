@@ -4,11 +4,13 @@ import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions";
+import { RouteParams, Question } from "@/types";
 
 
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
-  const { page, pageSize, query } = await searchParams;
+  const resolvedSearchParams = await searchParams
+  const { page, pageSize, query } = resolvedSearchParams || {};
 
   const { success, data, error } = await getTagQuestions({
     tagId: id,
@@ -39,7 +41,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         error={error}
         data={questions}
         empty={EMPTY_QUESTION}
-        render={(questions) => (
+        render={(questions: Question[]) => (
           <div className="mt-10 flex w-full flex-col gap-6">
             {questions.map((question) => (
               <QuestionCard key={question._id} question={question} />
