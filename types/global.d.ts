@@ -61,7 +61,7 @@ export interface Answer {
 }
 
 export interface RouteParams {
-  params?: Promise<Record<string, string>>;
+  params: Promise<Record<string, string>>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
