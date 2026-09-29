@@ -139,10 +139,11 @@ export async function editQuestion(
       await removeTags(tagsToRemove, new mongoose.Types.ObjectId(questionId), session);
       
       const tagIdsToRemove = tagsToRemove.map((t: PopulatedTag) => t._id);
-      question.tags = question.tags.filter(
-        (tag) =>
-          !tagIdsToRemove.some((id: mongoose.Types.ObjectId) => id.equals(tag._id || tag))
+      const filteredTags = questionTags.filter(
+        (tag: PopulatedTag) =>
+          !tagIdsToRemove.some((id: mongoose.Types.ObjectId) => id.equals(tag._id))
       );
+      question.tags = filteredTags as unknown as mongoose.Types.ObjectId[];
     }
 
     if (tagsToAdd.length > 0) {
