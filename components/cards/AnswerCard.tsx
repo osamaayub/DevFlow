@@ -4,7 +4,7 @@ import { Preview } from "@/components/editor/preview"
 import { Votes } from "@/components/votes"
 import ROUTES from "@/constants/route"
 import { cn } from "@/lib"
-import type { VoteState } from "@/types"
+import type { ActionResponse, Answer, VoteState } from "@/types"
 
 import { RelativeTime, UserAvatar } from "../shared"
 
