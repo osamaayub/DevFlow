@@ -4,6 +4,7 @@ import { z } from "zod"
 import { User } from "@/database"
 import { HandleError, ValidationError } from "@/lib"
 import { dbConnect } from "@/lib/mongoose"
+import { APIErrorResponse } from "@/types"
 
 export async function POST(request: NextRequest) {
   try {

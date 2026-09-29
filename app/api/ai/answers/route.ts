@@ -3,6 +3,7 @@ import { generateText } from "ai"
 import { NextResponse } from "next/server"
 
 import { AIAnswerSchema, HandleError, ValidationError } from "@/lib"
+import { APIErrorResponse } from "@/types"
 
 export async function POST(req: Request) {
   const { question, content, userAnswer } = await req.json()

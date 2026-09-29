@@ -5,6 +5,7 @@ import { User } from "@/database";
 import { HandleError } from "@/lib/handlers";
 import { NotFoundError } from "@/lib/http-error";
 import { dbConnect } from "@/lib/mongoose";
+import { APIErrorResponse } from "@/types";
 
 export async function GET(
   _request: NextRequest,
