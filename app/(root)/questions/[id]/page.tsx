@@ -18,7 +18,7 @@ import {
   hasVoted,
   incrementQuestionViews
 } from "@/lib"
-import { RouteParams } from "@/types"
+import { RouteParams, Tag } from "@/types"
 
 const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params
@@ -121,7 +121,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
       <Preview content={content} />
 
       <div className="mt-8 flex flex-wrap gap-2">
-        {tags.map((tag) => (
+        {tags.map((tag:Tag) => (
           <TagCards key={tag._id} _id={tag._id as string} name={tag.name} compact />
         ))}
       </div>
