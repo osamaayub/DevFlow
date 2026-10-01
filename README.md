@@ -38,6 +38,9 @@ Full-text search with intelligent tag and category filtering.
 ### 🏷️ Tagging System
 Organize content with technology tags (React, JavaScript, TypeScript, etc.).
 
+### ⭐ Saved Questions
+Save or remove questions and browse saved questions in your collection.
+
 </td>
 <td width="50%">
 
@@ -187,10 +190,12 @@ yarn lint         # Run ESLint checks
 - [x] Validation schemas with Zod
 - [x] AI Answer API endpoint with OpenAI integration
 - [x] API client functions and centralized route constants
-- [x] Core UI pages (home, sign-in, sign-up, ask-question, questions detail, tags)
+- [x] Core UI pages (home, sign-in, sign-up, ask-question, question details, tags, collections)
 - [x] React components (forms, cards, navigation, editor, search, filters, shared utilities)
 - [x] User authentication flow (sign up, sign in, OAuth)
 - [x] Question creation and editing
+- [x] Save and remove questions with a stateful saved-star indicator
+- [x] Collection page listing the signed-in user's saved questions
 - [x] Answer creation
 - [x] Question view tracking
 - [x] Responsive design across implemented pages
@@ -220,12 +225,10 @@ yarn lint         # Run ESLint checks
 ### 🚧 In Progress
 - [ ] Complete HomeFilters implementation (currently hardcoded)
 - [ ] Profile page implementation (placeholder exists)
-- [ ] Collection page implementation (placeholder exists)
 - [ ] Community page implementation (placeholder exists)
 - [ ] Jobs page implementation (placeholder exists)
 
 ### 📋 Planned
-- [ ] User collections functionality - Schema exists, actions pending
 - [ ] Interaction tracking - Schema exists, implementation pending
 - [ ] Question deletion action
 - [ ] Answer editing and deletion
