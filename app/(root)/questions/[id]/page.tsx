@@ -1,15 +1,18 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { after } from "next/server"
+import { Suspense } from "react"
 
 import { auth } from "@/auth"
 import AllAnswers from "@/components/answers/AllAnswers"
 import { TagCards } from "@/components/cards"
 import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
+import { SaveQuestion } from "@/components/questions"
 import { Metric, UserAvatar } from "@/components/shared"
 import { Votes } from "@/components/votes"
 import ROUTES from "@/constants/route"
+import { Collection } from "@/database"
 import {
   formatNumber,
   getAnswers,
@@ -54,6 +57,10 @@ const QuestionDetails = async ({
   if (!success || !question) {
     redirect("/404")
   }
+
+  const hasSaved = userId
+    ? Boolean(await Collection.exists({ question: id, author: userId }))
+    : false
 
   after(async () => {
     await incrementQuestionViews({
@@ -118,7 +125,7 @@ const QuestionDetails = async ({
             </Link>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
             <Votes
               targetId={id}
               targetType="question"
@@ -126,6 +133,20 @@ const QuestionDetails = async ({
               downvotes={question.downvotes}
               hasVotedPromise={questionHasVotedPromise}
             />
+            <Suspense
+              fallback={
+                <div
+                  role="status"
+                  aria-label="Loading save question"
+                  className="size-9 animate-pulse rounded-md bg-light-800 dark:bg-dark-300"
+                />
+              }
+            >
+              <SaveQuestion
+                questionId={question._id}
+                initialHasSaved={hasSaved}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -196,7 +217,7 @@ const QuestionDetails = async ({
             <p className="text-dark400_light800 paragraph-semibold">
               Please{" "}
               <Link
-                href={ROUTES.SIGN_IN || "/sign-in"}
+                href={ROUTES.SIGN_IN}
                 className="text-primary-500 underline"
               >
                 log in
