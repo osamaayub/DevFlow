@@ -43,10 +43,12 @@ const TagCard = ({
 
   const Content = (
     <>
-      <Badge className="subtle-medium background-light800_dark300 text-light400_light500 flex flex-row gap-2 rounded-md border-none px-4 py-2 uppercase">
+      <Badge className="subtle-medium background-light800_dark300 !text-gray-900 flex flex-row gap-2 rounded-md border-none px-4 py-2 uppercase !opacity-100 dark:!text-gray-100">
         <div className="flex-center space-x-2">
           <i className={`${iconClass} text-sm`} aria-hidden="true" />
-          <span>{name}</span>
+          <span className="!text-gray-900 !opacity-100 dark:!text-gray-100">
+            {name}
+          </span>
         </div>
 
         {remove && (
@@ -77,32 +79,23 @@ const TagCard = ({
         {Content}
       </button>
     ) : (
-      <Link
-        href={ROUTES.TAG(_id)}
-        className="flex justify-between gap-2"
-      >
+      <Link href={ROUTES.TAG(_id)} className="flex justify-between gap-2">
         {Content}
       </Link>
     )
   }
 
   return (
-    <Link
-      href={ROUTES.TAG(_id)}
-      className="shadow-light100_darknone"
-    >
+    <Link href={ROUTES.TAG(_id)} className="shadow-light100_darknone">
       <article className="background-light900_dark200 light-border flex w-full flex-col rounded-2xl border px-8 py-10 sm:w-[260px]">
         <div className="flex items-center justify-between gap-3">
           <div className="w-fit rounded-sm bg-gray-200 px-5 py-1.5 dark:bg-gray-700">
-            <p className="paragraph-semibold text-gray-900 dark:text-gray-100">
+            <p className="paragraph-semibold !text-gray-900 !opacity-100 dark:!text-gray-100">
               {name}
             </p>
           </div>
 
-          <i
-            className={cn(iconClass, "text-2xl")}
-            aria-hidden="true"
-          />
+          <i className={cn(iconClass, "text-2xl")} aria-hidden="true" />
         </div>
 
         <p className="small-regular text-dark500_light700 mt-5 line-clamp-3 w-full">
