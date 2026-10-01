@@ -48,7 +48,11 @@ const CollectionPage = async () => {
         render={(savedQuestions) => (
           <div className="mt-10 flex w-full flex-col gap-6">
             {savedQuestions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
+              <QuestionCard
+                key={question._id}
+                question={question}
+                showSavedIcon
+              />
             ))}
           </div>
         )}
