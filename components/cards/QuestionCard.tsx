@@ -1,4 +1,5 @@
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { TagCards } from "@/components/cards"
@@ -12,14 +13,15 @@ import { Metric, RelativeTime } from "../shared"
 
 interface Props {
   question: Question;
+  showSavedIcon?: boolean;
 }
 
 
-const QuestionCard = ({ question: { _id, title, author, answers, tags, views, upvotes, createdAt } }: Props) => {
+const QuestionCard = ({ question: { _id, title, author, answers, tags, views, upvotes, createdAt }, showSavedIcon = false }: Props) => {
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
-      <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <Link href={ROUTES.QUESTION(_id)}>
             <span
               className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">
@@ -28,6 +30,15 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
             <h3 className="sm:h3-semibold base-semibold text-dark200_light900 line-clamp-1 flex-1">{title}</h3>
           </Link>
         </div>
+        {showSavedIcon && (
+          <Image
+            src="/icons/star-filled.svg"
+            alt="Saved question"
+            width={20}
+            height={20}
+            className="shrink-0"
+          />
+        )}
       </div>
       <div className="mt-3.5 flex w-full flex-wrap gap-2">
         {tags.map((tag: Tag) => (
@@ -36,21 +47,21 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
       </div>
       <div className="flex-between mt-6 w-full flex-wrap gap-3">
         <Metric imgUrl={author.image}
-                value={author.name}
-                alt={author.name} title={<RelativeTime date={createdAt} />} href={ROUTES.PROFILE(author._id)}
-                textStyles="body-medium text-dark400_light700" isAuthor imgStyles={""} />
+          value={author.name}
+          alt={author.name} title={<RelativeTime date={createdAt} />} href={ROUTES.PROFILE(author._id)}
+          textStyles="body-medium text-dark400_light700" isAuthor imgStyles={""} />
 
 
         <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:justify-start">
           <Metric imgUrl={"/icons/like.svg"} alt="Like" value={upvotes} title="votes"
-                  textStyles="small-medium text-dark400_light800" href={""} imgStyles={""} />
+            textStyles="small-medium text-dark400_light800" href={""} imgStyles={""} />
 
           <Metric imgUrl={"/icons/message.svg"} alt="Answers" value={answers} title="answers"
-                  textStyles="small-medium text-dark400_light800" href={""} />
+            textStyles="small-medium text-dark400_light800" href={""} />
 
 
           <Metric imgUrl={"/icons/eye.svg"} alt="Views" value={views} title="views"
-                  textStyles="small-medium text-dark400_light800" href={""} />
+            textStyles="small-medium text-dark400_light800" href={""} />
         </div>
       </div>
     </div>
