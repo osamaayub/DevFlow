@@ -6,10 +6,44 @@ import { revalidatePath } from "next/cache"
 import ROUTES from "@/constants/route"
 import { Collection, Question } from "@/database"
 import { NotFoundError, UnauthorizedError } from "@/lib"
+import { dbConnect } from "@/lib/mongoose"
 import { ActionResponse, collectionBaseParams, ErrorResponse } from "@/types"
 
 import { action, HandleError } from "../handlers"
 import { CollectionSchema } from "../validation"
+
+export async function hasSavedQuestion(
+  params: collectionBaseParams
+): Promise<ActionResponse<{ saved: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: CollectionSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) {
+    return HandleError(validationResult) as unknown as ErrorResponse
+  }
+
+  const { validatedData, session: authSession } = validationResult
+  const { questionId } = validatedData
+  const userId = authSession?.user?.id
+
+  if (!userId) {
+    return HandleError(new UnauthorizedError()) as unknown as ErrorResponse
+  }
+
+  try {
+    await dbConnect()
+    const saved = await Collection.exists({ question: questionId, author: userId })
+
+    return { success: true, data: { saved: Boolean(saved) } }
+  } catch (error) {
+    return HandleError(
+      error instanceof Error ? error : new Error(String(error))
+    ) as unknown as ErrorResponse
+  }
+}
 
 export async function toggleSaveQuestion(
   params: collectionBaseParams

@@ -2,30 +2,59 @@
 
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { toggleSaveQuestion } from "@/lib/actions";
+import { hasSavedQuestion, toggleSaveQuestion } from "@/lib/actions";
 
 const SaveQuestion = ({
     questionId,
-    initialHasSaved = false,
 }: {
     questionId: string;
-    initialHasSaved?: boolean;
 }) => {
 
     const session = useSession();
     const userId = session.data?.user?.id;
-    const [IsLoading, setIsLoading] = useState(false);
-    const [hasSaved, setHasSaved] = useState(initialHasSaved);
+    const [isSaving, setIsSaving] = useState(false);
+    const [hasSaved, setHasSaved] = useState(false);
+    const [isCheckingSaved, setIsCheckingSaved] = useState(true);
+
+    useEffect(() => {
+        if (session.status === "loading") return;
+        if (!userId) {
+            setHasSaved(false);
+            setIsCheckingSaved(false);
+            return;
+        }
+
+        let isActive = true;
+        setIsCheckingSaved(true);
+
+        const loadSavedState = async () => {
+            try {
+                const result = await hasSavedQuestion({ questionId });
+                if (isActive) {
+                    setHasSaved(result.success && Boolean(result.data?.saved));
+                }
+            } catch {
+                if (isActive) setHasSaved(false);
+            } finally {
+                if (isActive) setIsCheckingSaved(false);
+            }
+        };
+
+        void loadSavedState();
+        return () => {
+            isActive = false;
+        };
+    }, [questionId, session.status, userId]);
 
 
     const handleSaveQuestion = async () => {
-        if (IsLoading) return;
+        if (isSaving) return;
         if (!userId) return toast("You must be logged in to save a question.");
 
-        setIsLoading(true);
+        setIsSaving(true);
         try {
 
             const result = await toggleSaveQuestion({
@@ -44,19 +73,35 @@ const SaveQuestion = ({
             toast.error(`An error occurred while saving the question. ${error}`);
         }
         finally {
-            setIsLoading(false);
+            setIsSaving(false);
         }
 
     }
+    if (isCheckingSaved) {
+        return (
+            <div
+                role="status"
+                aria-label="Checking saved question"
+                className="size-[18px] animate-pulse rounded-sm bg-light-800 dark:bg-dark-300"
+            />
+        );
+    }
+
     return (
-        <Image src={hasSaved ? "/icons/star-filled.svg" : "/icons/star-red.svg"}
-            width={18}
-            height={18}
-            alt={hasSaved ? "Remove saved question" : "Save question"}
-            className={`cursor-pointer ${IsLoading && 'opacity-50'}`}
-            aria-label="Save question"
+        <button
+            type="button"
+            aria-label={hasSaved ? "Remove saved question" : "Save question"}
+            aria-pressed={hasSaved}
+            disabled={isCheckingSaved || isSaving}
             onClick={handleSaveQuestion}
-        />
+        >
+            <Image
+                src={hasSaved ? "/icons/star-filled.svg" : "/icons/star.svg"}
+                alt=""
+                width={18}
+                height={18}
+            />
+        </button>
     )
 }
 
