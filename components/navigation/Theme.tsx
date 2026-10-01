@@ -17,7 +17,7 @@ export default function Theme() {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent side="left" align="center" sideOffset={8}>
         <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
