@@ -12,7 +12,6 @@ import { SaveQuestion } from "@/components/questions"
 import { Metric, UserAvatar } from "@/components/shared"
 import { Votes } from "@/components/votes"
 import ROUTES from "@/constants/route"
-import { Collection } from "@/database"
 import {
   formatNumber,
   getAnswers,
@@ -57,10 +56,6 @@ const QuestionDetails = async ({
   if (!success || !question) {
     redirect("/404")
   }
-
-  const hasSaved = userId
-    ? Boolean(await Collection.exists({ question: id, author: userId }))
-    : false
 
   after(async () => {
     await incrementQuestionViews({
@@ -142,10 +137,7 @@ const QuestionDetails = async ({
                 />
               }
             >
-              <SaveQuestion
-                questionId={question._id}
-                initialHasSaved={hasSaved}
-              />
+              <SaveQuestion questionId={question._id} />
             </Suspense>
           </div>
         </div>
