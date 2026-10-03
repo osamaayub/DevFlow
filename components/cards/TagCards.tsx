@@ -46,7 +46,7 @@ const TagCard = ({
       <Badge className="subtle-medium background-light800_dark300 !text-gray-900 flex flex-row gap-2 rounded-md border-none px-4 py-2 uppercase !opacity-100 dark:!text-gray-100">
         <div className="flex-center space-x-2">
           <i className={`${iconClass} text-sm`} aria-hidden="true" />
-          <span className="!text-gray-900 !opacity-80 dark:!text-gray-800">
+          <span className="!text-gray-900 !opacity-80 dark:!text-gray-100">
             {name}
           </span>
         </div>

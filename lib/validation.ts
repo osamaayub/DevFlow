@@ -153,3 +153,6 @@ export const CollectionSchema=z.object({
   questionId:z.string().min(1,{message:'Question Id is required'})
 
 })
+
+export const GetSavedQuestionsSchema = paginatedSearchParamsSchema.extend({
+})
