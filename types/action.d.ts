@@ -74,5 +74,6 @@ export interface VoteParams {
 
 export interface collectionBaseParams{
   questionId:string,
-  
+
 }
+
