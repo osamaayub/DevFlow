@@ -17,28 +17,17 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
     redirect(ROUTES.SIGN_IN)
   }
 
-  const resolvedSearchParams = await searchParams
-  const page = resolvedSearchParams?.page
-  const pageSize = resolvedSearchParams?.pageSize
-  
-  // FIX: Ensure query and filter are strictly strings to satisfy TypeScript
-  const query = typeof resolvedSearchParams?.query === "string" 
-    ? resolvedSearchParams.query 
-    : ""
-    
-  const filter = typeof resolvedSearchParams?.filter === "string" 
-    ? resolvedSearchParams.filter 
-    : ""
+  const { page, pageSize, query, filter } = (await searchParams) || {}
+  const pageNumber = Number(page) || 1
 
   const { success, data, error } = await getSaveQuestions({
-    page: Number(page) || 1,
+    page: pageNumber,
     pageSize: Number(pageSize) || 10,
-    query,
-    filter,
+    query: typeof query === "string" ? query : "",
+    filter: typeof filter === "string" ? filter : "",
   })
 
   const { questions, isNext } = data || {}
-  const pageNumber = Number(page) || 1
 
   return (
     <>
