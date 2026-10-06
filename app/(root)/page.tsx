@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 import { QuestionCard } from "@/components/cards"
+import HomeFilters from "@/components/filters/HomeFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import { Button } from "@/components/ui"
@@ -63,13 +64,14 @@ async function Home({ searchParams }: RouteParams) {
         </Button>
       </section>
 
-      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
+      <section className="mt-11 w-full">
         <LocalSearchBar
           route={ROUTES.HOME}
           imgSrc="/icons/search.svg"
           placeholder="Search questions..."
-          otherClasses="flex-1"
+          otherClasses="w-full flex-1"
         />
+        <HomeFilters />
       </section>
 
       <DataRender
@@ -93,4 +95,3 @@ async function Home({ searchParams }: RouteParams) {
 }
 
 export default Home
-

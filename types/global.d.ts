@@ -70,6 +70,7 @@ export interface PaginatedSearchParams {
   pageSize?: number;
   query?: string;
   filter?: string;
+  tag?: string;
   sort?: string;
 }
 

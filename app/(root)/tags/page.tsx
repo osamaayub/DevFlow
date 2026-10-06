@@ -1,4 +1,5 @@
 import { TagCards } from "@/components/cards"
+import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
@@ -23,12 +24,23 @@ const Tags = async ({ searchParams }: RouteParams) => {
     <>
       <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
       
-      <section className="mt-11">
+      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearchBar
           route={ROUTES.TAGS}
           imgSrc="/icons/search.svg"
           placeholder="Search By Tag Name..."
           otherClasses="flex-1"
+        />
+        <CommonFilter
+          filters={[
+            { name: "Most Popular", value: "popular" },
+            { name: "Recently Created", value: "recent" },
+            { name: "Oldest", value: "oldest" },
+            { name: "Name", value: "name" },
+          ]}
+          defaultValue="popular"
+          showFilterIcon
+          otherClasses="min-h-[56px] sm:min-w-[170px]"
         />
       </section>
 

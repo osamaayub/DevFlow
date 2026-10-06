@@ -1,66 +1,54 @@
 "use client";
-import {useSearchParams,useRouter} from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react"
 
-import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib";
+import { homeFilters } from "@/constants/filter"
+import { formUrlQuery } from "@/lib";
 import { cn } from "@/lib/utils";
 
 import { Button } from "../ui"
-// import { homeFilters } from "@/constants/filter";
-
-
-
-const filters=[
-  {
-    name:"React", value:"react",
-
-  },{
-    name:"JavaScript",value:"javaScript"
-  }
-]
 
 const HomeFilters = () => {
   const router = useRouter();
-  const SearchParams = useSearchParams();
-  const filterParams = SearchParams.get("filter");
-  const searchParamsString = SearchParams.toString();
-  const [active, setActive] = useState("");
+  const searchParams = useSearchParams();
+  const filterParams = searchParams.get("filter") || "newest";
+  const searchParamsString = searchParams.toString();
+  const [active, setActive] = useState(filterParams);
 
   useEffect(() => {
-    setActive(filterParams || "");
+    setActive(filterParams);
   }, [filterParams]);
 
   const handleTypeClick = (filter: string) => {
-    let newUrl = "";
-    const currentUrl = typeof window !== "undefined"
-      ? `${window.location.pathname}${window.location.search}`
-      : "";
+    setActive(filter);
+    const newUrl = formUrlQuery({
+      params: searchParamsString,
+      key: "filter",
+      value: filter,
+    });
 
-    if (filter === active) {
-      setActive("");
-      newUrl = removeKeysFromUrlQuery({
-        params: searchParamsString,
-        keysToRemove: ["filter"],
-      });
-    } else {
-      setActive(filter);
-      newUrl = formUrlQuery({
-        params: searchParamsString,
-        key: "filter",
-        value: filter.toLowerCase(),
-      });
-    }
-
-    if (newUrl !== currentUrl) {
-      router.replace(newUrl, { scroll: false });
-    }
+    router.replace(newUrl, { scroll: false });
   }
 
 
   return (
-    <div className="mt-10 hidden flex-wrap gap-3 sm:flex">{filters.map((filter)=>(
-        <Button onClick={()=>{handleTypeClick(filter.value)}} className={cn(`body-medium rounded-lg px-6 py-3 capitalize shadow-none`,active===filter.value ?"bg-primary-100  text-primary-500 hover:bg-primary-100 dark:bg-dark-400 dark:text-primary-500 dark:hover:bg-dark-400" :"bg-light-800 text-light-500 hover:bg-light-800  dark:text-light-500 dark:bg-dark-300")} key={filter.name}>{filter.name}</Button>
-    ))}</div>
+    <div className="mt-6 flex flex-wrap gap-3">
+      {homeFilters.map((filter) => (
+        <Button
+          key={filter.value}
+          onClick={() => handleTypeClick(filter.value)}
+          className={cn(
+            "body-medium rounded-lg px-5 py-2.5 capitalize shadow-none",
+            active === filter.value
+              ? "bg-primary-100 text-primary-500 hover:bg-primary-100 dark:bg-dark-400 dark:text-primary-500 dark:hover:bg-dark-400"
+              : "bg-light-800 text-light-500 hover:bg-light-800 dark:bg-dark-300 dark:text-light-500"
+          )}
+          aria-pressed={active === filter.value}
+        >
+          {filter.name}
+        </Button>
+      ))}
+    </div>
   )
 }
 

@@ -39,7 +39,7 @@ export async function getUsers(
   case "popular":
     sortCriteria = { createdAt: -1 } // This sorts by newest
     break
-  case "Moderators":
+  case "moderators":
     sortCriteria = { createdAt: 1 }
     break
   case "reputation":

@@ -38,20 +38,20 @@ export interface HomeFilter {
 
 export const homeFilters: HomeFilter[] = [
   {
-    name: "newest",
-    value: "Newest"
+    name: "Newest",
+    value: "newest"
   },
   {
-    name: "recommended",
-    value: "Recommended"
+    name: "Recommended Questions",
+    value: "recommended"
   },
   {
-    name: "frequent",
-    value: "Frequent"
+    name: "Frequent",
+    value: "frequent"
   },
   {
-    name: "unanswered",
-    value: "UnAnswered"
+    name: "Unanswered",
+    value: "unanswered"
   }
 ]
 
