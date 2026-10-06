@@ -1,8 +1,9 @@
 "use client"
 
+import { ListFilter } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-import { formUrlQuery } from "@/lib"
+import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib"
 import { cn } from "@/lib/utils"
 
 import {
@@ -21,26 +22,38 @@ interface Filter {
 
 interface Props {
   filters: Filter[]
+  paramKey?: string
+  defaultValue?: string
+  showFilterIcon?: boolean
   otherClasses?: string
   containerClasses?: string
 }
 
 const CommonFilter = ({
   filters,
+  paramKey = "filter",
+  defaultValue,
+  showFilterIcon = false,
   otherClasses = "",
   containerClasses = "",
 }: Props) => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const paramsFilter = searchParams.get("filter")
+  const paramsFilter = searchParams.get(paramKey)
 
   const handleUpdateParams = (value: string) => {
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: "filter",
-      value,
-    })
+    const newUrl =
+      value === "all"
+        ? removeKeysFromUrlQuery({
+            params: searchParams.toString(),
+            keysToRemove: [paramKey],
+          })
+        : formUrlQuery({
+            params: searchParams.toString(),
+            key: paramKey,
+            value,
+          })
 
     router.push(newUrl, { scroll: false })
   }
@@ -49,7 +62,7 @@ const CommonFilter = ({
     <div className={cn("relative", containerClasses)}>
       <Select
         onValueChange={handleUpdateParams}
-        defaultValue={paramsFilter || undefined}
+        defaultValue={paramsFilter || defaultValue}
       >
         <SelectTrigger
           className={cn(
@@ -58,6 +71,7 @@ const CommonFilter = ({
           )}
           aria-label="Filter options"
         >
+          {showFilterIcon && <ListFilter aria-hidden="true" className="size-4" />}
           <div className="line-clamp-1 flex-1 text-left">
             <SelectValue placeholder="Select a filter" />
           </div>

@@ -101,6 +101,7 @@ export const paginatedSearchParamsSchema = z.object({
   pageSize: z.number().int().positive().default(10),
   query: z.string().optional(),
   filter: z.string().optional(),
+  tag: z.string().optional(),
   sort: z.string().optional()
 })
 

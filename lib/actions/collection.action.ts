@@ -114,6 +114,7 @@ export async function getSaveQuestions(
 ): Promise<ActionResponse<{
   questions: QuestionType[]
   isNext: boolean
+  tags: string[]
 }>> {
   const validationResult = await action({
     params,
@@ -132,7 +133,7 @@ export async function getSaveQuestions(
     return HandleError(new UnauthorizedError()) as unknown as ErrorResponse
   }
 
-  const { page = 1, pageSize = 10, query, filter } = validationResult.validatedData;
+  const { page = 1, pageSize = 10, query, filter, tag } = validationResult.validatedData;
 
   const skip = (Number(page) - 1) * pageSize
   const limit = pageSize
@@ -152,6 +153,33 @@ export async function getSaveQuestions(
 
   try {
     await dbConnect()
+
+    const savedTags = await Collection.aggregate([
+      { $match: { author: new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: "questions",
+          localField: "question",
+          foreignField: "_id",
+          as: "question",
+        },
+      },
+      { $unwind: "$question" },
+      {
+        $lookup: {
+          from: "tags",
+          let: { tagIds: "$question.tags" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$_id", "$$tagIds"] } } },
+            { $project: { name: 1 } },
+          ],
+          as: "tags",
+        },
+      },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags.name" } },
+      { $sort: { _id: 1 } },
+    ])
 
     const pipeline: mongoose.PipelineStage[] = [
       { $match: { author: new mongoose.Types.ObjectId(userId) } },
@@ -199,6 +227,10 @@ export async function getSaveQuestions(
       })
     }
 
+    if (tag) {
+      pipeline.push({ $match: { "question.tags.name": tag } })
+    }
+
     if (filter === "unanswered") {
       pipeline.push({ $match: { "question.answers": 0 } })
     }
@@ -241,6 +273,7 @@ export async function getSaveQuestions(
       data: {
         questions,
         isNext,
+        tags: savedTags.map(({ _id }) => String(_id)),
       },
     }
   } catch (error) {

@@ -2,7 +2,9 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth" 
 import { QuestionCard } from "@/components/cards"
+import CommonFilter from "@/components/filters/CommonFilters"
 import { Pagination } from "@/components/navigation"
+import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { EMPTY_COLLECTIONS } from "@/constants/states"
@@ -17,7 +19,7 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
     redirect(ROUTES.SIGN_IN)
   }
 
-  const { page, pageSize, query, filter } = (await searchParams) || {}
+  const { page, pageSize, query, filter, tag } = (await searchParams) || {}
   const pageNumber = Number(page) || 1
 
   const { success, data, error } = await getSaveQuestions({
@@ -25,32 +27,63 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
     pageSize: Number(pageSize) || 10,
     query: typeof query === "string" ? query : "",
     filter: typeof filter === "string" ? filter : "",
+    tag: typeof tag === "string" ? tag : "",
   })
 
-  const { questions, isNext } = data || {}
+  const { questions, isNext, tags } = data || {}
 
   return (
     <>
       <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
-      <DataRender
-        success={success}
-        data={questions as QuestionType[] | undefined}
-        empty={EMPTY_COLLECTIONS}
-        error={error}
-        render={(savedQuestions) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
-            {savedQuestions.map((question) => (
-              <QuestionCard
-                key={question._id}
-                question={question}
-                showSavedIcon
-              />
-            ))}
-          </div>
-        )}
-      />
+      <section className="mt-8 w-full">
+        <LocalSearchBar
+          route={ROUTES.COLLECTION}
+          imgSrc="/icons/search.svg"
+          placeholder="Search Saved Questions..."
+          otherClasses="w-full !min-h-12"
+        />
+        <div className="mt-4 flex flex-wrap justify-end gap-3">
+          <CommonFilter
+            paramKey="tag"
+            filters={[
+              { name: "All tags", value: "all" },
+              ...(tags || []).map((name) => ({ name, value: name })),
+            ]}
+            showFilterIcon
+            otherClasses="min-h-12 min-w-[170px]"
+          />
+          <CommonFilter
+            filters={[
+              { name: "Newest", value: "newest" },
+              { name: "Most Popular", value: "popular" },
+              { name: "Unanswered", value: "unanswered" },
+            ]}
+            defaultValue="newest"
+            showFilterIcon
+            otherClasses="min-h-12 min-w-[170px]"
+          />
+        </div>
 
-      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
+        <DataRender
+          success={success}
+          data={questions as QuestionType[] | undefined}
+          empty={EMPTY_COLLECTIONS}
+          error={error}
+          render={(savedQuestions) => (
+            <div className="mt-10 flex w-full flex-col gap-6">
+              {savedQuestions.map((question) => (
+                <QuestionCard
+                  key={question._id}
+                  question={question}
+                  showSavedIcon
+                />
+              ))}
+            </div>
+          )}
+        />
+
+        <Pagination pageNumber={pageNumber} isNext={isNext || false} />
+      </section>
     </>
   )
 }
