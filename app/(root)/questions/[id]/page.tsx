@@ -27,15 +27,9 @@ const QuestionDetails = async ({
   searchParams,
 }: RouteParams) => {
   const { id } = await params
-  const resolvedSearchParams = await searchParams
-
-  const page = Number(resolvedSearchParams?.page) || 1
-  const pageSize = Number(resolvedSearchParams?.pageSize) || 10
-
-  const filter =
-    typeof resolvedSearchParams?.filter === "string"
-      ? resolvedSearchParams.filter
-      : undefined
+  const { page, pageSize, filter } = (await searchParams) || {}
+  const pageNumber = Number(page) || 1
+  const pageSizeNumber = Number(pageSize) || 10
 
   const session = await auth()
   const userId = session?.user?.id
@@ -47,9 +41,9 @@ const QuestionDetails = async ({
       }),
       getAnswers({
         questionId: id,
-        page,
-        pageSize,
-        filter,
+        page: pageNumber,
+        pageSize: pageSizeNumber,
+        filter: typeof filter === "string" ? filter : undefined,
       }),
     ])
 
@@ -191,7 +185,7 @@ const QuestionDetails = async ({
           data={answersData}
           success={answersSuccess}
           error={answersError}
-          page={page}
+          page={pageNumber}
           isNext={isNext}
           totalAnswers={totalAnswers}
         />
@@ -224,4 +218,3 @@ const QuestionDetails = async ({
 }
 
 export default QuestionDetails
-
