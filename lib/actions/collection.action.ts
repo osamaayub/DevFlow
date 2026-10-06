@@ -1,6 +1,6 @@
 "use server"
 
-import mongoose, { FilterQuery } from "mongoose"
+import mongoose from "mongoose"
 import { revalidatePath } from "next/cache"
 
 import ROUTES from "@/constants/route"
@@ -125,55 +125,116 @@ export async function getSaveQuestions(
     return HandleError(validationResult) as unknown as ErrorResponse
   }
 
-  const { session: authSession} = validationResult
+  const { session: authSession } = validationResult
   const userId = authSession?.user?.id
 
   if (!userId) {
     return HandleError(new UnauthorizedError()) as unknown as ErrorResponse
   }
- 
-  const { page = 1, pageSize = 10, query } = validationResult.validatedData;
+
+  const { page = 1, pageSize = 10, query, filter } = validationResult.validatedData;
 
   const skip = (Number(page) - 1) * pageSize
   const limit = pageSize
+  let sortCriteria: Record<string, 1 | -1> = { createdAt: -1 }
+
+  switch (filter) {
+    case "newest":
+      sortCriteria = { "question.createdAt": -1 }
+      break
+    case "unanswered":
+      sortCriteria = { "question.createdAt": -1 }
+      break
+    case "popular":
+      sortCriteria = { "question.upvotes": -1 }
+      break
+  }
 
   try {
     await dbConnect()
 
-    const collectionQuery: FilterQuery<typeof Collection> = { author: userId }
-    
-    // Explicitly type the sort object so TS doesn't infer it as { createdAt: number }
-    const sortCriteria: Record<string, 1 | -1> = { createdAt: -1 }
-    
-    // Example for handling filters if needed in the future:
-    // if (filter === "oldest") sortCriteria.createdAt = 1
-    
-    const savedCollections = await Collection.find(collectionQuery)
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: "question",
-        // Enables searching saved questions by title
-        match: query ? { title: { $regex: query, $options: "i" } } : {},
-        populate: [
-          { path: "author", select: "name image" },
-          { path: "tags", select: "name" },
-        ],
-      })
-      .lean()
+    const pipeline: mongoose.PipelineStage[] = [
+      { $match: { author: new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: "questions",
+          localField: "question",
+          foreignField: "_id",
+          as: "question",
+        },
+      },
+      { $unwind: "$question" },
+      {
+        $lookup: {
+          from: "tags",
+          let: { tagIds: "$question.tags" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$_id", "$$tagIds"] } } },
+            { $project: { _id: 1, name: 1 } },
+          ],
+          as: "question.tags",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          let: { authorId: "$question.author" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$authorId"] } } },
+            { $project: { _id: 1, name: 1, image: 1 } },
+          ],
+          as: "question.author",
+        },
+      },
+    ]
 
-    // Filter out nulls (questions that didn't match the search query)
+    if (query) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { "question.title": { $regex: query, $options: "i" } },
+            { "question.content": { $regex: query, $options: "i" } },
+          ],
+        },
+      })
+    }
+
+    if (filter === "unanswered") {
+      pipeline.push({ $match: { "question.answers": 0 } })
+    }
+
+    pipeline.push(
+      { $sort: sortCriteria },
+      { $skip: skip },
+      { $limit: limit + 1 },
+      {
+        $project: {
+          _id: 0,
+          question: {
+            _id: "$question._id",
+            title: "$question.title",
+            content: "$question.content",
+            tags: "$question.tags",
+            author: { $arrayElemAt: ["$question.author", 0] },
+            views: "$question.views",
+            upvotes: "$question.upvotes",
+            downvotes: "$question.downvotes",
+            answers: "$question.answers",
+            createdAt: "$question.createdAt",
+          },
+        },
+      }
+    )
+
+    const savedCollections = await Collection.aggregate(pipeline)
+    const isNext = savedCollections.length > limit
     const questions = JSON.parse(
       JSON.stringify(
         savedCollections
+          .slice(0, limit)
           .map((savedCollection) => savedCollection.question)
-          .filter(Boolean)
       )
     ) as QuestionType[]
-    
-    const totalCollections = await Collection.countDocuments(collectionQuery)
-    const isNext = totalCollections > skip + savedCollections.length
 
     return {
       success: true,
