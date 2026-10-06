@@ -7,25 +7,14 @@ import { getTags } from "@/lib/actions"
 import { RouteParams, Tag } from "@/types"
 
 const Tags = async ({ searchParams }: RouteParams) => {
-  const resolvedSearchParams = await searchParams
-  const page = resolvedSearchParams?.page
-  const pageSize = resolvedSearchParams?.pageSize
-
-  const query =
-    typeof resolvedSearchParams?.query === "string"
-      ? resolvedSearchParams.query
-      : undefined
-
-  const filter =
-    typeof resolvedSearchParams?.filter === "string"
-      ? resolvedSearchParams.filter
-      : undefined
+  const { page, pageSize, query, filter } = (await searchParams) || {}
+  const pageNumber = Number(page) || 1
 
   const { success, data, error } = await getTags({
-    page: Number(page) || 1,
+    page: pageNumber,
     pageSize: Number(pageSize) || 10,
-    query,
-    filter,
+    query: typeof query === "string" ? query : undefined,
+    filter: typeof filter === "string" ? filter : undefined,
   })
 
   const { tags } = data || {}
