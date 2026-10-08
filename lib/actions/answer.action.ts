@@ -93,19 +93,19 @@ export async function getAnswers(
   try {
     const query = { question: questionId };
 
-    let sortCriteria = {};
+    let sortCriteria: Record<string, 1 | -1>;
     switch (filter) {
       case "latest":
-        sortCriteria = { createdAt: -1 };
+        sortCriteria = { createdAt: -1, _id: -1 };
         break;
       case "oldest":
-        sortCriteria = { createdAt: 1 };
+        sortCriteria = { createdAt: 1, _id: 1 };
         break;
       case "popular":
-        sortCriteria = { upvotes: -1 };
+        sortCriteria = { upvotes: -1, createdAt: -1, _id: -1 };
         break;
       default:
-        sortCriteria = { createdAt: -1 };
+        sortCriteria = { createdAt: -1, _id: -1 };
     }
 
     const totalAnswers = await Answer.countDocuments(query);

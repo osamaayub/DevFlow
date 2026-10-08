@@ -2,6 +2,7 @@
 
 import { ListFilter } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import { formUrlQuery, removeKeysFromUrlQuery } from "@/lib"
 import { cn } from "@/lib/utils"
@@ -13,7 +14,7 @@ import {
   SelectValue,
   SelectContent,
   SelectGroup,
-} from "../ui/select" 
+} from "../ui/select"
 
 interface Filter {
   name: string
@@ -41,21 +42,32 @@ const CommonFilter = ({
   const searchParams = useSearchParams()
 
   const paramsFilter = searchParams.get(paramKey)
+  const activeValue = paramsFilter || defaultValue || "all"
+
+  const [value, setValue] = useState(activeValue)
+
+  useEffect(() => {
+    setValue(activeValue)
+  }, [activeValue])
+
   const availableFilters = filters.some((filter) => filter.value === "all")
     ? filters
     : [{ name: "All", value: "all" }, ...filters]
 
-  const handleUpdateParams = (value: string) => {
+  const handleUpdateParams = (selectedValue: string) => {
+    setValue(selectedValue)
+
+    const params = searchParams.toString()
     const newUrl =
-      value === "all"
+      selectedValue === "all"
         ? removeKeysFromUrlQuery({
-            params: searchParams.toString(),
+            params,
             keysToRemove: [paramKey],
           })
         : formUrlQuery({
-            params: searchParams.toString(),
+            params,
             key: paramKey,
-            value,
+            value: selectedValue,
           })
 
     router.push(newUrl, { scroll: false })
@@ -63,10 +75,7 @@ const CommonFilter = ({
 
   return (
     <div className={cn("relative", containerClasses)}>
-      <Select
-        value={paramsFilter || defaultValue || "all"}
-        onValueChange={handleUpdateParams}
-      >
+      <Select value={value} onValueChange={handleUpdateParams}>
         <SelectTrigger
           className={cn(
             "body-regular light-border background-light800_dark300 text-dark500_light700 border px-5 py-2.5 focus:ring-0 focus:ring-offset-0",
@@ -74,17 +83,23 @@ const CommonFilter = ({
           )}
           aria-label="Filter options"
         >
-          {showFilterIcon && <ListFilter aria-hidden="true" className="size-4" />}
+          {showFilterIcon && (
+            <ListFilter aria-hidden="true" className="size-4" />
+          )}
           <div className="line-clamp-1 flex-1 text-left">
             <SelectValue placeholder="Select a filter" />
           </div>
         </SelectTrigger>
 
-        <SelectContent className="background-light900_dark200 text-dark500_light700">
+        <SelectContent
+          position="popper"
+          sideOffset={4}
+          className="background-light900_dark200 text-dark500_light700"
+        >
           <SelectGroup>
             {availableFilters.map((item) => (
-              <SelectItem 
-                key={item.value} 
+              <SelectItem
+                key={item.value}
                 value={item.value}
                 className="cursor-pointer focus:bg-light-800 dark:focus:bg-dark-400"
               >

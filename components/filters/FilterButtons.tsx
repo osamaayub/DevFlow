@@ -43,13 +43,13 @@ const FilterButtons = ({
   }
 
   return (
-    <div className={cn("flex flex-wrap gap-3", otherClasses)}>
+    <div className={cn("flex flex-nowrap gap-3", otherClasses)}>
       {availableFilters.map((filter) => (
         <Button
           key={filter.value}
           onClick={() => handleFilterClick(filter.value)}
           className={cn(
-            "body-medium rounded-lg px-5 py-2.5 capitalize shadow-none",
+            "body-medium h-12 rounded-lg px-5 py-2.5 capitalize shadow-none",
             activeFilter === filter.value
               ? "bg-primary-100 text-primary-500 hover:bg-primary-100 dark:bg-dark-400 dark:text-primary-500 dark:hover:bg-dark-400"
               : "bg-light-800 text-light-500 hover:bg-light-800 dark:bg-dark-300 dark:text-light-500"

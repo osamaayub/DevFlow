@@ -182,6 +182,7 @@ const QuestionDetails = async ({
 
       <section className="my-5">
         <AllAnswers
+          key={typeof filter === "string" ? filter : "latest"}
           data={answersData}
           success={answersSuccess}
           error={answersError}
