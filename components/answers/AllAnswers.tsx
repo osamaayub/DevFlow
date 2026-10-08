@@ -1,8 +1,11 @@
+import CommonFilter from "@/components/filters/CommonFilters"
 import { Pagination } from "@/components/navigation"
 import { DataRender } from "@/components/shared"
+import { AnswerFilters } from "@/constants/filter"
 import { EMPTY_ANSWERS } from "@/constants/states"
 import { hasVoted } from "@/lib"
 import { ActionResponse, Answer } from "@/types"
+
 
 import AnswerCard from "../cards/AnswerCard"
 
@@ -26,6 +29,14 @@ const AllAnswers = ({
         <h3 className="primary-text-gradient">
           {totalAnswers} {totalAnswers === 1 ? "Answer" : "Answers"}
         </h3>
+
+        <CommonFilter
+          filters={AnswerFilters}
+          defaultValue="latest"
+          showFilterIcon
+          containerClasses="relative z-20 max-xs:w-full"
+          otherClasses="min-h-[56px] sm:min-w-[170px]"
+        />
       </div>
 
       <DataRender

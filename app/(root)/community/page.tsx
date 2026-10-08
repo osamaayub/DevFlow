@@ -41,7 +41,7 @@ const { success, data, error } = await getUsers({
           filters={communityFilters}
           defaultValue="popular"
           showFilterIcon
-          otherClasses="min-h-[56px] w-full sm:w-[220px]"
+          otherClasses="min-h-[56px] w-full sm:w-[160px]"
         />
       </div>
 

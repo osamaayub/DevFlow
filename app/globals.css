@@ -384,6 +384,7 @@
   margin-top: -140px;
   padding-bottom: 140px;
   display: block;
+  pointer-events: none;
 }
 
 .mdxeditor-toolbar {

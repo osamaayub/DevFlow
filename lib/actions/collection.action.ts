@@ -137,17 +137,26 @@ export async function getSaveQuestions(
 
   const skip = (Number(page) - 1) * pageSize
   const limit = pageSize
-  let sortCriteria: Record<string, 1 | -1> = { createdAt: -1 }
+  let sortCriteria: Record<string, 1 | -1> = { "question.createdAt": -1 }
 
   switch (filter) {
-    case "newest":
-      sortCriteria = { "question.createdAt": -1 }
+    case "oldest":
+      sortCriteria = { "question.createdAt": 1 }
       break
-    case "unanswered":
-      sortCriteria = { "question.createdAt": -1 }
-      break
+    case "mostvoted":
     case "popular":
       sortCriteria = { "question.upvotes": -1 }
+      break
+    case "mostviewed":
+      sortCriteria = { "question.views": -1 }
+      break
+    case "mostanswered":
+      sortCriteria = { "question.answers": -1 }
+      break
+    case "mostrecent":
+    case "newest":
+    case "unanswered":
+      sortCriteria = { "question.createdAt": -1 }
       break
   }
 
