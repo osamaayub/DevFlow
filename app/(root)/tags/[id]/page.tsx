@@ -28,12 +28,12 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         <h1 className="h1-bold text-dark100_light900">{tag?.name}</h1>
       </section>
 
-      <section className="mt-11 flex items-center justify-between gap-3">
+      <section className="mt-11 flex w-full items-center justify-between gap-3 max-sm:flex-col">
         <LocalSearchBar
           route={ROUTES.TAG(id)}
           imgSrc="/icons/search.svg"
           placeholder="Search questions..."
-          otherClasses="flex-1"
+          otherClasses="w-full flex-1"
         />
         <CommonFilter
           filters={communityFilters}
