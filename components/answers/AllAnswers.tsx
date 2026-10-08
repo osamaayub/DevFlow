@@ -25,7 +25,7 @@ const AllAnswers = ({
 }: Props) => {
   return (
     <div className="mt-11">
-      <div className="flex items-center justify-between">
+      <div className="flex w-full items-center justify-between max-sm:flex-col">
         <h3 className="primary-text-gradient">
           {totalAnswers} {totalAnswers === 1 ? "Answer" : "Answers"}
         </h3>
@@ -35,7 +35,7 @@ const AllAnswers = ({
           defaultValue="latest"
           showFilterIcon
           containerClasses="relative z-20 max-xs:w-full"
-          otherClasses="min-h-[56px] sm:min-w-[170px]"
+          otherClasses="min-h-[56px] w-full sm:min-w-[170px]"
         />
       </div>
 
