@@ -36,42 +36,41 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
   return (
     <>
       <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
-      <section className="mt-8 w-full">
-        <div className="mt-4 flex items-center gap-4">
-          <LocalSearchBar
-            route={ROUTES.COLLECTION}
-            imgSrc="/icons/search.svg"
-            placeholder="Search Saved Questions..."
-            otherClasses="min-h-12 min-w-0 flex-1"
-          />
-          <CommonFilter
-            filters={CollectionFilters}
-            defaultValue="mostrecent"
-            showFilterIcon
-            otherClasses="min-h-12 shrink-0"
-          />
-        </div>
 
-        <DataRender
-          success={success}
-          data={questions as QuestionType[] | undefined}
-          empty={EMPTY_COLLECTIONS}
-          error={error}
-          render={(savedQuestions) => (
-            <div className="mt-10 flex w-full flex-col gap-6">
-              {savedQuestions.map((question) => (
-                <QuestionCard
-                  key={question._id}
-                  question={question}
-                  showSavedIcon
-                />
-              ))}
-            </div>
-          )}
+      <section className="mt-11 flex w-full justify-between gap-5 max-sm:flex-col sm:items-center">
+        <LocalSearchBar
+          route={ROUTES.COLLECTION}
+          imgSrc="/icons/search.svg"
+          placeholder="Search Saved Questions..."
+          otherClasses="flex-1"
         />
-
-        <Pagination pageNumber={pageNumber} isNext={isNext || false} />
+        <CommonFilter
+          filters={CollectionFilters}
+          defaultValue="mostrecent"
+          showFilterIcon
+          otherClasses="min-h-[56px] w-full sm:min-w-[170px]"
+        />
       </section>
+
+      <DataRender
+        success={success}
+        data={questions as QuestionType[] | undefined}
+        empty={EMPTY_COLLECTIONS}
+        error={error}
+        render={(savedQuestions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {savedQuestions.map((question) => (
+              <QuestionCard
+                key={question._id}
+                question={question}
+                showSavedIcon
+              />
+            ))}
+          </div>
+        )}
+      />
+
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 }

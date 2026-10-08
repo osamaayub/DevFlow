@@ -24,12 +24,12 @@ const Tags = async ({ searchParams }: RouteParams) => {
     <>
       <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
       
-      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
+      <section className="mt-11 flex w-full justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearchBar
           route={ROUTES.TAGS}
           imgSrc="/icons/search.svg"
           placeholder="Search By Tag Name..."
-          otherClasses="flex-1"
+          otherClasses="w-full flex-1"
         />
         <CommonFilter
           filters={[
@@ -40,7 +40,7 @@ const Tags = async ({ searchParams }: RouteParams) => {
           ]}
           defaultValue="popular"
           showFilterIcon
-          otherClasses="min-h-[56px] sm:min-w-[170px]"
+          otherClasses="min-h-[56px] w-full sm:min-w-[170px]"
         />
       </section>
 
