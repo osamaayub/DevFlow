@@ -2,7 +2,7 @@ import { QuestionCard } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { DataRender } from "@/components/shared"
-import { communityFilters } from "@/constants/filter"
+import { TagFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions";
@@ -35,12 +35,14 @@ const Page = async ({ params, searchParams }: RouteParams) => {
           placeholder="Search questions..."
           otherClasses="w-full flex-1"
         />
-        <CommonFilter
-          filters={communityFilters}
-          defaultValue="popular"
-          showFilterIcon
-          otherClasses="min-h-[56px] w-full sm:w-[160px]"
-        />
+        {questions && questions.length > 0 && (
+          <CommonFilter
+            filters={TagFilters}
+            defaultValue="popular"
+            showFilterIcon
+            otherClasses="min-h-[56px] w-full sm:w-[160px]"
+          />
+        )}
       </section>
 
       <DataRender
