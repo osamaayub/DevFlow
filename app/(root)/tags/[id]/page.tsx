@@ -1,10 +1,13 @@
 import { QuestionCard } from "@/components/cards"
+import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { DataRender } from "@/components/shared"
+import { communityFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions";
 import { RouteParams, Question } from "@/types";
+
 
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
@@ -25,12 +28,18 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         <h1 className="h1-bold text-dark100_light900">{tag?.name}</h1>
       </section>
 
-      <section className="mt-11">
+      <section className="mt-11 flex items-center justify-between gap-3">
         <LocalSearchBar
           route={ROUTES.TAG(id)}
           imgSrc="/icons/search.svg"
           placeholder="Search questions..."
           otherClasses="flex-1"
+        />
+        <CommonFilter
+          filters={communityFilters}
+          defaultValue="popular"
+          showFilterIcon
+          otherClasses="min-h-[56px] w-full sm:w-[160px]"
         />
       </section>
 
@@ -48,7 +57,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         )}
       />
     </>
-  );
+  )
 };
 
 export default Page;
