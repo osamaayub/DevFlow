@@ -2,10 +2,12 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 import { QuestionCard } from "@/components/cards"
+import CommonFilter from "@/components/filters/CommonFilters"
 import HomeFilters from "@/components/filters/HomeFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
 import { Button } from "@/components/ui"
+import { homeFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route"
 import { EMPTY_QUESTION } from "@/constants/states"
 import { getQuestions } from "@/lib/actions"
@@ -71,7 +73,18 @@ async function Home({ searchParams }: RouteParams) {
           placeholder="Search questions..."
           otherClasses="w-full flex-1"
         />
-        <HomeFilters />
+        <div className="hidden sm:block">
+          <HomeFilters />
+        </div>
+        <div className="sm:hidden">
+          <CommonFilter
+            filters={homeFilters}
+            defaultValue="newest"
+            showFilterIcon
+            otherClasses="min-h-12 w-full"
+            containerClasses="mt-6"
+          />
+        </div>
       </section>
 
       <DataRender

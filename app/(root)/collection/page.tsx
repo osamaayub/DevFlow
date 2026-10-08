@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth" 
 import { QuestionCard } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
+import FilterButtons from "@/components/filters/FilterButtons"
 import { Pagination } from "@/components/navigation"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { DataRender } from "@/components/shared"
@@ -10,6 +11,12 @@ import ROUTES from "@/constants/route"
 import { EMPTY_COLLECTIONS } from "@/constants/states"
 import { getSaveQuestions } from "@/lib/actions"
 import { Question as QuestionType, RouteParams } from "@/types"
+
+const collectionSortFilters = [
+  { name: "Newest", value: "newest" },
+  { name: "Most Popular", value: "popular" },
+  { name: "Unanswered", value: "unanswered" },
+]
 
 const CollectionPage = async ({ searchParams }: RouteParams) => {
   const session = await auth()
@@ -42,7 +49,22 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
           placeholder="Search Saved Questions..."
           otherClasses="w-full !min-h-12"
         />
-        <div className="mt-4 flex flex-wrap justify-end gap-3">
+        <div className="mt-4 hidden flex-wrap items-center justify-between gap-4 sm:flex">
+          <CommonFilter
+            paramKey="tag"
+            filters={[
+              { name: "All tags", value: "all" },
+              ...(tags || []).map((name) => ({ name, value: name })),
+            ]}
+            showFilterIcon
+            otherClasses="min-h-12 min-w-[170px]"
+          />
+          <FilterButtons
+            filters={collectionSortFilters}
+            defaultValue="newest"
+          />
+        </div>
+        <div className="mt-4 flex flex-wrap justify-end gap-3 sm:hidden">
           <CommonFilter
             paramKey="tag"
             filters={[
@@ -53,11 +75,7 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
             otherClasses="min-h-12 min-w-[170px]"
           />
           <CommonFilter
-            filters={[
-              { name: "Newest", value: "newest" },
-              { name: "Most Popular", value: "popular" },
-              { name: "Unanswered", value: "unanswered" },
-            ]}
+            filters={collectionSortFilters}
             defaultValue="newest"
             showFilterIcon
             otherClasses="min-h-12 min-w-[170px]"

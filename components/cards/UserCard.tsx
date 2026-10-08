@@ -24,6 +24,7 @@ const UserCard = ({ _id, name, image, username }: UserCardProps) => {
           id={_id}
           name={name}
           image={image}
+          disableLink
           className="size-[100px] rounded-full object-cover"
           fallbackClassName="text-3xl tracking-widest"
         />

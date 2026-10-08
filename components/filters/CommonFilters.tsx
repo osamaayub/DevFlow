@@ -41,6 +41,9 @@ const CommonFilter = ({
   const searchParams = useSearchParams()
 
   const paramsFilter = searchParams.get(paramKey)
+  const availableFilters = filters.some((filter) => filter.value === "all")
+    ? filters
+    : [{ name: "All", value: "all" }, ...filters]
 
   const handleUpdateParams = (value: string) => {
     const newUrl =
@@ -61,8 +64,8 @@ const CommonFilter = ({
   return (
     <div className={cn("relative", containerClasses)}>
       <Select
+        value={paramsFilter || defaultValue || "all"}
         onValueChange={handleUpdateParams}
-        defaultValue={paramsFilter || defaultValue}
       >
         <SelectTrigger
           className={cn(
@@ -79,7 +82,7 @@ const CommonFilter = ({
 
         <SelectContent className="background-light900_dark200 text-dark500_light700">
           <SelectGroup>
-            {filters.map((item) => (
+            {availableFilters.map((item) => (
               <SelectItem 
                 key={item.value} 
                 value={item.value}
