@@ -1,5 +1,6 @@
 import { QuestionCard } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
+import { Pagination } from "@/components/navigation";
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { BackButton, DataRender } from "@/components/shared"
 import { TagFilters } from "@/constants/filter"
@@ -20,7 +21,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
     pageSize: Number(pageSize) || 10,
   });
 
-  const { tag, questions } = data || {};
+  const { tag, questions,isNext } = data || {};
 
   return (
     <>
@@ -62,6 +63,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
           </div>
         )}
       />
+      <Pagination pageNumber={Number(page) || 1} isNext={isNext || false} />
     </>
   )
 };

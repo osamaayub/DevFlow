@@ -1,3 +1,4 @@
+import { Pagination } from "@/components"
 import { TagCards } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
@@ -18,7 +19,7 @@ const Tags = async ({ searchParams }: RouteParams) => {
     filter: typeof filter === "string" ? filter : undefined,
   })
 
-  const { tags } = data || {}
+  const { tags,isNext } = data || {}
 
   return (
     <>
@@ -60,6 +61,7 @@ const Tags = async ({ searchParams }: RouteParams) => {
           </div>
         )}
       />
+      <Pagination pageNumber={Number(page)} isNext={isNext || false} />
     </>
   )
 }
