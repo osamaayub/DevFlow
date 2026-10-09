@@ -23,7 +23,7 @@ export interface EditQuestionParams extends CreateQuestionParams {
   questionId: string
 }
 
-export interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "filter"> {
+export interface GetTagQuestionsParams extends PaginatedSearchParams {
   tagId: string
 }
 
@@ -76,4 +76,3 @@ export interface collectionBaseParams{
   questionId:string,
 
 }
-
