@@ -40,7 +40,8 @@ const Page = async ({ params, searchParams }: RouteParams) => {
             filters={TagFilters}
             defaultValue="popular"
             showFilterIcon
-            otherClasses="min-h-[56px] w-full sm:w-[160px]"
+            otherClasses="min-h-[56px] w-full sm:min-w-[170px]"
+            containerClasses="max-sm:w-full"
           />
         )}
       </section>
