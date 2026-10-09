@@ -27,8 +27,6 @@ export function Pagination({ pageNumber, isNext, containerClasses }: Props) {
     router.push(newUrl, { scroll: false })
   }
 
-  if (pageNumber <= 1 && !isNext) return null
-
   return (
     <nav
       aria-label="Pagination"
