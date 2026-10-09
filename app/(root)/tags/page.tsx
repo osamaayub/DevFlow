@@ -61,7 +61,7 @@ const Tags = async ({ searchParams }: RouteParams) => {
           </div>
         )}
       />
-      <Pagination pageNumber={Number(page)} isNext={isNext || false} />
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 }

@@ -13,12 +13,15 @@ import { RouteParams, Question } from "@/types";
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
   const resolvedSearchParams = await searchParams
-  const { page, pageSize} = resolvedSearchParams || {};
+  const { page, pageSize, query, filter } = resolvedSearchParams || {};
+  const pageNumber = Number(page) || 1;
 
   const { success, data, error } = await getTagQuestions({
     tagId: id,
-    page: Number(page) || 1,
+    page: pageNumber,
     pageSize: Number(pageSize) || 10,
+    query: typeof query === "string" ? query : undefined,
+    filter: typeof filter === "string" ? filter : undefined,
   });
 
   const { tag, questions,isNext } = data || {};
@@ -63,7 +66,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
           </div>
         )}
       />
-      <Pagination pageNumber={Number(page) || 1} isNext={isNext || false} />
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 };

@@ -98,6 +98,10 @@ export const GetQuestionSchema = z.object({
 export const GetUserSchema = z.object({
   userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" })
 })
+export const GetCommunityMemberSchema = GetUserSchema.extend({
+  page: z.number().int().positive().default(1),
+  pageSize: z.number().int().positive().default(10),
+})
 
 export const paginatedSearchParamsSchema = z.object({
   page: z.number().int().positive().default(1),

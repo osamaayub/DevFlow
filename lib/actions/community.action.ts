@@ -3,7 +3,12 @@
 import { FilterQuery } from "mongoose"
 
 import { IUser, Question, User } from "@/database"
-import { action, GetUserSchema, HandleError, paginatedSearchParamsSchema } from "@/lib"
+import {
+  action,
+  GetCommunityMemberSchema,
+  HandleError,
+  paginatedSearchParamsSchema,
+} from "@/lib"
 import {
   ActionResponse,
   ErrorResponse,
@@ -76,22 +81,33 @@ export async function getUsers(
 
 export async function getCommunityMember({
   userId,
+  page = 1,
+  pageSize = 10,
 }: {
   userId: string
+  page?: number
+  pageSize?: number
 }): Promise<
   ActionResponse<{
     user: IUser | null
     questions: QuestionType[]
+    isNext: boolean
   }>
 > {
   const validationResult = await action({
-    params: { userId },
-    schema: GetUserSchema,
+    params: { userId, page, pageSize },
+    schema: GetCommunityMemberSchema,
   })
 
   if (validationResult instanceof Error) {
     return HandleError(validationResult) as unknown as ErrorResponse
   }
+
+  const {
+    page: pageNumber,
+    pageSize: pageSizeNumber,
+  } = validationResult.validatedData
+  const skip = (pageNumber - 1) * pageSizeNumber
 
   try {
     const user = await User.findById(userId)
@@ -101,19 +117,28 @@ export async function getCommunityMember({
     if (!user) {
       return {
         success: true,
-        data: { user: null, questions: [] },
+        data: { user: null, questions: [], isNext: false },
       }
     }
 
+    const totalQuestions = await Question.countDocuments({ author: userId })
     const questions = await Question.find({ author: userId })
       .populate("tags", "_id name")
       .populate("author", "_id name image")
       .lean()
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSizeNumber)
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify({ user, questions })),
+      data: JSON.parse(
+        JSON.stringify({
+          user,
+          questions,
+          isNext: totalQuestions > skip + questions.length,
+        })
+      ),
     }
   } catch (error) {
     if (error instanceof Error) {

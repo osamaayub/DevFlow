@@ -8,7 +8,6 @@ import AllAnswers from "@/components/answers/AllAnswers"
 import { TagCards } from "@/components/cards"
 import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
-import { Pagination } from "@/components/navigation"
 import { SaveQuestion } from "@/components/questions"
 import { BackButton, Metric, UserAvatar } from "@/components/shared"
 import { Votes } from "@/components/votes"
@@ -219,7 +218,6 @@ const QuestionDetails = async ({
           </div>
         )}
       </section>
-      <Pagination pageNumber={Number(page) || 1} isNext={isNext || false} />
     </>
   )
 }

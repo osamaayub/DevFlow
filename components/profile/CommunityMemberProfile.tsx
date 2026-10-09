@@ -1,6 +1,7 @@
 import Image from "next/image"
 
 import { QuestionCard } from "@/components/cards"
+import { Pagination } from "@/components/navigation"
 import { BackButton, UserAvatar } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { IUser } from "@/database"
@@ -9,9 +10,11 @@ import { Question } from "@/types"
 interface Props {
   user: IUser
   questions: Question[]
+  pageNumber: number
+  isNext: boolean
 }
 
-const CommunityMemberProfile = ({ user, questions }: Props) => (
+const CommunityMemberProfile = ({ user, questions, pageNumber, isNext }: Props) => (
   <>
     <BackButton href={ROUTES.COMMUNITY} />
 
@@ -83,6 +86,9 @@ const CommunityMemberProfile = ({ user, questions }: Props) => (
         <p className="body-regular mt-5 text-dark400_light700">
           This community member hasn&apos;t asked any questions yet.
         </p>
+      )}
+      {questions.length > 0 && (
+        <Pagination pageNumber={pageNumber} isNext={isNext} />
       )}
     </section>
   </>
