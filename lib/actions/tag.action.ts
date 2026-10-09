@@ -90,10 +90,28 @@ export const getTagQuestions = async (
     return HandleError(validationResult) as unknown as ErrorResponse
   }
 
-  const { tagId, page = 1, pageSize = 10, query } = params
+  const { tagId, page = 1, pageSize = 10, query, filter } =
+    validationResult.validatedData
 
   const skip = (Number(page) - 1) * pageSize
   const limit = Number(pageSize)
+  let sortCriteria: Record<string, 1 | -1>
+
+  switch (filter) {
+    case "name":
+      sortCriteria = { title: 1, _id: 1 }
+      break
+    case "recent":
+      sortCriteria = { createdAt: -1, _id: -1 }
+      break
+    case "oldest":
+      sortCriteria = { createdAt: 1, _id: 1 }
+      break
+    case "popular":
+    default:
+      sortCriteria = { upvotes: -1, createdAt: -1, _id: -1 }
+      break
+  }
 
   try {
     const tag = await Tag.findById(tagId)
@@ -116,6 +134,7 @@ export const getTagQuestions = async (
         { path: "author", select: "name image _id" },
         { path: "tags", select: "name _id" }
       ])
+      .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
 

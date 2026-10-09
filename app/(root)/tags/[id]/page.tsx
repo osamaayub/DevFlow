@@ -1,5 +1,6 @@
 import { QuestionCard } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
+import { Pagination } from "@/components/navigation";
 import LocalSearchBar from "@/components/search/LocalSearchBar";
 import { BackButton, DataRender } from "@/components/shared"
 import { TagFilters } from "@/constants/filter"
@@ -12,15 +13,18 @@ import { RouteParams, Question } from "@/types";
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
   const resolvedSearchParams = await searchParams
-  const { page, pageSize} = resolvedSearchParams || {};
+  const { page, pageSize, query, filter } = resolvedSearchParams || {};
+  const pageNumber = Number(page) || 1;
 
   const { success, data, error } = await getTagQuestions({
     tagId: id,
-    page: Number(page) || 1,
+    page: pageNumber,
     pageSize: Number(pageSize) || 10,
+    query: typeof query === "string" ? query : undefined,
+    filter: typeof filter === "string" ? filter : undefined,
   });
 
-  const { tag, questions } = data || {};
+  const { tag, questions,isNext } = data || {};
 
   return (
     <>
@@ -62,6 +66,7 @@ const Page = async ({ params, searchParams }: RouteParams) => {
           </div>
         )}
       />
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 };
