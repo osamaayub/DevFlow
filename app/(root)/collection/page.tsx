@@ -42,7 +42,7 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
           route={ROUTES.COLLECTION}
           imgSrc="/icons/search.svg"
           placeholder="Search Saved Questions..."
-          otherClasses="flex-1"
+          otherClasses="w-full flex-1"
         />
         <CommonFilter
           filters={CollectionFilters}
