@@ -30,26 +30,33 @@ export function Pagination({ pageNumber, isNext, containerClasses }: Props) {
   if (pageNumber <= 1 && !isNext) return null
 
   return (
-    <div className={`flex w-full items-center justify-center gap-2 ${containerClasses || ""}`}>
+    <nav
+      aria-label="Pagination"
+      className={`mt-8 mb-10 flex w-full items-center justify-center gap-3 ${containerClasses || ""}`}
+    >
       <Button
         disabled={pageNumber <= 1}
         onClick={() => handleNavigation("prev")}
-        className="light-border-2 btn border text-dark200_light800 min-h-[36px] px-4"
+        className="light-border-2 btn min-h-10 w-20 border px-4 text-dark200_light800"
       >
         Prev
       </Button>
       
-      <div className="flex items-center justify-center bg-primary-500 px-3.5 py-2 rounded-md">
+      <div
+        aria-current="page"
+        aria-label={`Page ${pageNumber}`}
+        className="flex size-10 items-center justify-center rounded-md bg-primary-500"
+      >
         <p className="body-semibold text-light-900">{pageNumber}</p>
       </div>
 
       <Button
         disabled={!isNext}
         onClick={() => handleNavigation("next")}
-        className="light-border-2 btn border text-dark200_light800 min-h-[36px] px-4"
+        className="light-border-2 btn min-h-10 w-20 border px-4 text-dark200_light800"
       >
         Next
       </Button>
-    </div>
+    </nav>
   )
 }

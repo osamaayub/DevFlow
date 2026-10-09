@@ -9,7 +9,7 @@ import { TagCards } from "@/components/cards"
 import { Preview } from "@/components/editor/preview"
 import { AnswerForm } from "@/components/forms"
 import { SaveQuestion } from "@/components/questions"
-import { Metric, UserAvatar } from "@/components/shared"
+import { BackButton, Metric, UserAvatar } from "@/components/shared"
 import { Votes } from "@/components/votes"
 import ROUTES from "@/constants/route"
 import {
@@ -95,7 +95,9 @@ const QuestionDetails = async ({
 
   return (
     <>
-      <div className="flex-start w-full flex-col">
+      <div className="flex w-full flex-col items-start">
+        <BackButton />
+
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
             <UserAvatar
@@ -136,9 +138,11 @@ const QuestionDetails = async ({
           </div>
         </div>
 
-        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">
-          {title}
-        </h2>
+        <div className="relative mt-3.5 w-full">
+          <h2 className="h2-semibold text-dark200_light900 w-full">
+            {title}
+          </h2>
+        </div>
       </div>
 
       <div className="mt-5 mb-8 flex flex-wrap gap-4">

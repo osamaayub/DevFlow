@@ -95,6 +95,9 @@ export const EditQuestionSchema = AskQuestionSchema.extend({
 export const GetQuestionSchema = z.object({
   questionId: z.string().min(1, { message: "QuestionId is required" })
 })
+export const GetUserSchema = z.object({
+  userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" })
+})
 
 export const paginatedSearchParamsSchema = z.object({
   page: z.number().int().positive().default(1),

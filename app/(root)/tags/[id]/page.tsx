@@ -1,7 +1,7 @@
 import { QuestionCard } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar";
-import { DataRender } from "@/components/shared"
+import { BackButton, DataRender } from "@/components/shared"
 import { TagFilters } from "@/constants/filter"
 import ROUTES from "@/constants/route";
 import { EMPTY_QUESTION } from "@/constants/states";
@@ -25,7 +25,10 @@ const Page = async ({ params, searchParams }: RouteParams) => {
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="h1-bold text-dark100_light900">{tag?.name}</h1>
+        <div className="relative">
+          <BackButton href={ROUTES.TAGS} className="absolute top-0 left-0" />
+          <h1 className="h1-bold text-dark100_light900 pt-10">{tag?.name}</h1>
+        </div>
       </section>
 
       <section className="mt-11 flex w-full items-center justify-between gap-3 max-sm:flex-col">
