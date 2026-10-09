@@ -1,7 +1,7 @@
 import { TagCards } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
-import { DataRender } from "@/components/shared"
+import { BackButton, DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
 import { EMPTY_TAGS } from "@/constants/states"
 import { getTags } from "@/lib/actions"
@@ -22,7 +22,10 @@ const Tags = async ({ searchParams }: RouteParams) => {
 
   return (
     <>
-      <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
+      <div className="flex flex-col gap-2">
+        <BackButton />
+        <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
+      </div>
       
       <section className="mt-11 flex w-full justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearchBar

@@ -1,3 +1,4 @@
+export { default as BackButton } from "./BackButton"
 export { default as DataRender } from "./DataRender"
 export { default as Metric } from "./Metric"
 export { default as RelativeTime } from "./RelativeTime"
