@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 
-import { getQuestions } from "@/lib/actions"
+import { getQuestions, getTopTags } from "@/lib/actions"
 
 import HotNetwork from "./HotNetwork"
 import PopularTags from "./PopularTags"
@@ -22,21 +22,30 @@ const RightSidebar = async () => {
   const questionFilter = getQuestionFilter(
     (await headers()).get("x-devflow-question-filter")
   )
-  const { success, data, error } = await getQuestions({
-    page: 1,
-    pageSize: SIDEBAR_QUESTION_LIMIT,
-    filter: questionFilter,
-  })
+  const [questionsResult, tagsResult] = await Promise.all([
+    getQuestions({
+      page: 1,
+      pageSize: SIDEBAR_QUESTION_LIMIT,
+      filter: questionFilter,
+    }),
+    getTopTags(),
+  ])
 
-  const questions = success ? data?.questions ?? [] : []
-  const errorMessage = success
+  const questions = questionsResult.success
+    ? questionsResult.data?.questions ?? []
+    : []
+  const questionError = questionsResult.success
     ? undefined
-    : error?.message ?? "Failed to load sidebar questions."
+    : questionsResult.error?.message ?? "Failed to load sidebar questions."
+  const tags = tagsResult.success ? tagsResult.data?.tags ?? [] : []
+  const tagError = tagsResult.success
+    ? undefined
+    : tagsResult.error?.message ?? "Failed to load popular tags."
 
   return (
     <section className="pt-28 custom-scrollbar background-light900_dark200 light-border sticky right-0 top-0 flex h-screen w-[350px] flex-col gap-6 overflow-y-auto border-l p-6 shadow-light-300 dark:shadow-none max-xl:hidden">
-      <HotNetwork questions={questions} error={errorMessage} />
-      <PopularTags questions={questions} error={errorMessage} />
+      <HotNetwork questions={questions} error={questionError} />
+      <PopularTags tags={tags} error={tagError} />
     </section>
   )
 }

@@ -113,7 +113,7 @@ export const paginatedSearchParamsSchema = z.object({
 })
 
 export const GetTagQuestionsSchema = paginatedSearchParamsSchema.extend({
-  tagId: z.string().min(1, { message: "TagId is required" })
+  tagId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid tag ID" })
 })
 
 export const IncrementQuestionViewsSchema = z.object({
