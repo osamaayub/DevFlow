@@ -235,6 +235,9 @@ export async function getQuestions(params: PaginatedSearchParams): Promise<
     }
 
     switch (filter) {
+      case "popular":
+        sortCriteria = { upvotes: -1, createdAt: -1 };
+        break;
       case "newest":
         sortCriteria = { createdAt: -1 };
         break;
