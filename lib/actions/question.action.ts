@@ -242,6 +242,9 @@ export async function getQuestions(params: PaginatedSearchParams): Promise<
         filterQuery.answers = 0;
         sortCriteria = { createdAt: -1 };
         break;
+      case "popular":
+        sortCriteria = { upvotes: -1, views: -1 };
+        break;
       case "recommended":
         sortCriteria = { upvotes: -1 };
         break;
