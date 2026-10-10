@@ -1,62 +1,116 @@
 "use server"
 
-import { FilterQuery } from "mongoose"
-import { Types } from "mongoose"
+import { Types, type FilterQuery } from "mongoose"
 
-import { ITag,Question, Tag,IQuestion } from "@/database"
-import { action, GetTagQuestionsSchema, HandleError, paginatedSearchParamsSchema } from "@/lib"
-import { ActionResponse, ErrorResponse, GetTagQuestionsParams, PaginatedSearchParams } from "@/types"
+import { IQuestion, ITag, Question, Tag } from "@/database"
+import {
+  action,
+  GetTagQuestionsSchema,
+  HandleError,
+  paginatedSearchParamsSchema,
+} from "@/lib"
+import {
+  ActionResponse,
+  ErrorResponse,
+  GetTagQuestionsParams,
+  PaginatedSearchParams,
+} from "@/types"
+
+import dbConnect from "../mongoose"
+
+const TOP_TAGS_LIMIT = 5
+
+type SortCriteria = Record<string, 1 | -1>
+
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+const handleActionError = (error: unknown): ErrorResponse =>
+  HandleError(
+    error instanceof Error ? error : new Error(String(error))
+  ) as unknown as ErrorResponse
+
+const getTagSortCriteria = (filter?: string): SortCriteria => {
+  switch (filter) {
+    case "recent":
+      return { createdAt: -1, _id: -1 }
+    case "oldest":
+      return { createdAt: 1, _id: 1 }
+    case "name":
+      return { name: 1, _id: 1 }
+    case "popular":
+    default:
+      return { questions: -1, _id: 1 }
+  }
+}
+
+const getQuestionSortCriteria = (filter?: string): SortCriteria => {
+  switch (filter) {
+    case "name":
+      return { title: 1, _id: 1 }
+    case "recent":
+      return { createdAt: -1, _id: -1 }
+    case "oldest":
+      return { createdAt: 1, _id: 1 }
+    case "popular":
+    default:
+      return { upvotes: -1, createdAt: -1, _id: -1 }
+  }
+}
+
+export const getTopTags = async (): Promise<ActionResponse<{ tags: ITag[] }>> => {
+  try {
+    await dbConnect()
+
+    const tags = await Tag.find({})
+      .sort({ questions: -1, name: 1 })
+      .limit(TOP_TAGS_LIMIT)
+      .lean()
+
+    return {
+      success: true,
+      data: { tags: JSON.parse(JSON.stringify(tags)) },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
 
 export const getTags = async (
   params: PaginatedSearchParams
 ): Promise<ActionResponse<{ tags: ITag[]; isNext: boolean }>> => {
   const validationResult = await action({
     params,
-    schema: paginatedSearchParamsSchema
+    schema: paginatedSearchParamsSchema,
   })
 
   if (validationResult instanceof Error) {
-    return HandleError(validationResult) as unknown as ErrorResponse
+    return handleActionError(validationResult)
   }
 
-  const { page = 1, pageSize = 10, query, filter } = params
-
-  const skip = (Number(page) - 1) * pageSize
-  const limit = Number(pageSize)
+  const {
+    page = 1,
+    pageSize = 10,
+    query,
+    filter,
+  } = validationResult.validatedData
+  const skip = (page - 1) * pageSize
 
   const filterQuery: FilterQuery<typeof Tag> = {}
 
   if (query) {
-    filterQuery.$or = [{ name: { $regex: query, $options: "i" } }]
-  }
-
-  let sortCriteria = {}
-
-  switch (filter) {
-    case "popular":
-      sortCriteria = { questions: -1 }
-      break
-    case "recent":
-      sortCriteria = { createdAt: -1 }
-      break
-    case "oldest":
-      sortCriteria = { createdAt: 1 }
-      break
-    case "name":
-      sortCriteria = { name: 1 }
-      break
-    default:
-      sortCriteria = { questions: -1 }
-      break
+    filterQuery.name = { $regex: escapeRegex(query), $options: "i" }
   }
 
   try {
-    const totalTags = await Tag.countDocuments(filterQuery)
-
-    const tags = await Tag.find(filterQuery)
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit)
+    const [tags, totalTags] = await Promise.all([
+      Tag.find(filterQuery)
+        .sort(getTagSortCriteria(filter))
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Tag.countDocuments(filterQuery),
+    ])
 
     const isNext = totalTags > skip + tags.length
 
@@ -64,15 +118,11 @@ export const getTags = async (
       success: true,
       data: {
         tags: JSON.parse(JSON.stringify(tags)),
-        isNext
-      }
+        isNext,
+      },
     }
   } catch (error) {
-    if (error instanceof Error) {
-      return HandleError(error) as unknown as ErrorResponse
-
-    }
-    return HandleError(new Error(String(error))) as unknown as ErrorResponse
+    return handleActionError(error)
   }
 }
 
@@ -83,60 +133,49 @@ export const getTagQuestions = async (
 > => {
   const validationResult = await action({
     params,
-    schema: GetTagQuestionsSchema
+    schema: GetTagQuestionsSchema,
   })
 
   if (validationResult instanceof Error) {
-    return HandleError(validationResult) as unknown as ErrorResponse
+    return handleActionError(validationResult)
   }
 
-  const { tagId, page = 1, pageSize = 10, query, filter } =
+  const {
+    tagId,
+    page = 1,
+    pageSize = 10,
+    query,
+    filter,
+  } =
     validationResult.validatedData
-
-  const skip = (Number(page) - 1) * pageSize
-  const limit = Number(pageSize)
-  let sortCriteria: Record<string, 1 | -1>
-
-  switch (filter) {
-    case "name":
-      sortCriteria = { title: 1, _id: 1 }
-      break
-    case "recent":
-      sortCriteria = { createdAt: -1, _id: -1 }
-      break
-    case "oldest":
-      sortCriteria = { createdAt: 1, _id: 1 }
-      break
-    case "popular":
-    default:
-      sortCriteria = { upvotes: -1, createdAt: -1, _id: -1 }
-      break
-  }
+  const skip = (page - 1) * pageSize
 
   try {
-    const tag = await Tag.findById(tagId)
+    const tag = await Tag.findById(tagId).lean()
     if (!tag) throw new Error("Tag not found")
 
     const tagObjectId = new Types.ObjectId(tagId)
     const filterQuery: FilterQuery<IQuestion> = {
-      tags: { $in: [tagObjectId] }
+      tags: { $in: [tagObjectId] },
     }
 
     if (query) {
-      filterQuery.title = { $regex: query, $options: "i" }
+      filterQuery.title = { $regex: escapeRegex(query), $options: "i" }
     }
 
-    const totalQuestions = await Question.countDocuments(filterQuery)
-
-    const questions = await Question.find(filterQuery)
-      .select("_id title views answers upvotes downvotes author tags createdAt")
-      .populate([
-        { path: "author", select: "name image _id" },
-        { path: "tags", select: "name _id" }
-      ])
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit)
+    const [questions, totalQuestions] = await Promise.all([
+      Question.find(filterQuery)
+        .select("_id title views answers upvotes downvotes author tags createdAt")
+        .populate([
+          { path: "author", select: "name image _id" },
+          { path: "tags", select: "name _id" },
+        ])
+        .sort(getQuestionSortCriteria(filter))
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Question.countDocuments(filterQuery),
+    ])
 
     const isNext = totalQuestions > skip + questions.length
 
@@ -145,10 +184,10 @@ export const getTagQuestions = async (
       data: {
         tag: JSON.parse(JSON.stringify(tag)),
         questions: JSON.parse(JSON.stringify(questions)),
-        isNext
-      }
+        isNext,
+      },
     }
   } catch (error) {
-    return HandleError(new Error(String(error))) as unknown as ErrorResponse
+    return handleActionError(error)
   }
 }
