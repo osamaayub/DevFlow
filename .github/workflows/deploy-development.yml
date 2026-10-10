@@ -1,4 +1,4 @@
-name: "Deploy: Development"
+name: Deploy to Development
 
 on:
   push:
@@ -10,7 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  docker:
+  publish-image:
+    name: Build and publish development image
     runs-on: ubuntu-latest
     environment: development
     permissions:
