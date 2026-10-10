@@ -1,4 +1,5 @@
 import { ReactNode } from "react"
+import { Suspense } from "react"
 
 import { LeftSidebar, RightSidebar, Navbar } from "@/components/navigation"
 
@@ -12,7 +13,9 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
         <section className="flex min-h-screen flex-1 flex-col px-6 pb-6 pt-24 max-md:pb-14 sm:px-14">
           {children}
         </section>
-        <RightSidebar />
+        <Suspense fallback={null}>
+          <RightSidebar />
+        </Suspense>
       </div>
     </main>
   )
