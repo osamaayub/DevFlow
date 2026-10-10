@@ -1,6 +1,6 @@
-import { Pagination } from "@/components"
 import { TagCards } from "@/components/cards"
 import CommonFilter from "@/components/filters/CommonFilters"
+import { Pagination } from "@/components/navigation"
 import LocalSearchBar from "@/components/search/LocalSearchBar"
 import { BackButton, DataRender } from "@/components/shared"
 import ROUTES from "@/constants/route"
