@@ -1,4 +1,4 @@
-name: "Deploy: Production"
+name: Deploy to Production
 
 on:
   push:
@@ -10,7 +10,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  docker:
+  publish-image:
+    name: Build and publish production image
     runs-on: ubuntu-latest
     environment: production
     permissions:
