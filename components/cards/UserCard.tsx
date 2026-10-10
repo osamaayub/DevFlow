@@ -16,8 +16,8 @@ interface UserCardProps {
 const UserCard = ({ _id, name, image, username }: UserCardProps) => {
   return (
     <Link 
-      href={ROUTES.COMMUNITY_MEMBER_DETAILS(_id)} 
-      className="shadow-light100_darknone w-full max-xs:min-w-full xs:w-[260px]"
+      href={ROUTES.PROFILE(_id)}
+      className="shadow-light100_darknone w-full max-xs:min-w-full xs:w-65"
     >
       <article className="background-light900_dark200 light-border flex w-full flex-col items-center justify-center rounded-2xl border p-8 cursor-pointer transition-all duration-200 hover:border-primary-500 hover:shadow-md">
         <UserAvatar
@@ -25,7 +25,7 @@ const UserCard = ({ _id, name, image, username }: UserCardProps) => {
           name={name}
           image={image}
           disableLink
-          className="size-[100px] rounded-full object-cover"
+          className="size-25 rounded-full object-cover"
           fallbackClassName="text-3xl tracking-widest"
         />
 
