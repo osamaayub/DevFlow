@@ -76,3 +76,7 @@ export interface collectionBaseParams{
   questionId:string,
 
 }
+
+export interface GetUserParams {
+  userId: string
+}

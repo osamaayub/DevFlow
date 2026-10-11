@@ -2,10 +2,11 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 
-import { Button } from "../ui"
 
 import { formUrlQuery, removeKeysFromUrlQuery } from "@/shared/lib/url"
 import { cn } from "@/shared/lib/utils"
+
+import { Button } from "../ui"
 
 
 interface Filter {

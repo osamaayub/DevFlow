@@ -98,6 +98,21 @@ export const GetQuestionSchema = z.object({
 export const GetUserSchema = z.object({
   userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" })
 })
+export const GetUserActivitySchema = GetUserSchema.extend({
+  type: z.enum(["questions", "answers"]),
+  page: z.number().int().positive().default(1),
+  pageSize: z.number().int().positive().max(10).default(3),
+})
+export const UpdateUserProfileSchema = z.object({
+  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }),
+  location: z.string().max(100, {
+    message: "Location cannot exceed 100 characters.",
+  }),
+  portfolio: z.union([
+    z.literal(""),
+    z.string().url({ message: "Portfolio must be a valid URL." }),
+  ]),
+})
 export const GetCommunityMemberSchema = GetUserSchema.extend({
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().positive().default(10),

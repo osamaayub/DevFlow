@@ -1,10 +1,11 @@
 import { headers } from "next/headers"
 
+import { getQuestions } from "@/features/questions/actions"
+import { getTopTags } from "@/features/tags/actions"
+
 import HotNetwork from "./HotNetwork"
 import PopularTags from "./PopularTags"
 
-import { getQuestions } from "@/features/questions/actions"
-import { getTopTags } from "@/features/tags/actions"
 
 
 const SIDEBAR_QUESTION_LIMIT = 5

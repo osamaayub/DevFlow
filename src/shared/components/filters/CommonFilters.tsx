@@ -4,6 +4,10 @@ import { ListFilter } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 
+
+import { formUrlQuery, removeKeysFromUrlQuery } from "@/shared/lib/url"
+import { cn } from "@/shared/lib/utils"
+
 import {
   Select,
   SelectItem,
@@ -12,9 +16,6 @@ import {
   SelectContent,
   SelectGroup,
 } from "../ui/select"
-
-import { formUrlQuery, removeKeysFromUrlQuery } from "@/shared/lib/url"
-import { cn } from "@/shared/lib/utils"
 
 
 interface Filter {
