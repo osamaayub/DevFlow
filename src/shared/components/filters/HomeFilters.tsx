@@ -1,8 +1,9 @@
 "use client";
 
+import FilterButtons from "./FilterButtons"
+
 import { homeFilters } from "@/shared/constants/filter"
 
-import FilterButtons from "./FilterButtons"
 
 const HomeFilters = () => {
   return (

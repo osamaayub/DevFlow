@@ -3,11 +3,12 @@ import Image from "next/image"
 import Link from "next/link"
 import React from "react"
 
+import { Button } from "../ui"
+import NavLinks from "./navbar/NavLinks"
+
 import { auth, signOut } from "@/server/auth"
 import ROUTES from "@/shared/constants/route"
 
-import { Button } from "../ui"
-import NavLinks from "./navbar/NavLinks"
 
 
 const LeftSidebar = async () => {
