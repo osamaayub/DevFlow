@@ -1,11 +1,13 @@
 import Image from "next/image"
 import Link from "next/link"
 
+
 import { auth } from "@/server/auth"
 import { UserAvatar } from "@/shared/components/common"
 import { Theme } from "@/shared/components/navigation"
 
 import MobileNavigation from "./MobileNavigation"
+
 
 export async function Navbar() {
   const session = await auth()

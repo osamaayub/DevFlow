@@ -4,6 +4,8 @@ import { homeFilters } from "@/shared/constants/filter"
 
 import FilterButtons from "./FilterButtons"
 
+
+
 const HomeFilters = () => {
   return (
     <FilterButtons

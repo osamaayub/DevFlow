@@ -12,6 +12,7 @@ export interface IUser {
   reputation?: number
   password?: string // ✅ Made optional (OAuth users might not have a password)
   joinedAt?: Date
+  createdAt?: Date
 }
 
 export const UserSchema = new Schema(

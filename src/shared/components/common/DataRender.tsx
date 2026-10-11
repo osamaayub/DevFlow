@@ -6,6 +6,8 @@ import { DEFAULT_EMPTY, DEFAULT_ERROR } from "@/shared/constants/states"
 
 import { Button } from "../ui"
 
+
+
 interface Props<T> {
   success: boolean
   error?: {
