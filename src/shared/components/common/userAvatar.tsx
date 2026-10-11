@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 
-import { Avatar, AvatarFallback, AvatarImage } from "../ui"
 
 import ROUTES from "@/shared/constants/route"
 import { cn } from "@/shared/lib/utils"
+
+import { Avatar, AvatarFallback, AvatarImage } from "../ui"
 
 
 interface Props {
