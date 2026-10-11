@@ -1,0 +1,35 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { Account } from "@/server/db";
+import { dbConnect } from "@/server/db/connect";
+import { HandleError } from "@/server/errors/error-handler"
+import { APIErrorResponse } from "@/shared/types";
+
+export async function GET(){
+  try{
+    await  dbConnect();
+    const accounts = await Account.find();
+    return NextResponse.json({success: true, data: accounts},{status:200});
+
+  }catch(error: unknown){
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
+  }
+}
+export async function POST(request: NextRequest){
+  try{
+    await dbConnect();
+    const body = await request.json();
+    const existingAccount = await Account.findOne({email: body.email});
+
+    if(existingAccount){
+      throw new Error( " User Account already exists");
+    }       
+    const newAccount = new Account(body);
+    await newAccount.save();
+    return NextResponse.json({success: true, data: newAccount},{status:201}); 
+  }catch(error: unknown){
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
+  } 
+}

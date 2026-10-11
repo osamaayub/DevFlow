@@ -19,16 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/app/*": ["./app/*"],
-      "@/components/*": ["./components/*"],
-      "@/constants/*": ["./constants/*"],
-      "@/context/*": ["./context/*"],
-      "@/database/*": ["./database/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/types/*": ["./types/*"],
-      "@/public/*": ["./public/*"],
-      "@/auth": ["./auth.ts"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -36,8 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "types/**/*"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
