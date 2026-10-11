@@ -27,10 +27,12 @@ const Profile = async ({ params }: RouteParams) => {
     topQuestions,
     topAnswers,
   } = result.data
+  const isOwnProfile =
+    session?.user?.id != null && String(session.user.id) === String(user._id)
 
   return (
     <>
-      <ProfileHeader user={user} isOwnProfile={session?.user?.id === id} />
+      <ProfileHeader user={user} isOwnProfile={isOwnProfile} />
 
       <Stats
         totalQuestions={totalQuestions}
@@ -42,7 +44,7 @@ const Profile = async ({ params }: RouteParams) => {
         userId={user._id}
         userName={user.name}
         userImage={user.image}
-        isOwnProfile={session?.user?.id === id}
+        isOwnProfile={isOwnProfile}
         totalQuestions={totalQuestions}
         totalAnswers={totalAnswers}
         hasMoreQuestions={hasMoreQuestions}
