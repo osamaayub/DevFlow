@@ -41,6 +41,9 @@ Organize content with technology tags (React, JavaScript, TypeScript, etc.).
 ### ⭐ Saved Questions
 Save or remove questions and browse saved questions in your collection.
 
+### 👍 Voting
+Upvote or downvote questions and answers with optimistic UI updates.
+
 </td>
 <td width="50%">
 
@@ -53,13 +56,22 @@ Seamless theme switching for comfortable viewing.
 ### 📱 Responsive Design
 Optimized for desktop, tablet, and mobile devices.
 
+### 👥 Community
+Browse members, filter by reputation or popularity, and view each member's questions.
+
+### 🔥 Hot Network & Popular Tags
+Right sidebar highlights top-voted questions and the most-used tags.
+
 </td>
 </tr>
 <tr>
 <td colspan="2">
 
 ### ✍️ Rich Editor
-Markdown/MDX editor with live preview for formatting questions and answers.
+Markdown editor (MDXEditor, loaded client-side only) for questions and answers, with syntax-highlighted code blocks rendered via Bright.
+
+### 🧭 Filters & Pagination
+Shared filter components and pagination across home, tags, tag details, collection, community, and answers.
 
 ### 📊 Structured Logging
 Request and error logging with Pino for debugging and monitoring.
@@ -79,13 +91,13 @@ Generate intelligent answers using OpenAI integration.
 
 | Layer | Technology |
 |:---:|:---|
-| **Frontend** | [Next.js 16](https://nextjs.org) (App Router, Turbopack) • [React 19](https://react.dev) |
+| **Frontend** | [Next.js 16](https://nextjs.org) (App Router, Server Components, Server Actions) • [React 19](https://react.dev) |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) |
 | **Database** | [MongoDB](https://www.mongodb.com/) via [Mongoose 8](https://mongoosejs.com/) |
 | **Auth** | [NextAuth.js v5](https://authjs.dev/) (Google, GitHub, Credentials) |
 | **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) • [shadcn/ui](https://ui.shadcn.com/) • [Radix UI](https://www.radix-ui.com/) • [Lucide](https://lucide.dev/) |
 | **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) • [Zod](https://zod.dev/) |
-| **Editor** | [MDX Editor](https://mdxeditor.dev/) |
+| **Editor** | [MDX Editor](https://mdxeditor.dev/) • [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote) • [Bright](https://bright.codehike.org/) |
 | **AI** | [OpenAI](https://openai.com/) via [Vercel AI SDK](https://sdk.vercel.ai/) |
 | **Logging** | [Pino](https://getpino.io/) |
 
@@ -99,7 +111,7 @@ Generate intelligent answers using OpenAI integration.
 
 ```bash
 ✓ Node.js ≥ 22.13
-✓ Yarn 4.x
+✓ Yarn (via Corepack: `corepack enable`)
 ✓ MongoDB (local or Atlas)
 ```
 
@@ -110,14 +122,14 @@ Generate intelligent answers using OpenAI integration.
 git clone https://github.com/osamaayub/DevFlow.git
 cd DevFlow
 
-# 2️⃣ Install dependencies
+# 2️⃣ Install dependencies (also applies patches/ via patch-package)
 yarn install
 
-# 3️⃣ Set up environment variables
-cp .env.example .env.local
+# 3️⃣ Create a .env.local file in the project root
+#    and add the variables listed below
 
-# 4️⃣ Configure your .env.local with:
-# MONGODB_URI, AUTH_SECRET, OAuth credentials (see below)
+# 4️⃣ At minimum set:
+# MONGODB_URI, AUTH_SECRET (OAuth and OpenAI keys are optional)
 
 # 5️⃣ Start development server
 yarn dev
@@ -153,6 +165,8 @@ yarn dev
 | Variable | Default | Values |
 |----------|---------|--------|
 | `LOG_LEVEL` | `debug` (dev) / `info` (prod) | `debug`, `info`, `warn`, `error` |
+| `NEXTAUTH_URL` | Auto-detected (`trustHost`) | Your site URL, e.g. `http://localhost:3000` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://$VERCEL_URL` on Vercel, otherwise localhost | Base URL used by the API client in `lib/api.ts` |
 
 ---
 
@@ -160,7 +174,7 @@ yarn dev
 
 ```bash
 # Development
-yarn dev          # Start dev server with Turbopack
+yarn dev          # Start dev server (webpack)
 
 # Production
 yarn build        # Create optimized production build
@@ -218,19 +232,24 @@ yarn lint         # Run ESLint checks
 - [x] Question filtering (newest, unanswered, popular)
 - [x] URL utilities and helpers
 - [x] AI Answer UI integration (API implemented, UI Implemented)
-- [X] Vote system (upvotes/downvotes) - Schema exists, actions complete
-
-
+- [x] Vote system (upvotes/downvotes) for questions and answers with optimistic updates
+- [x] Home filters (newest, recommended, frequent, unanswered)
+- [x] Shared filter component for tags, collection, community, and answers
+- [x] Pagination for questions, tags, tag details, answers, collection, and community
+- [x] Tag details page
+- [x] Community page with search, filters, and member details page
+- [x] Right sidebar with hot questions and popular tags
+- [x] Back button across pages
+- [x] MDX editor loaded client-side only (fixes "This page couldn't load" on ask-question and question details)
+- [x] CI workflow (lint, type-check, build) and Docker image publishing to GHCR
 
 ### 🚧 In Progress
-- [ ] Complete HomeFilters implementation (currently hardcoded)
 - [ ] Profile page implementation (placeholder exists)
-- [ ] Community page implementation (placeholder exists)
 - [ ] Jobs page implementation (placeholder exists)
+- [ ] Question deletion UI (`deleteQuestion` action exists)
 
 ### 📋 Planned
 - [ ] Interaction tracking - Schema exists, implementation pending
-- [ ] Question deletion action
 - [ ] Answer editing and deletion
 - [ ] User profile editing
 - [ ] User management actions
@@ -259,11 +278,11 @@ DevFlow/
 │   ├── (root)/                  # Main application routes
 │   │   ├── ask-question/
 │   │   ├── collection/
-│   │   ├── community/
+│   │   ├── community/           # Member list + [id]/details
 │   │   ├── jobs/
 │   │   ├── profile/[id]/
-│   │   ├── questions/[id]/
-│   │   ├── tags/
+│   │   ├── questions/[id]/      # Question details + edit/
+│   │   ├── tags/                # Tag list + [id] tag details
 │   │   └── page.tsx (home)
 │   ├── api/                     # API routes
 │   │   ├── accounts/
@@ -275,13 +294,16 @@ DevFlow/
 ├── components/                  # Reusable React components
 │   ├── answers/                 # Answer components
 │   ├── cards/                   # Question, answer, tag cards
-│   ├── editor/                  # MDX editor
-│   ├── filters/                 # Filter components
+│   ├── editor/                  # MDX editor (client-only) & markdown preview
+│   ├── filters/                 # Home, common, and filter-button components
 │   ├── forms/                   # Auth, question, answer forms
-│   ├── navigation/              # Navigation components
+│   ├── navigation/              # Navbar, sidebars, pagination, hot network, popular tags
+│   ├── profile/                 # Community member profile
+│   ├── questions/               # Save question button
 │   ├── search/                  # Search components
-│   ├── shared/                  # Shared utilities
-│   └── ui/                      # Base UI components (shadcn/ui)
+│   ├── shared/                  # Back button, metrics, avatar, data render, relative time
+│   ├── ui/                      # Base UI components (shadcn/ui)
+│   └── votes/                   # Vote buttons and voting hook
 ├── context/                     # React context providers
 │   └── Theme.tsx               # Theme context
 ├── database/                    # Mongoose schemas & models
@@ -312,7 +334,11 @@ DevFlow/
 │   ├── route.ts                # Route constants
 │   ├── states.ts               # Empty states
 │   └── techMap.ts              # Technology mappings
+├── patches/                     # patch-package patches (next-themes)
 ├── public/                      # Static assets
+├── .github/workflows/           # CI and deploy workflows
+├── Dockerfile                   # Multi-stage standalone build
+├── Middleware.ts                # Forwards question filter header
 └── auth.ts                     # NextAuth configuration
 ```
 
@@ -347,7 +373,6 @@ All responses follow the standard envelope format:
 | `GET` | `/api/accounts/:id` | Get account by ID |
 | `PATCH` | `/api/accounts/:id` | Update account |
 | `DELETE` | `/api/accounts/:id` | Delete account |
-| `POST` | `/api/accounts/email` | Get account by email |
 | `POST` | `/api/accounts/provider` | Get account by provider |
 
 ### 🔐 Authentication
@@ -364,19 +389,30 @@ All responses follow the standard envelope format:
 
 ### ⚡ Server Actions
 
-Questions, Answers, and Tags are handled via Server Actions instead of REST API:
+Questions, Answers, Tags, Votes, Collections, and Community are handled via Server Actions instead of REST API:
 
 | Feature | Action | Description |
 |---------|--------|-------------|
 | **Questions** | `createQuestion` | Create new question with tags |
 | | `editQuestion` | Edit existing question |
 | | `getQuestion` | Get single question by ID |
-| | `getQuestions` | Get paginated questions with filters |
+| | `getQuestions` | Get paginated questions with search and filters |
+| | `getHotQuestions` | Get top questions for the right sidebar |
 | | `incrementQuestionViews` | Track question views |
+| | `deleteQuestion` | Delete a question (no UI yet) |
 | **Answers** | `createAnswer` | Create answer for question |
 | | `getAnswers` | Get paginated answers with filters |
 | **Tags** | `getTags` | Get paginated tags with filters |
 | | `getTagQuestions` | Get questions for specific tag |
+| | `getTopTags` | Get popular tags for the right sidebar |
+| **Votes** | `CreateVote` / `UpdateVote` | Cast, switch, or remove an upvote/downvote |
+| | `hasVoted` | Check the current user's vote on a question or answer |
+| | `getUserVotesForTargets` | Batch-check votes for multiple targets |
+| **Collection** | `toggleSaveQuestion` | Save or unsave a question |
+| | `hasSavedQuestion` | Check whether a question is saved |
+| | `getSaveQuestions` | Get the user's saved questions (paginated, filtered) |
+| **Community** | `getUsers` | Get paginated users with search and filters |
+| | `getCommunityMember` | Get a member and their questions |
 | **Auth** | `signUpWithCredentials` | User registration |
 | | `signInWithCredentials` | User login |
 | | `logout` | User sign out |
@@ -412,7 +448,7 @@ GitHub Actions automate testing and deployment:
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| **CI** | PR to `main`/`dev` | Lint → Test → Build |
+| **CI** | PR or push to `main`/`dev` | Lint → Type-check → Build |
 | **Deploy (Dev)** | Push to `dev` | Build → Push `ghcr.io/.../devflow:dev` |
 | **Deploy (Prod)** | Push to `main` | Build → Push `ghcr.io/.../devflow:latest` |
 
@@ -429,8 +465,8 @@ GitHub Actions automate testing and deployment:
 
 ## 📊 Performance
 
-- ⚡ **Turbopack** for near-instant HMR
-- 🎯 **Next.js App Router** with Server Components
+- 🎯 **Next.js App Router** with Server Components and Server Actions
+- 🧩 **Client-only MDX editor** loaded with `next/dynamic` to keep it out of server rendering
 - 🗜️ **Optimized Bundle** with tree-shaking
 - 📦 **MongoDB Indexing** for fast queries
 - 🚀 **Docker Multi-stage Build** for minimal image size
