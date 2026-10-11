@@ -1,0 +1,91 @@
+import { isValidObjectId } from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+
+import { User } from "@/server/db";
+import { dbConnect } from "@/server/db/connect";
+import { HandleError } from "@/server/errors/error-handler"
+import { NotFoundError } from "@/server/errors/http-error";
+import { APIErrorResponse } from "@/shared/types";
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) throw new NotFoundError({ user: ["User not found"] });
+
+    return NextResponse.json({ success: true, data: user, status: 200 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
+    const body = await request.json();
+    const user = await User.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+
+    if (!user) throw new NotFoundError({ user: ["User not found"] });
+
+    return NextResponse.json({ success: true, data: user, status: 200 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+    return HandleError(errorMessage) as unknown as APIErrorResponse;
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      );
+    }
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) throw new NotFoundError({ user: ["User not found"] });
+
+    return NextResponse.json({ success: true, data: user, status: 200 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+    return NextResponse.json({
+      success:false,
+      status:500,
+      errorMessage
+    })
+  }
+}

@@ -271,76 +271,45 @@ yarn lint         # Run ESLint checks
 
 ```
 DevFlow/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                  # Authentication routes
-│   │   ├── sign-in/
-│   │   └── sign-up/
-│   ├── (root)/                  # Main application routes
-│   │   ├── ask-question/
-│   │   ├── collection/
-│   │   ├── community/           # Member list + [id]/details
-│   │   ├── jobs/
-│   │   ├── profile/[id]/
-│   │   ├── questions/[id]/      # Question details + edit/
-│   │   ├── tags/                # Tag list + [id] tag details
-│   │   └── page.tsx (home)
-│   ├── api/                     # API routes
-│   │   ├── accounts/
-│   │   ├── ai/answers/
-│   │   ├── auth/[...nextauth]/
-│   │   └── users/
-│   ├── layout.tsx               # Root layout
-│   └── Providers.tsx            # Context providers
-├── components/                  # Reusable React components
-│   ├── answers/                 # Answer components
-│   ├── cards/                   # Question, answer, tag cards
-│   ├── editor/                  # MDX editor (client-only) & markdown preview
-│   ├── filters/                 # Home, common, and filter-button components
-│   ├── forms/                   # Auth, question, answer forms
-│   ├── navigation/              # Navbar, sidebars, pagination, hot network, popular tags
-│   ├── profile/                 # Community member profile
-│   ├── questions/               # Save question button
-│   ├── search/                  # Search components
-│   ├── shared/                  # Back button, metrics, avatar, data render, relative time
-│   ├── ui/                      # Base UI components (shadcn/ui)
-│   └── votes/                   # Vote buttons and voting hook
-├── context/                     # React context providers
-│   └── Theme.tsx               # Theme context
-├── database/                    # Mongoose schemas & models
-│   ├── models/                 # Mongoose models
-│   │   ├── Account/
-│   │   ├── Answer/
-│   │   ├── Collection/
-│   │   ├── Interactive/
-│   │   ├── Question/
-│   │   ├── QuestionView/
-│   │   ├── Tag/
-│   │   ├── TagQuestion/
-│   │   ├── User/
-│   │   └── Vote/
-│   └── schemas/                # Mongoose schemas
-├── lib/                         # Utilities & helpers
-│   ├── actions/                # Server actions
-│   ├── handlers/               # Error and action handlers
-│   ├── api.ts                  # API client functions
-│   ├── fetch.ts                # Fetch utilities
-│   ├── validation.ts           # Zod schemas
-│   ├── mongoose.ts             # DB connection
-│   ├── logger.ts               # Pino logger
-│   └── utils.ts                # General utilities
-├── types/                       # TypeScript definitions
-├── constants/                   # Static data
-│   ├── filter.ts               # Filter constants
-│   ├── route.ts                # Route constants
-│   ├── states.ts               # Empty states
-│   └── techMap.ts              # Technology mappings
-├── patches/                     # patch-package patches (next-themes)
-├── public/                      # Static assets
-├── .github/workflows/           # CI and deploy workflows
-├── Dockerfile                   # Multi-stage standalone build
-├── Middleware.ts                # Forwards question filter header
-└── auth.ts                     # NextAuth configuration
+├── src/
+│   ├── app/                         # Routes only: thin pages, layouts, API handlers
+│   │   ├── (auth)/                  # sign-in, sign-up
+│   │   ├── (root)/                  # home, ask-question, questions/[id], tags, community, ...
+│   │   ├── api/                     # REST endpoints (accounts, users, ai/answers, auth)
+│   │   ├── layout.tsx
+│   │   └── Providers.tsx
+│   ├── features/                    # Vertical slices: one folder per domain
+│   │   ├── answers/                 # actions.ts + components/ (AnswerForm, AnswerCard, AllAnswers)
+│   │   ├── auth/                    # actions.ts, sign-out.action.ts + components/ (AuthForm, SocialAuthForm)
+│   │   ├── collections/             # actions.ts (saved questions)
+│   │   ├── community/               # actions.ts + components/ (UserCard, CommunityMemberProfile)
+│   │   ├── questions/               # actions.ts + components/ (QuestionForm, QuestionCard, SaveQuestion)
+│   │   ├── tags/                    # actions.ts, tag-helpers.ts + components/ (TagCards)
+│   │   └── votes/                   # actions.ts, vote-state.ts, components/, hooks/useVote.ts
+│   ├── server/                      # Server-only infrastructure (never imported by client code)
+│   │   ├── auth.ts                  # NextAuth configuration
+│   │   ├── action.ts                # Validate + authorize + connect wrapper for server actions
+│   │   ├── errors/                  # HTTP error classes, error handler
+│   │   └── db/                      # connect.ts, models/, schemas/ (guarded by "server-only")
+│   ├── shared/                      # Client-safe building blocks used across features
+│   │   ├── api/                     # Typed fetch client for the REST endpoints
+│   │   ├── components/              # ui/ (shadcn), common/, editor/, filters/, navigation/, search/
+│   │   ├── constants/
+│   │   ├── context/                 # Theme context
+│   │   ├── lib/                     # utils, url, validation (zod), logger
+│   │   └── types/
+│   └── proxy.ts                     # Request proxy: forwards the question filter header
+├── patches/                         # patch-package patches (next-themes)
+├── public/                          # Static assets
+├── .github/workflows/               # CI and deploy workflows
+└── Dockerfile                       # Multi-stage standalone build
 ```
+
+**Dependency rules**
+
+- `app` → `features` → `shared`; `server` is used by `app` and feature `actions.ts`, never by client components.
+- A feature is imported only through its public surface: `@/features/<name>/components` or `@/features/<name>/actions`. Features don't reach into each other's internals.
+- Relative imports stay inside one area; anything crossing areas uses the `@/` alias (`@/*` → `src/*`).
 
 ---
 
