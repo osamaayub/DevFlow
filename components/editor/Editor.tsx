@@ -49,8 +49,7 @@ export const Editor = ({value,fieldChange,editorRef,...props}:EditorProps) => {
     key={resolvedTheme}
     markdown={value}
       onChange={fieldChange}
-      className="background-light800_dark200 light-border-2 markdown-editor dark-editor
-      w-full border grid"
+      className="background-light800_dark200 light-border-2 markdown-editor dark-editor w-full border grid"
       contentEditableClassName="min-h-[400px]"
          plugins={[
               // Example Plugin Usage
