@@ -2,9 +2,10 @@ import Image from "next/image"
 import Link from "next/link"
 import React from "react"
 
+import { DEFAULT_EMPTY, DEFAULT_ERROR } from "@/shared/constants/states"
+
 import { Button } from "../ui"
 
-import { DEFAULT_EMPTY, DEFAULT_ERROR } from "@/shared/constants/states"
 
 
 interface Props<T> {
