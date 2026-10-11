@@ -39,32 +39,26 @@ const ProfileHeader = ({ user, isOwnProfile }: Props) => {
 
   return (
     <section
-      className={`grid grid-cols-[80px_minmax(0,1fr)] items-start gap-x-4 gap-y-4 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-x-5 ${
-        isOwnProfile ? "sm:grid-cols-[140px_minmax(0,1fr)_176px]" : ""
-      }`}
+      className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] items-start gap-x-3 gap-y-4 xs:grid-cols-[88px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:gap-x-5"
     >
-      <div className="size-20 shrink-0 rounded-full border-2 border-primary-500 p-0.5 sm:size-[140px] sm:p-1">
+      <div className="size-[72px] shrink-0 rounded-full border-2 border-primary-500 p-0.5 xs:size-[88px] sm:size-[120px] sm:p-1">
         <UserAvatar
           id={_id}
           name={name}
           image={image}
           disableLink
           className="size-full rounded-full object-cover"
-          fallbackClassName="text-4xl sm:text-6xl"
+          fallbackClassName="text-3xl xs:text-4xl sm:text-5xl"
         />
       </div>
 
       <div className="min-w-0 pt-0.5 sm:pt-2">
-        <h1
-          className={`block whitespace-nowrap text-[clamp(1.125rem,2.2vw,1.5rem)] leading-tight font-bold text-dark100_light900 ${
-            isOwnProfile ? "sm:pr-48" : ""
-          }`}
-        >
+        <h1 className="break-words text-[clamp(1rem,2.2vw,1.5rem)] leading-tight font-bold text-dark100_light900">
           {name}
         </h1>
-        <p className="small-medium text-dark200_light800">@{username}</p>
+        <p className="small-medium break-all text-dark200_light800">@{username}</p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-4 sm:flex-nowrap sm:gap-x-4">
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:mt-4 sm:gap-x-4">
           {profilePortfolio && portfolioLabel && (
             <ProfileLink
               imgUrl="/icons/link.svg"
@@ -99,8 +93,8 @@ const ProfileHeader = ({ user, isOwnProfile }: Props) => {
         <p
           className={`paragraph-regular whitespace-pre-line text-dark400_light800 ${
             isOwnProfile
-              ? "col-span-2 row-start-3 sm:col-span-2 sm:col-start-2 sm:row-start-2"
-              : "col-span-2 row-start-2 sm:col-span-1 sm:col-start-2 sm:row-start-2"
+              ? "col-span-2 row-start-3 min-w-0 sm:col-span-2 sm:col-start-2 sm:row-start-2"
+              : "col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-2"
           }`}
         >
           {profileBio}

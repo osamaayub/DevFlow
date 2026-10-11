@@ -10,7 +10,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
       <Navbar />
       <div className="flex">
         <LeftSidebar />
-        <section className="flex min-h-screen flex-1 flex-col px-6 pb-6 pt-24 max-md:pb-14 sm:px-14">
+        <section className="flex min-h-screen min-w-0 flex-1 flex-col px-4 pb-6 pt-24 max-md:pb-14 xs:px-5 sm:px-8 lg:px-10 xl:px-12">
           {children}
         </section>
         <Suspense fallback={null}>

@@ -33,6 +33,8 @@ export const getUser = async (
     user: IUser
     totalQuestions: number
     totalAnswers: number
+    hasMoreQuestions: boolean
+    hasMoreAnswers: boolean
     badges: Badges
     topQuestions: Array<{
       _id: string
@@ -104,7 +106,7 @@ export const getUser = async (
         Question.find({ author: authorId })
           .populate("tags", "_id name")
           .sort({ upvotes: -1, views: -1, createdAt: -1 })
-          .limit(3)
+          .limit(4)
           .lean(),
         Answer.find({ author: authorId })
           .populate({
@@ -112,7 +114,7 @@ export const getUser = async (
             select: "_id title answers views",
           })
           .sort({ upvotes: -1, createdAt: -1 })
-          .limit(3)
+          .limit(4)
           .lean(),
         Question.find({ author: authorId })
           .populate("tags", "_id name")
@@ -162,9 +164,11 @@ export const getUser = async (
         user: JSON.parse(JSON.stringify(user)),
         totalQuestions,
         totalAnswers,
+        hasMoreQuestions: topQuestions.length > 3,
+        hasMoreAnswers: topAnswers.length > 3,
         badges,
-        topQuestions: JSON.parse(JSON.stringify(topQuestions)),
-        topAnswers: JSON.parse(JSON.stringify(topAnswers)),
+        topQuestions: JSON.parse(JSON.stringify(topQuestions.slice(0, 3))),
+        topAnswers: JSON.parse(JSON.stringify(topAnswers.slice(0, 3))),
         topTags,
       },
     }
