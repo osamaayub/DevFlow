@@ -59,6 +59,9 @@ Optimized for desktop, tablet, and mobile devices.
 ### 👥 Community
 Browse members, filter by reputation or popularity, and view each member's questions.
 
+### 👤 User Profiles
+View responsive profiles with bio, location, portfolio, activity stats, and paginated questions and answers. Users can edit their profile details.
+
 ### 🔥 Hot Network & Popular Tags
 Right sidebar highlights top-voted questions and the most-used tags.
 
@@ -238,20 +241,19 @@ yarn lint         # Run ESLint checks
 - [x] Pagination for questions, tags, tag details, answers, collection, and community
 - [x] Tag details page
 - [x] Community page with search, filters, and member details page
+- [x] User profiles with editable profile details, activity tabs, statistics, and pagination
 - [x] Right sidebar with hot questions and popular tags
 - [x] Back button across pages
 - [x] MDX editor loaded client-side only (fixes "This page couldn't load" on ask-question and question details)
 - [x] CI workflow (lint, type-check, build) and Docker image publishing to GHCR
 
 ### 🚧 In Progress
-- [ ] Profile page implementation (placeholder exists)
 - [ ] Jobs page implementation (placeholder exists)
 - [ ] Question deletion UI (`deleteQuestion` action exists)
 
 ### 📋 Planned
 - [ ] Interaction tracking - Schema exists, implementation pending
 - [ ] Answer editing and deletion
-- [ ] User profile editing
 - [ ] User management actions
 - [ ] Live demo deployment
 - [ ] Admin dashboard
@@ -285,7 +287,8 @@ DevFlow/
 │   │   ├── community/               # actions.ts + components/ (UserCard, CommunityMemberProfile)
 │   │   ├── questions/               # actions.ts + components/ (QuestionForm, QuestionCard, SaveQuestion)
 │   │   ├── tags/                    # actions.ts, tag-helpers.ts + components/ (TagCards)
-│   │   └── votes/                   # actions.ts, vote-state.ts, components/, hooks/useVote.ts
+│   │   ├── users/                    # actions.ts + components/ (profile, activity, and profile editing)
+│   │   └── votes/                    # actions.ts, vote-state.ts, components/, hooks/useVote.ts
 │   ├── server/                      # Server-only infrastructure (never imported by client code)
 │   │   ├── auth.ts                  # NextAuth configuration
 │   │   ├── action.ts                # Validate + authorize + connect wrapper for server actions
