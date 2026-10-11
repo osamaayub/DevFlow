@@ -18,7 +18,7 @@ const StatsCard = ({
   value: number
   title: string
 }) => (
-  <div className="light-border background-light900_dark300 flex min-h-[72px] items-center justify-center gap-2 rounded-md border px-3 py-2 shadow-light-300 dark:shadow-dark-200">
+  <div className="light-border background-light900_dark300 flex min-h-[76px] min-w-0 items-center justify-center gap-2 rounded-lg border px-2 py-2 shadow-light-300 dark:shadow-dark-200 sm:px-3">
     <Image
       src={imgUrl}
       alt=""
@@ -39,11 +39,11 @@ const StatsCard = ({
 )
 
 const Stats = ({ totalQuestions, totalAnswers, badges }: Props) => (
-  <div className="mt-5">
+  <div className="mt-7 min-w-0">
     <h4 className="h3-semibold text-dark200_light900">Stats</h4>
 
-    <div className="mt-4 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
-      <div className="light-border background-light900_dark300 flex min-h-[72px] items-center justify-center gap-5 rounded-md border px-3 py-2 shadow-light-300 dark:shadow-dark-200">
+    <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="light-border background-light900_dark300 grid min-h-[76px] min-w-0 grid-cols-2 items-center justify-items-center gap-2 rounded-lg border px-2 py-2 shadow-light-300 dark:shadow-dark-200 sm:gap-5 sm:px-3">
         <div className="text-center">
           <p className="small-semibold text-dark200_light900">
             {formatNumber(totalQuestions)}
@@ -57,7 +57,6 @@ const Stats = ({ totalQuestions, totalAnswers, badges }: Props) => (
           <p className="small-regular text-dark400_light700">Answers</p>
         </div>
       </div>
-
       <StatsCard
         imgUrl="/icons/gold-medal.svg"
         value={badges.GOLD}

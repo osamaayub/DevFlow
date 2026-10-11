@@ -17,7 +17,16 @@ const Profile = async ({ params }: RouteParams) => {
     )
   }
 
-  const { user, totalQuestions, totalAnswers, badges, topQuestions, topAnswers } = result.data
+  const {
+    user,
+    totalQuestions,
+    totalAnswers,
+    hasMoreQuestions,
+    hasMoreAnswers,
+    badges,
+    topQuestions,
+    topAnswers,
+  } = result.data
 
   return (
     <>
@@ -36,6 +45,8 @@ const Profile = async ({ params }: RouteParams) => {
         isOwnProfile={session?.user?.id === id}
         totalQuestions={totalQuestions}
         totalAnswers={totalAnswers}
+        hasMoreQuestions={hasMoreQuestions}
+        hasMoreAnswers={hasMoreAnswers}
         topQuestions={topQuestions}
         topAnswers={topAnswers}
       />

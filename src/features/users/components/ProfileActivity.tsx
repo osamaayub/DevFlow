@@ -43,6 +43,8 @@ interface Props {
   isOwnProfile: boolean
   totalQuestions: number
   totalAnswers: number
+  hasMoreQuestions: boolean
+  hasMoreAnswers: boolean
   topQuestions: TopQuestion[]
   topAnswers: TopAnswer[]
 }
@@ -58,6 +60,8 @@ const ProfileActivity = ({
   isOwnProfile,
   totalQuestions,
   totalAnswers,
+  hasMoreQuestions: initialHasMoreQuestions,
+  hasMoreAnswers: initialHasMoreAnswers,
   topQuestions,
   topAnswers,
 }: Props) => {
@@ -65,22 +69,21 @@ const ProfileActivity = ({
   const [activityType, setActivityType] = useState<ActivityType>("questions")
   const [questions, setQuestions] = useState(topQuestions)
   const [answers, setAnswers] = useState(topAnswers)
-  const [hasMore, setHasMore] = useState(
-    topQuestions.length < totalQuestions
+  const [hasMoreQuestions, setHasMoreQuestions] = useState(
+    initialHasMoreQuestions
   )
+  const [hasMoreAnswers, setHasMoreAnswers] = useState(initialHasMoreAnswers)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
   const currentCount = activityType === "questions" ? questions.length : answers.length
   const currentTotal =
     activityType === "questions" ? totalQuestions : totalAnswers
+  const hasMore =
+    activityType === "questions" ? hasMoreQuestions : hasMoreAnswers
 
   const selectActivity = (type: ActivityType) => {
     setActivityType(type)
-    setHasMore(
-      (type === "questions" ? questions.length : answers.length) <
-        (type === "questions" ? totalQuestions : totalAnswers)
-    )
     setError("")
   }
 
@@ -106,10 +109,11 @@ const ProfileActivity = ({
           ...current,
           ...(result.data?.questions ?? []),
         ])
+        setHasMoreQuestions(result.data.isNext)
       } else {
         setAnswers((current) => [...current, ...(result.data?.answers ?? [])])
+        setHasMoreAnswers(result.data.isNext)
       }
-      setHasMore(result.data.isNext)
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -146,14 +150,14 @@ const ProfileActivity = ({
   }
 
   return (
-    <div className="mt-10 grid grid-cols-1 gap-8">
+    <div className="mt-8 grid min-w-0 grid-cols-1 gap-8 sm:mt-10">
       <section className="min-w-0">
-        <div className="mb-5 flex items-center gap-1">
+        <div className="mb-5 flex w-full max-w-sm items-center gap-1 rounded-lg bg-light-800 p-1 dark:bg-dark-300">
           <button
             type="button"
             aria-pressed={activityType === "questions"}
             onClick={() => selectActivity("questions")}
-            className={`rounded-l-md px-4 py-2 text-sm transition ${
+            className={`min-h-10 flex-1 rounded-md px-4 py-2 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 ${
               activityType === "questions"
                 ? "bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300"
                 : "bg-light-800 text-dark400_light700 dark:bg-dark-300"
@@ -165,7 +169,7 @@ const ProfileActivity = ({
             type="button"
             aria-pressed={activityType === "answers"}
             onClick={() => selectActivity("answers")}
-            className={`rounded-r-md px-4 py-2 text-sm transition ${
+            className={`min-h-10 flex-1 rounded-md px-4 py-2 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 ${
               activityType === "answers"
                 ? "bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300"
                 : "bg-light-800 text-dark400_light700 dark:bg-dark-300"
@@ -181,7 +185,7 @@ const ProfileActivity = ({
               questions.map((question) => (
                 <article
                   key={question._id}
-                  className="card-wrapper w-full rounded-[10px] p-5 sm:px-6"
+                  className="card-wrapper w-full min-w-0 rounded-xl p-4 transition-shadow hover:shadow-md sm:p-5 sm:px-6"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <Link
@@ -279,7 +283,7 @@ const ProfileActivity = ({
             answers.map((answer) => (
               <article
                 key={answer._id}
-                className="card-wrapper w-full rounded-[10px] p-5 sm:px-6"
+                className="card-wrapper w-full min-w-0 rounded-xl p-4 transition-shadow hover:shadow-md sm:p-5 sm:px-6"
               >
                 <div className="flex items-start justify-between gap-3">
                   <Link

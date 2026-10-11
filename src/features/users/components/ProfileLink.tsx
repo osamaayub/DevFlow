@@ -8,7 +8,7 @@ interface Props {
 }
 
 const ProfileLink = ({ imgUrl, title, href }: Props) => (
-  <div className="flex-center shrink-0 gap-1 whitespace-nowrap">
+  <div className="flex min-w-0 max-w-full items-center gap-1">
     <Image src={imgUrl} alt="" width={16} height={16} className="shrink-0" />
 
     {href ? (
@@ -16,12 +16,16 @@ const ProfileLink = ({ imgUrl, title, href }: Props) => (
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="small-medium whitespace-nowrap text-link-100"
+        title={title}
+        className="small-medium min-w-0 truncate whitespace-nowrap text-link-100"
       >
         {title}
       </Link>
     ) : (
-      <p className="small-medium whitespace-nowrap text-dark400_light700">
+      <p
+        title={title}
+        className="small-medium min-w-0 truncate whitespace-nowrap text-dark400_light700"
+      >
         {title}
       </p>
     )}
