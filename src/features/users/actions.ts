@@ -4,7 +4,7 @@ import { Types } from "mongoose"
 import { revalidatePath } from "next/cache"
 
 import { action } from "@/server/action"
-import { Answer, IUser, Question, User } from "@/server/db"
+import { Answer, IUser, Question, Tag, User } from "@/server/db"
 import { HandleError } from "@/server/errors/error-handler"
 import { NotFoundError } from "@/server/errors/http-error"
 import { assignBadges } from "@/shared/lib/utils"
@@ -21,10 +21,36 @@ import {
   Question as QuestionType,
 } from "@/shared/types"
 
+const TOP_TAGS_LIMIT = 6
+
+type UserTopTag = { _id: string; name: string; count: number }
+
 const handleActionError = (error: unknown): ErrorResponse =>
   HandleError(
     error instanceof Error ? error : new Error(String(error))
   ) as unknown as ErrorResponse
+
+const getUserTopTags = async (authorId: Types.ObjectId): Promise<UserTopTag[]> => {
+  const tags = await Question.aggregate<UserTopTag>([
+    { $match: { author: authorId } },
+    { $unwind: "$tags" },
+    { $group: { _id: "$tags", count: { $sum: 1 } } },
+    {
+      $lookup: {
+        from: Tag.collection.name,
+        localField: "_id",
+        foreignField: "_id",
+        as: "tag",
+      },
+    },
+    { $unwind: "$tag" },
+    { $project: { _id: 1, name: "$tag.name", count: 1 } },
+    { $sort: { count: -1, name: 1 } },
+    { $limit: TOP_TAGS_LIMIT },
+  ])
+
+  return tags.map((tag) => ({ ...tag, _id: String(tag._id) }))
+}
 
 export const getUser = async (
   params: GetUserParams
@@ -57,7 +83,7 @@ export const getUser = async (
         views: number
       } | null
     }>
-    topTags: Array<{ _id: string; name: string; count: number }>
+    topTags: UserTopTag[]
   }>
 > => {
   const validationResult = await action({
@@ -80,7 +106,7 @@ export const getUser = async (
 
     const authorId = new Types.ObjectId(userId)
 
-    const [[questionStats], [answerStats], topQuestions, topAnswers, authoredQuestions] =
+    const [[questionStats], [answerStats], topQuestions, topAnswers, topTags] =
       await Promise.all([
         Question.aggregate([
           { $match: { author: authorId } },
@@ -116,9 +142,7 @@ export const getUser = async (
           .sort({ upvotes: -1, createdAt: -1 })
           .limit(4)
           .lean(),
-        Question.find({ author: authorId })
-          .populate("tags", "_id name")
-          .lean(),
+        getUserTopTags(authorId),
       ])
 
     const totalQuestions = questionStats?.count ?? 0
@@ -133,30 +157,6 @@ export const getUser = async (
         { type: "TOTAL_VIEWS", count: questionStats?.views ?? 0 },
       ],
     })
-
-    const tagCounts = new Map<string, { _id: string; name: string; count: number }>()
-
-    for (const question of authoredQuestions) {
-      for (const tag of question.tags ?? []) {
-        const tagId = String(tag._id)
-        const existingTag = tagCounts.get(tagId)
-
-        if (existingTag) {
-          existingTag.count += 1
-          continue
-        }
-
-        tagCounts.set(tagId, {
-          _id: tagId,
-          name: tag.name,
-          count: 1,
-        })
-      }
-    }
-
-    const topTags = [...tagCounts.values()]
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-      .slice(0, 6)
 
     return {
       success: true,
