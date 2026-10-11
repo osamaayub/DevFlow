@@ -1,7 +1,8 @@
+import { fetchHandler, FetchOptions } from "./fetch"
+
 import Routes from "@/shared/constants/route"
 import { ActionResponse } from "@/shared/types";
 
-import { fetchHandler, FetchOptions } from "./fetch"
 
 export type UserSignUpPayload = {
   name: string;
