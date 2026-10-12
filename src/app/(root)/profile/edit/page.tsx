@@ -20,11 +20,10 @@ const EditProfilePage = async () => {
   return (
     <main className="w-full">
       <h1 className="h1-bold text-dark100_light900">Edit Profile</h1>
-      <p className="body-regular mt-2 text-dark400_light700">
-        Add your city, country, and a short bio to your profile.
-      </p>
       <ProfileEditForm
         userId={userId}
+        name={user.name}
+        username={user.username}
         bio={user.bio ?? ""}
         location={user.location ?? ""}
         portfolio={user.portfolio ?? ""}

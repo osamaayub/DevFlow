@@ -10,12 +10,14 @@ import ROUTES from "@/shared/constants/route"
 
 interface Props {
   userId: string
+  name: string
+  username: string
   bio: string
   location: string
   portfolio: string
 }
 
-const ProfileEditForm = ({ userId, bio, location, portfolio }: Props) => {
+const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: Props) => {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState("")
@@ -26,6 +28,8 @@ const ProfileEditForm = ({ userId, bio, location, portfolio }: Props) => {
 
     try {
       const result = await updateUserProfile({
+        name: String(formData.get("name") ?? ""),
+        username: String(formData.get("username") ?? ""),
         bio: String(formData.get("bio") ?? ""),
         location: String(formData.get("location") ?? ""),
         portfolio: String(formData.get("portfolio") ?? ""),
@@ -52,8 +56,36 @@ const ProfileEditForm = ({ userId, bio, location, portfolio }: Props) => {
   return (
     <form action={handleSubmit} className="mt-8 flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-2">
+        <label htmlFor="name" className="body-semibold text-dark200_light900">
+          Name
+        </label>
+        <Input
+          id="name"
+          name="name"
+          defaultValue={name}
+          minLength={2}
+          required
+          className="background-light900_dark300 text-dark200_light900 h-11"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="username" className="body-semibold text-dark200_light900">
+          Username
+        </label>
+        <Input
+          id="username"
+          name="username"
+          defaultValue={username}
+          minLength={2}
+          required
+          className="background-light900_dark300 text-dark200_light900 h-11"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
         <label htmlFor="location" className="body-semibold text-dark200_light900">
-          City and country
+          Location
         </label>
         <Input
           id="location"

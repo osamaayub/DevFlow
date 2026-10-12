@@ -104,6 +104,12 @@ export const GetUserActivitySchema = GetUserSchema.extend({
   pageSize: z.number().int().positive().max(10).default(3),
 })
 export const UpdateUserProfileSchema = z.object({
+  name: z.string().trim().min(2, {
+    message: "Name must be at least 2 characters."
+  }),
+  username: z.string().trim().min(2, {
+    message: "Username must be at least 2 characters."
+  }),
   bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }),
   location: z.string().max(100, {
     message: "Location cannot exceed 100 characters.",
