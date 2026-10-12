@@ -264,6 +264,8 @@ export const getUserActivity = async (params: {
 }
 
 export const updateUserProfile = async (params: {
+  name: string
+  username: string
   bio: string
   location: string
   portfolio: string
@@ -284,11 +286,26 @@ export const updateUserProfile = async (params: {
   }
 
   try {
-    const { bio, location, portfolio } = validationResult.validatedData
+    const { name, username, bio, location, portfolio } = validationResult.validatedData
+    const existingUsername = await User.findOne({
+      username,
+      _id: { $ne: userId },
+    }).select("_id").lean()
+
+    if (existingUsername) {
+      return {
+        success: false,
+        status: 409,
+        error: { message: "Username already exists." },
+      }
+    }
+
     const user = await User.findByIdAndUpdate(
       userId,
       {
         $set: {
+          name,
+          username,
           bio: bio.trim(),
           location: location.trim(),
           portfolio: portfolio.trim(),
