@@ -64,7 +64,7 @@ const TagCard = ({
       </Badge>
 
       {showCount && (
-        <p className="small-medium text-dark500_light700">{questions}</p>
+        <p className="small-medium text-dark500_light700">{questions}+</p>
       )}
     </>
   )
@@ -74,12 +74,12 @@ const TagCard = ({
       <button
         type="button"
         onClick={handleClick}
-        className="flex justify-between gap-2"
+        className="flex items-center justify-between gap-2"
       >
         {Content}
       </button>
     ) : (
-      <Link href={ROUTES.TAG(_id)} className="flex justify-between gap-2">
+      <Link href={ROUTES.TAG(_id)} className="flex items-center justify-between gap-2">
         {Content}
       </Link>
     )

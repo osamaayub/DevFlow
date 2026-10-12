@@ -29,7 +29,7 @@ export async function Navbar() {
           <UserAvatar id={user.id} name={user.name} image={user.image} className="size-9" />
         )}
 
-        <MobileNavigation />
+        <MobileNavigation userId={user?.id} />
       </div>
     </nav>
   )
