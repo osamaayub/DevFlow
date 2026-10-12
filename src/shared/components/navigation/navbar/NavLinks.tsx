@@ -9,11 +9,19 @@ import { SheetClose } from "@/shared/components/ui";
 import { sidebarLinks } from "@/shared/constants";
 import { cn } from "@/shared/lib/utils";
 
-const NavLinks = ({ isMobileNav,userId}:{isMobileNav?:boolean,userId?:string}) => {
+type Props = {
+  isMobileNav?: boolean
+  userId?: string
+  hideProfile?: boolean
+}
+
+const NavLinks = ({ isMobileNav, userId, hideProfile }: Props) => {
   const pathname = usePathname();
   return (
     <>
       {sidebarLinks.map((item) => {
+        if (hideProfile && item.route === "/profile") return null;
+
         const route =
           item.route === "/profile"
             ? userId
