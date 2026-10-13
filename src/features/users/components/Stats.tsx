@@ -9,19 +9,21 @@ interface Props {
   badges: Badges
 }
 
+interface StatsCardProps {
+  imgUrl: string
+  value: number
+  title: string
+}
+
 const StatsCard = ({
   imgUrl,
   value,
   title,
-}: {
-  imgUrl: string
-  value: number
-  title: string
-}) => (
+}: StatsCardProps) => (
   <div className="light-border background-light900_dark300 flex min-h-[76px] min-w-0 items-center justify-center gap-2 rounded-lg border px-2 py-2 shadow-light-300 dark:shadow-dark-200 sm:px-3">
     <Image
       src={imgUrl}
-      alt=""
+      alt={title}
       aria-hidden="true"
       width={28}
       height={34}
