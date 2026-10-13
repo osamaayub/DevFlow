@@ -3,6 +3,7 @@ import Link from "next/link"
 import { IUser } from "@/server/db"
 import { UserAvatar } from "@/shared/components/common"
 import { Button } from "@/shared/components/ui"
+import { formatJoinedAt } from "@/shared/lib/date"
 
 import ProfileLink from "./ProfileLink"
 
@@ -10,12 +11,6 @@ interface Props {
   user: IUser
   isOwnProfile: boolean
 }
-
-const formatJoinedDate = (date: Date | string) =>
-  new Date(date).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  })
 
 const ProfileHeader = ({ user, isOwnProfile }: Props) => {
   const {
@@ -72,7 +67,7 @@ const ProfileHeader = ({ user, isOwnProfile }: Props) => {
           {profileJoinedAt && (
             <ProfileLink
               imgUrl="/icons/calendar.svg"
-              title={`Joined ${formatJoinedDate(profileJoinedAt)}`}
+              title={`Joined ${formatJoinedAt(profileJoinedAt)}`}
             />
           )}
         </div>
