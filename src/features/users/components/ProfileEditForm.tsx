@@ -1,8 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { updateUserProfile } from "@/features/users/actions"
 import { Button, Input } from "@/shared/components/ui"
@@ -20,11 +20,9 @@ interface Props {
 const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: Props) => {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState("")
 
   const handleSubmit = async (formData: FormData) => {
     setIsSaving(true)
-    setError("")
 
     try {
       const result = await updateUserProfile({
@@ -36,14 +34,15 @@ const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: P
       })
 
       if (!result.success) {
-        setError(result.error?.message ?? "Unable to update your profile.")
+        toast.error(result.error?.message ?? "Unable to update your profile.")
         return
       }
 
+      toast.success("Profile updated successfully.")
       router.push(ROUTES.PROFILE(userId))
       router.refresh()
     } catch (submitError) {
-      setError(
+      toast.error(
         submitError instanceof Error
           ? submitError.message
           : "Unable to update your profile. Please try again."
@@ -57,7 +56,7 @@ const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: P
     <form action={handleSubmit} className="mt-8 flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-2">
         <label htmlFor="name" className="body-semibold text-dark200_light900">
-          Name
+          Full Name
         </label>
         <Input
           id="name"
@@ -79,6 +78,20 @@ const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: P
           defaultValue={username}
           minLength={2}
           required
+          className="background-light900_dark300 text-dark200_light900 h-11"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="portfolio" className="body-semibold text-dark200_light900">
+          Portfolio Link
+        </label>
+        <Input
+          id="portfolio"
+          name="portfolio"
+          type="url"
+          defaultValue={portfolio}
+          placeholder="https://example.com"
           className="background-light900_dark300 text-dark200_light900 h-11"
         />
       </div>
@@ -112,41 +125,13 @@ const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: P
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="portfolio" className="body-semibold text-dark200_light900">
-          Portfolio URL
-        </label>
-        <Input
-          id="portfolio"
-          name="portfolio"
-          type="url"
-          defaultValue={portfolio}
-          placeholder="https://example.com"
-          className="background-light900_dark300 text-dark200_light900 h-11"
-        />
-      </div>
-
-      {error && (
-        <p role="alert" className="body-regular text-red-500">
-          {error}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-3">
+      <div className="flex justify-end">
         <Button
           type="submit"
           disabled={isSaving}
           className="primary-gradient min-h-11 px-5 text-light-900"
         >
-          {isSaving ? "Saving..." : "Save Profile"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          asChild
-          className="min-h-11 text-dark200_light900"
-        >
-          <Link href={ROUTES.PROFILE(userId)}>Cancel</Link>
+          {isSaving ? "Submitting..." : "Submit"}
         </Button>
       </div>
     </form>

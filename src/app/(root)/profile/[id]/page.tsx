@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation"
+
 import { getUser } from "@/features/users/actions"
 import {
   ProfileActivity,
@@ -10,14 +12,17 @@ import { RouteParams } from "@/shared/types"
 
 const Profile = async ({ params }: RouteParams) => {
   const { id } = await params
-  if (!id) return null
+  if (!id) return notFound();
 
-  const [session, result] = await Promise.all([auth(), getUser({ userId: id })])
+  const [session, { success, data, error }] = await Promise.all([
+    auth(),
+    getUser({ userId: id }),
+  ])
 
-  if (!result.success || !result.data) {
+  if (!success || !data) {
     return (
       <div className="h1-bold text-dark100_light900">
-        {result.error?.message ?? "User not found"}
+        {error?.message ?? "User not found"}
       </div>
     )
   }
@@ -32,7 +37,7 @@ const Profile = async ({ params }: RouteParams) => {
     topQuestions,
     topAnswers,
     topTags,
-  } = result.data
+  } = data
   const isOwnProfile =
     session?.user?.id != null && String(session.user.id) === String(user._id)
 
