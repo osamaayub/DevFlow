@@ -209,7 +209,7 @@ export const getUserActivity = async (params: {
     return handleActionError(validationResult)
   }
 
-  const { userId, type, page, pageSize = 3 } = validationResult.validatedData
+  const { userId, type, page, pageSize = 10 } = validationResult.validatedData
 
   try {
     const authorId = new Types.ObjectId(userId)
