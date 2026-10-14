@@ -9,13 +9,24 @@ interface Props {
   pageNumber: number
   isNext: boolean
   containerClasses?: string
+  onPageChange?: (direction: "prev" | "next") => void | Promise<void>
 }
 
-export function Pagination({ pageNumber, isNext, containerClasses }: Props) {
+export function Pagination({
+  pageNumber,
+  isNext,
+  containerClasses,
+  onPageChange,
+}: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const handleNavigation = (direction: "prev" | "next") => {
+    if (onPageChange) {
+      void onPageChange(direction)
+      return
+    }
+
     const nextPage = direction === "prev" ? pageNumber - 1 : pageNumber + 1
 
     const newUrl = formUrlQuery({

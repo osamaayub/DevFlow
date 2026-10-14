@@ -6,12 +6,12 @@ import { toast } from "sonner"
 
 import { deleteQuestion } from "@/features/questions/actions"
 import { getUserActivity } from "@/features/users/actions"
+import { Pagination } from "@/shared/components/navigation/Pagination"
 
 import type { ActivityType } from "./ProfileActivity.types"
 import type { TopAnswer, TopQuestion } from "./ProfileActivityCards"
 import ProfileActivityError from "./ProfileActivityError"
 import ProfileActivityList from "./ProfileActivityList"
-import ProfileActivityLoadMore from "./ProfileActivityLoadMore"
 import ProfileActivityTabs from "./ProfileActivityTabs"
 
 interface Props {
@@ -31,6 +31,7 @@ const PAGE_SIZE = 3
 
 interface ActivityState {
   activityType: ActivityType
+  page: number
   questions: TopQuestion[]
   answers: TopAnswer[]
   hasMoreQuestions: boolean
@@ -47,6 +48,7 @@ type ActivityAction =
   | {
       type: "activity-loaded"
       activityType: ActivityType
+      page: number
       questions: TopQuestion[]
       answers: TopAnswer[]
       isNext: boolean
@@ -58,7 +60,12 @@ const activityReducer = (
 ): ActivityState => {
   switch (action.type) {
     case "select":
-      return { ...state, activityType: action.activityType, error: "" }
+      return {
+        ...state,
+        activityType: action.activityType,
+        page: 1,
+        error: "",
+      }
 
     case "request-start":
       return { ...state, isLoading: true, error: "" }
@@ -73,14 +80,16 @@ const activityReducer = (
       if (action.activityType === "questions") {
         return {
           ...state,
-          questions: [...state.questions, ...action.questions],
+          page: action.page,
+          questions: action.questions,
           hasMoreQuestions: action.isNext,
         }
       }
 
       return {
         ...state,
-        answers: [...state.answers, ...action.answers],
+        page: action.page,
+        answers: action.answers,
         hasMoreAnswers: action.isNext,
       }
     }
@@ -92,8 +101,6 @@ const activityReducer = (
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback
-
-const getNextPageNumber = (count: number) => Math.floor(count / PAGE_SIZE) + 1
 
 const ProfileActivity = ({
   userId,
@@ -110,6 +117,7 @@ const ProfileActivity = ({
   const router = useRouter()
   const [state, dispatch] = useReducer(activityReducer, {
     activityType: "questions",
+    page: 1,
     questions: topQuestions,
     answers: topAnswers,
     hasMoreQuestions: initialHasMoreQuestions,
@@ -120,6 +128,7 @@ const ProfileActivity = ({
 
   const {
     activityType,
+    page,
     questions,
     answers,
     hasMoreQuestions,
@@ -138,21 +147,27 @@ const ProfileActivity = ({
     dispatch({ type: "select", activityType: nextActivityType })
   }
 
-  const loadMore = async () => {
+  const handlePageChange = async (direction: "prev" | "next") => {
+    const nextPage = direction === "prev" ? page - 1 : page + 1
+
+    if (nextPage < 1) {
+      return
+    }
+
     dispatch({ type: "request-start" })
 
     try {
       const result = await getUserActivity({
         userId,
         type: activityType,
-        page: getNextPageNumber(currentCount),
+        page: nextPage,
         pageSize: PAGE_SIZE,
       })
 
       if (!result.success || !result.data) {
         dispatch({
           type: "request-error",
-          error: result.error?.message ?? "Failed to load more activity.",
+          error: result.error?.message ?? "Failed to load activity.",
         })
         return
       }
@@ -160,6 +175,7 @@ const ProfileActivity = ({
       dispatch({
         type: "activity-loaded",
         activityType,
+        page: nextPage,
         questions: result.data.questions,
         answers: result.data.answers,
         isNext: result.data.isNext,
@@ -167,10 +183,7 @@ const ProfileActivity = ({
     } catch (loadError) {
       dispatch({
         type: "request-error",
-        error: getErrorMessage(
-          loadError,
-          "Failed to load more activity. Please try again."
-        ),
+        error: getErrorMessage(loadError, "Failed to load activity. Please try again."),
       })
     } finally {
       dispatch({ type: "request-end" })
@@ -199,6 +212,7 @@ const ProfileActivity = ({
       dispatch({
         type: "activity-loaded",
         activityType: "questions",
+        page,
         questions: questions.filter((question) => question._id !== questionId),
         answers: [],
         isNext: hasMoreQuestions,
@@ -238,11 +252,13 @@ const ProfileActivity = ({
 
         <ProfileActivityError error={error} />
 
-        <ProfileActivityLoadMore
-          hasMore={hasMore}
-          isLoading={isLoading}
-          onLoadMore={loadMore}
-        />
+        {currentItems.length > 0 && (
+          <Pagination
+            pageNumber={page}
+            isNext={hasMore}
+            onPageChange={handlePageChange}
+          />
+        )}
 
         <span className="sr-only" aria-live="polite">
           Showing {currentCount} of {currentTotal}{" "}
