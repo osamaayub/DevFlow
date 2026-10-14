@@ -22,6 +22,19 @@ import {
   Question as QuestionType,
 } from "@/shared/types";
 
+const normalizeAuthorId = (author: unknown): string | undefined => {
+  if (!author) return undefined;
+
+  if (typeof author === "string") return author;
+
+  if (typeof author === "object") {
+    const authorRecord = author as { _id?: unknown; id?: unknown };
+    if (authorRecord._id != null) return String(authorRecord._id);
+    if (authorRecord.id != null) return String(authorRecord.id);
+  }
+
+  return String(author);
+};
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -104,7 +117,8 @@ export async function editQuestion(
     const question = await Question.findById(questionId).populate("tags");
     if (!question) throw new Error("Question not found");
 
-    if (question.author.toString() !== userId) {
+    const questionAuthorId = normalizeAuthorId(question.author);
+    if (!questionAuthorId || questionAuthorId !== userId) {
       throw new Error("You are not authorized to edit this question");
     }
 
@@ -342,8 +356,10 @@ export async function deleteQuestion(
     const question = await Question.findById(questionId).session(session);
     if (!question) throw new Error("Question not found");
 
-    if (question.author.toString() !== userId)
+    const questionAuthorId = normalizeAuthorId(question.author);
+    if (!questionAuthorId || questionAuthorId !== userId) {
       throw new Error("You are not authorized to delete this question");
+    }
 
     await Collection.deleteMany({ question: questionId }).session(session);
     await TagQuestion.deleteMany({ question: questionId }).session(session);

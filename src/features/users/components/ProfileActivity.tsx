@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useReducer } from "react"
+import { toast } from "sonner"
 
 import { deleteQuestion } from "@/features/questions/actions"
 import { getUserActivity } from "@/features/users/actions"
@@ -177,7 +178,8 @@ const ProfileActivity = ({
   }
 
   const removeQuestion = async (questionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) {
+    const confirmed = window.confirm("Are you sure you want to delete this post?")
+    if (!confirmed) {
       return
     }
 
@@ -187,22 +189,28 @@ const ProfileActivity = ({
       const result = await deleteQuestion({ questionId })
 
       if (!result.success) {
-        dispatch({
-          type: "request-error",
-          error: result.error?.message ?? "Failed to delete this post.",
-        })
+        const errorMessage = result.error?.message ?? "Failed to delete this post."
+        dispatch({ type: "request-error", error: errorMessage })
+        toast.error(errorMessage)
         return
       }
 
+      toast.success("Question deleted successfully.")
+      dispatch({
+        type: "activity-loaded",
+        activityType: "questions",
+        questions: questions.filter((question) => question._id !== questionId),
+        answers: [],
+        isNext: hasMoreQuestions,
+      })
       router.refresh()
     } catch (deleteError) {
-      dispatch({
-        type: "request-error",
-        error: getErrorMessage(
-          deleteError,
-          "Failed to delete this post. Please try again."
-        ),
-      })
+      const errorMessage = getErrorMessage(
+        deleteError,
+        "Failed to delete this post. Please try again."
+      )
+      dispatch({ type: "request-error", error: errorMessage })
+      toast.error(errorMessage)
     } finally {
       dispatch({ type: "request-end" })
     }

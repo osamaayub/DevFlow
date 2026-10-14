@@ -18,7 +18,7 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 
 </div>
 
-> 🚀 **Project Status:** Currently in active development. Core features are being implemented. Check back soon for the live demo!
+> 🚀 **Project Status:** Core functionality is now in place and the project is in beta/stabilization. Recent work focused on improving the profile activity flow, fixing question edit/delete ownership checks, and polishing user feedback with toast notifications.
 
 
 ---
@@ -85,6 +85,15 @@ Generate intelligent answers using OpenAI integration.
 </td>
 </tr>
 </table>
+
+---
+
+## 🔄 Recent Updates
+
+- Refactored the profile activity UI into smaller reusable components for cleaner readability and easier maintenance.
+- Fixed the question edit flow so ownership checks correctly work when `question.author` is a populated Mongo object instead of a raw string.
+- Added proper delete confirmation and Sonner toast feedback for success/error states on profile question cards.
+- Updated the update/delete logic to keep the user-facing feedback consistent across the profile activity experience.
 
 ---
 
@@ -211,6 +220,9 @@ yarn lint         # Run ESLint checks
 - [x] React components (forms, cards, navigation, editor, search, filters, shared utilities)
 - [x] User authentication flow (sign up, sign in, OAuth)
 - [x] Question creation and editing
+- [x] Question edit/delete flow from the profile activity cards with proper ownership checks
+- [x] Delete confirmation and toast success/error feedback for question removal
+- [x] Profile activity component refactor into reusable, readable subcomponents
 - [x] Save and remove questions with a stateful saved-star indicator
 - [x] Collection page listing the signed-in user's saved questions
 - [x] Answer creation
@@ -249,7 +261,8 @@ yarn lint         # Run ESLint checks
 
 ### 🚧 In Progress
 - [ ] Jobs page implementation (placeholder exists)
-- [ ] Question deletion UI (`deleteQuestion` action exists)
+- [ ] Final polish and edge-case validation for premium/profile activity flows
+- [ ] Answer editing and deletion
 
 ### 📋 Planned
 - [ ] Interaction tracking - Schema exists, implementation pending
