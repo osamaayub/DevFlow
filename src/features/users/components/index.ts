@@ -1,4 +1,8 @@
 export { default as ProfileActivity } from "./ProfileActivity"
+export { default as ProfileActivityError } from "./ProfileActivityError"
+export { default as ProfileActivityList } from "./ProfileActivityList"
+export { default as ProfileActivityLoadMore } from "./ProfileActivityLoadMore"
+export { default as ProfileActivityTabs } from "./ProfileActivityTabs"
 export { default as ProfileEditForm } from "./ProfileEditForm"
 export { default as ProfileHeader } from "./ProfileHeader"
 export { default as ProfileLink } from "./ProfileLink"
