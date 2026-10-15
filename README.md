@@ -417,22 +417,30 @@ Questions, Answers, Tags, Votes, Collections, and Community are handled via Serv
 
 ## 🐳 Docker
 
-Build and run DevFlow in a containerized environment:
+Run the application and a local MongoDB database with Docker Compose:
 
-```bash
-# Build the image
-docker build -t devflow .
+```powershell
+# Create your local environment file from the template
+Copy-Item .env.example .env
 
-# Run the container
-docker run -p 3000:3000 \
-  -e MONGODB_URI="mongodb+srv://..." \
-  -e AUTH_SECRET="your-secret-key" \
-  -e AUTH_GITHUB_ID="your-github-id" \
-  -e AUTH_GITHUB_SECRET="your-github-secret" \
-  devflow
+# Replace AUTH_SECRET in .env with a generated secret, then build and start
+docker compose up --build -d
+
+# Follow application logs
+docker compose logs -f app
+
+# Stop the stack (the MongoDB volume is preserved)
+docker compose down
+
+# Stop the stack and delete the local MongoDB data
+docker compose down -v
 ```
 
-The image runs as a non-root user on port `3000` for security.
+Open [http://localhost:3000](http://localhost:3000). Compose waits for MongoDB's health check before starting the app, and stores database files in the `mongodb_data` named volume. Add optional GitHub, Google, and OpenAI credentials to `.env` to enable those integrations.
+
+This Compose database is for local development. MongoDB is not published to the host, but it has no database authentication on the private Compose network. Use a secured MongoDB deployment such as Atlas for production and set `MONGODB_URI` to its connection string in your production environment; do not commit `.env`.
+
+To build only the standalone application image, run `docker build -t devflow:latest .`. Set `MONGODB_URI` and `AUTH_SECRET` when starting the container; add provider/API keys only for features you enable.
 
 ---
 
