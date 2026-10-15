@@ -77,6 +77,6 @@ export interface collectionBaseParams{
 
 }
 
-export interface GetUserParams {
+export interface GetUserParams extends PaginatedSearchParams {
   userId: string
 }
