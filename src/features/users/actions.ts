@@ -4,7 +4,8 @@ import { Types } from "mongoose"
 import { revalidatePath } from "next/cache"
 
 import { action } from "@/server/action"
-import { Answer, IUser, Question, Tag, User } from "@/server/db"
+import { auth } from "@/server/auth"
+import { Answer, IUser, Question, Tag, User, Vote } from "@/server/db"
 import { HandleError } from "@/server/errors/error-handler"
 import { NotFoundError } from "@/server/errors/http-error"
 import { assignBadges } from "@/shared/lib/utils"
@@ -29,6 +30,33 @@ const handleActionError = (error: unknown): ErrorResponse =>
   HandleError(
     error instanceof Error ? error : new Error(String(error))
   ) as unknown as ErrorResponse
+
+const getAnswerVoteStates = async (answerIds: string[]) => {
+  const session = await auth()
+  const userId = session?.user?.id
+
+  if (!userId || answerIds.length === 0) {
+    return new Map<string, { hasUpVoted: boolean; hasDownVoted: boolean }>()
+  }
+
+  const votes = await Vote.find({
+    author: userId,
+    id: { $in: answerIds },
+    type: "answer",
+  })
+    .select("id value")
+    .lean()
+
+  return new Map(
+    votes.map((vote) => [
+      String(vote.id),
+      {
+        hasUpVoted: vote.value === "upvote",
+        hasDownVoted: vote.value === "downvote",
+      },
+    ])
+  )
+}
 
 const getUserTopTags = async (authorId: Types.ObjectId): Promise<UserTopTag[]> => {
   const tags = await Question.aggregate<UserTopTag>([
@@ -75,6 +103,9 @@ export const getUser = async (
       _id: string
       content: string
       upvotes: number
+      downvotes: number
+      hasUpVoted: boolean
+      hasDownVoted: boolean
       createdAt: Date | string
       question: {
         _id: string
@@ -147,6 +178,9 @@ export const getUser = async (
 
     const totalQuestions = questionStats?.count ?? 0
     const totalAnswers = answerStats?.count ?? 0
+    const topAnswerVotes = await getAnswerVoteStates(
+      topAnswers.slice(0, 3).map((answer) => String(answer._id))
+    )
 
     const badges = assignBadges({
       criteria: [
@@ -168,7 +202,18 @@ export const getUser = async (
         hasMoreAnswers: topAnswers.length > 3,
         badges,
         topQuestions: JSON.parse(JSON.stringify(topQuestions.slice(0, 3))),
-        topAnswers: JSON.parse(JSON.stringify(topAnswers.slice(0, 3))),
+        topAnswers: JSON.parse(
+          JSON.stringify(
+            topAnswers.slice(0, 3).map((answer) => ({
+              ...answer,
+              downvotes: answer.downvotes ?? 0,
+              ...(topAnswerVotes.get(String(answer._id)) ?? {
+                hasUpVoted: false,
+                hasDownVoted: false,
+              }),
+            }))
+          )
+        ),
         topTags,
       },
     }
@@ -189,6 +234,9 @@ export const getUserActivity = async (params: {
       _id: string
       content: string
       upvotes: number
+      downvotes: number
+      hasUpVoted: boolean
+      hasDownVoted: boolean
       createdAt: Date | string
       question: {
         _id: string
@@ -250,13 +298,27 @@ export const getUserActivity = async (params: {
       Answer.countDocuments({ author: authorId }),
     ])
 
+    const answerVotes = await getAnswerVoteStates(
+      answers.map((answer) => String(answer._id))
+    )
     const isnext=skip+answers.length<total
 
     return {
       success: true,
       data: {
         questions: [],
-        answers: JSON.parse(JSON.stringify(answers)),
+        answers: JSON.parse(
+          JSON.stringify(
+            answers.map((answer) => ({
+              ...answer,
+              downvotes: answer.downvotes ?? 0,
+              ...(answerVotes.get(String(answer._id)) ?? {
+                hasUpVoted: false,
+                hasDownVoted: false,
+              }),
+            }))
+          )
+        ),
         isNext: isnext,
       },
     }

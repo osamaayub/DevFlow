@@ -20,21 +20,24 @@ export function useVote({
   targetType,
   upvotes,
   downvotes,
-  hasVotedPromise
+  hasVotedPromise,
+  initialVoteState
 }: VoteParams) {
   const session = useSession()
   const router = useRouter()
   const userId = session.data?.user?.id
   const [isPending, startTransition] = useTransition()
 
-  const { data } = use(hasVotedPromise)
+  const voteState = hasVotedPromise
+    ? use(hasVotedPromise).data
+    : initialVoteState
 
   const [optimisticState, setOptimisticState] = useOptimistic(
     {
       upvotes,
       downvotes,
-      hasUpVoted: data?.hasUpVoted ?? false,
-      hasDownVoted: data?.hasDownVoted ?? false
+      hasUpVoted: voteState?.hasUpVoted ?? false,
+      hasDownVoted: voteState?.hasDownVoted ?? false
     } satisfies VoteUIState,
     (current, voteType: VoteKind) => applyOptimisticVoteState(current, voteType)
   )
