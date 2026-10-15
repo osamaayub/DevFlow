@@ -70,32 +70,32 @@ const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = asyn
     { $unwind: "$tags" },
     { $group: { _id: "$tags", count: { $sum: 1 } } },
     { $limit: TOP_TAGS_LIMIT },
+    { $project: { _id: 1, count: 1 } },
   ]
 
-  const tagCounts = await Question.aggregate<{
+  const tags = await Question.aggregate<{
     _id: Types.ObjectId
     count: number
   }>(pipeline)
 
-  if (tagCounts.length === 0) {
+  if (tags.length === 0) {
     return []
   }
 
-  const tags = await Tag.find({
-    _id: { $in: tagCounts.map(({ _id }) => _id) },
+  const tagDocuments = await Tag.find({
+    _id: { $in: tags.map(({ _id }) => _id) },
   })
     .select("name")
     .lean()
-  const tagNames = new Map(
-    tags.map((tag) => [String(tag._id), tag.name])
+  const tagNamesById = new Map(
+    tagDocuments.map((tag) => [String(tag._id), tag.name])
   )
 
-  return tagCounts
-    .flatMap(({ _id, count }) => {
-      const id = String(_id)
-      const name = tagNames.get(id)
-      return name === undefined ? [] : [{ _id: id, name, count }]
-    })
+  return tags.flatMap(({ _id, count }) => {
+    const id = String(_id)
+    const name = tagNamesById.get(id)
+    return name === undefined ? [] : [{ _id: id, name, count }]
+  })
 }
 
 export const getUser = async (
@@ -154,30 +154,40 @@ export const getUser = async (
     if (!user) throw new NotFoundError({ user: ["User not found"] })
 
     const authorId = new Types.ObjectId(userId)
+    const questionStatsPipeline = [
+      { $match: { author: authorId } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+          views: { $sum: "$views" },
+        },
+      },
+      { $project: { _id: 0, count: 1, upvotes: 1, views: 1 } },
+    ]
+    const answerStatsPipeline = [
+      { $match: { author: authorId } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+        },
+      },
+      { $project: { _id: 0, count: 1, upvotes: 1 } },
+    ]
 
     const [[questionStats], [answerStats], topQuestions, topAnswers, topTags] =
       await Promise.all([
-        Question.aggregate([
-          { $match: { author: authorId } },
-          {
-            $group: {
-              _id: null,
-              count: { $sum: 1 },
-              upvotes: { $sum: "$upvotes" },
-              views: { $sum: "$views" },
-            },
-          },
-        ]),
-        Answer.aggregate([
-          { $match: { author: authorId } },
-          {
-            $group: {
-              _id: null,
-              count: { $sum: 1 },
-              upvotes: { $sum: "$upvotes" },
-            },
-          },
-        ]),
+        Question.aggregate<{
+          count: number
+          upvotes: number
+          views: number
+        }>(questionStatsPipeline),
+        Answer.aggregate<{ count: number; upvotes: number }>(
+          answerStatsPipeline
+        ),
         Question.find({ author: authorId })
           .populate("tags", "_id name")
           .sort({ upvotes: -1, views: -1, createdAt: -1 })
