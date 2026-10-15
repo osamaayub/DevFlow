@@ -250,12 +250,14 @@ export const getUserActivity = async (params: {
       Answer.countDocuments({ author: authorId }),
     ])
 
+    const isnext=skip+answers.length<total
+
     return {
       success: true,
       data: {
         questions: [],
         answers: JSON.parse(JSON.stringify(answers)),
-        isNext: skip + answers.length < total,
+        isNext: isnext,
       },
     }
   } catch (error) {

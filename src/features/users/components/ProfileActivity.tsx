@@ -27,7 +27,7 @@ interface Props {
   topAnswers: TopAnswer[]
 }
 
-const PAGE_SIZE = 3
+const PAGE_SIZE = 10
 
 interface ActivityState {
   activityType: ActivityType
