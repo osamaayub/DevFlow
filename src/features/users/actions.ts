@@ -65,15 +65,17 @@ const getAnswerVoteStates = async (answerIds: string[]) => {
 const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = async (
   authorId
 ) => {
-  const tagCounts = await Question.aggregate<{
-    _id: Types.ObjectId
-    count: number
-  }>([
+  const pipeline = [
     { $match: { author: authorId } },
     { $unwind: "$tags" },
     { $group: { _id: "$tags", count: { $sum: 1 } } },
     { $limit: TOP_TAGS_LIMIT },
-  ])
+  ]
+
+  const tagCounts = await Question.aggregate<{
+    _id: Types.ObjectId
+    count: number
+  }>(pipeline)
 
   if (tagCounts.length === 0) {
     return []
