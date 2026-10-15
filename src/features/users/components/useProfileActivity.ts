@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { deleteQuestion } from "@/features/questions/actions"
-import { getUserActivity } from "@/features/users/actions"
+import {
+  getUserAnswersActivity,
+  getUserQuestionsActivity,
+} from "@/features/users/actions"
 
 import type { ActivityType } from "./ProfileActivity.types"
 import type { TopAnswer, TopQuestion } from "./ProfileActivityCards"
@@ -146,39 +149,59 @@ export const useProfileActivity = ({
     const requestDataVersion = activityDataVersion.current
 
     try {
-      const result = await getUserActivity({
-        userId,
-        type: activityType,
-        page: nextPage,
-        pageSize: PAGE_SIZE,
-      })
+      if (activityType === "questions") {
+        const result = await getUserQuestionsActivity({
+          userId,
+          page: nextPage,
+          pageSize: PAGE_SIZE,
+        })
 
-      if (requestDataVersion !== activityDataVersion.current) {
-        return
+        if (requestDataVersion !== activityDataVersion.current) {
+          return
+        }
+
+        if (!result.success || !result.data) {
+          setActivityError(
+            activityType,
+            result.error?.message ?? "Failed to load questions."
+          )
+          return
+        }
+
+        const { data } = result
+        setState((currentState) => ({
+          ...currentState,
+          questions: data.questions,
+          pages: { ...currentState.pages, questions: nextPage },
+          hasMore: { ...currentState.hasMore, questions: data.isNext },
+        }))
+      } else {
+        const result = await getUserAnswersActivity({
+          userId,
+          page: nextPage,
+          pageSize: PAGE_SIZE,
+        })
+
+        if (requestDataVersion !== activityDataVersion.current) {
+          return
+        }
+
+        if (!result.success || !result.data) {
+          setActivityError(
+            activityType,
+            result.error?.message ?? "Failed to load answers."
+          )
+          return
+        }
+
+        const { data } = result
+        setState((currentState) => ({
+          ...currentState,
+          answers: data.answers,
+          pages: { ...currentState.pages, answers: nextPage },
+          hasMore: { ...currentState.hasMore, answers: data.isNext },
+        }))
       }
-
-      if (!result.success || !result.data) {
-        setActivityError(
-          activityType,
-          result.error?.message ?? "Failed to load activity."
-        )
-        return
-      }
-
-      const { data } = result
-
-      setState((currentState) => ({
-        ...currentState,
-        ...(activityType === "questions"
-          ? {
-              questions: data.questions,
-            }
-          : {
-              answers: data.answers,
-            }),
-        pages: { ...currentState.pages, [activityType]: nextPage },
-        hasMore: { ...currentState.hasMore, [activityType]: data.isNext },
-      }))
     } catch (error) {
       if (requestDataVersion === activityDataVersion.current) {
         setActivityError(

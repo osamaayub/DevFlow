@@ -98,8 +98,7 @@ export const GetQuestionSchema = z.object({
 export const GetUserSchema = z.object({
   userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" })
 })
-export const GetUserActivitySchema = GetUserSchema.extend({
-  type: z.enum(["questions", "answers"]),
+export const GetUserActivityPageSchema = GetUserSchema.extend({
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().positive().max(10).default(3),
 })

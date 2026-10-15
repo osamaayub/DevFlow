@@ -48,3 +48,11 @@ export const QuestionSchema = new Schema(
   },
   { timestamps: true }
 )
+
+QuestionSchema.index({
+  author: 1,
+  upvotes: -1,
+  views: -1,
+  createdAt: -1,
+})
+QuestionSchema.index({ author: 1, tags: 1 })
