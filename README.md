@@ -18,7 +18,7 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 
 </div>
 
-> 🚀 **Project Status:** Core functionality is now in place and the project is in beta/stabilization. Recent work focused on improving the profile activity flow, fixing question edit/delete ownership checks, and polishing user feedback with toast notifications.
+> 🚀 **Project Status:** Core functionality is now in place and the project is in beta/stabilization. Recent work focused on profile activity performance, profile answer voting, question edit/delete ownership checks, and consistent toast feedback.
 
 
 ---
@@ -60,10 +60,10 @@ Optimized for desktop, tablet, and mobile devices.
 Browse members, filter by reputation or popularity, and view each member's questions.
 
 ### 👤 User Profiles
-View responsive profiles with bio, location, portfolio, activity stats, and paginated questions and answers. Users can edit their profile details.
+View responsive profiles with bio, location, portfolio, activity stats, paginated questions and answers, and upvote/downvote controls on answers. Profile activity uses separate paginated question and answer actions; users can also edit their profile details.
 
 ### 🔥 Hot Network & Popular Tags
-Right sidebar highlights top-voted questions and the most-used tags.
+Right sidebar highlights top-voted questions and popular tags. User profiles show up to six tags used on the user's questions.
 
 </td>
 </tr>
@@ -90,10 +90,14 @@ Generate intelligent answers using OpenAI integration.
 
 ## 🔄 Recent Updates
 
-- Refactored the profile activity UI into smaller reusable components for cleaner readability and easier maintenance.
+- Split profile activity into a render-focused component, a dedicated state/action hook, and reusable activity cards and tabs.
+- Added separate paginated server actions for profile questions and answers, with per-tab page state and refreshed server data synchronization.
+- Added optimistic upvote and downvote controls to profile answer cards, including the current user's vote state.
+- Reduced profile tag lookup work by limiting grouped tag IDs before fetching tag names, instead of joining the tags collection with `$lookup`.
+- Added compound MongoDB indexes for profile question/answer sorting and question tags by author.
 - Fixed the question edit flow so ownership checks correctly work when `question.author` is a populated Mongo object instead of a raw string.
 - Added proper delete confirmation and Sonner toast feedback for success/error states on profile question cards.
-- Updated the update/delete logic to keep the user-facing feedback consistent across the profile activity experience.
+- Kept pagination and delete operations guarded against overlapping requests and stale profile data.
 
 ---
 
@@ -222,7 +226,11 @@ yarn lint         # Run ESLint checks
 - [x] Question creation and editing
 - [x] Question edit/delete flow from the profile activity cards with proper ownership checks
 - [x] Delete confirmation and toast success/error feedback for question removal
-- [x] Profile activity component refactor into reusable, readable subcomponents
+- [x] Profile activity refactor into reusable UI components and a dedicated state/action hook
+- [x] Separate paginated profile question and answer server actions
+- [x] Optimistic upvote/downvote controls and current-user vote state on profile answer cards
+- [x] Profile query indexes for sorted questions, sorted answers, and author-tag aggregation
+- [x] Bounded profile tag-name lookup without an aggregation `$lookup`
 - [x] Save and remove questions with a stateful saved-star indicator
 - [x] Collection page listing the signed-in user's saved questions
 - [x] Answer creation
@@ -253,7 +261,7 @@ yarn lint         # Run ESLint checks
 - [x] Pagination for questions, tags, tag details, answers, collection, and community
 - [x] Tag details page
 - [x] Community page with search, filters, and member details page
-- [x] User profiles with editable profile details, activity tabs, statistics, and pagination
+- [x] User profiles with editable profile details, activity tabs, statistics, and per-tab question/answer pagination
 - [x] Right sidebar with hot questions and popular tags
 - [x] Back button across pages
 - [x] MDX editor loaded client-side only (fixes "This page couldn't load" on ask-question and question details)
@@ -261,7 +269,7 @@ yarn lint         # Run ESLint checks
 
 ### 🚧 In Progress
 - [ ] Jobs page implementation (placeholder exists)
-- [ ] Final polish and edge-case validation for premium/profile activity flows
+- [ ] Final polish and edge-case validation for remaining UI flows
 - [ ] Answer editing and deletion
 
 ### 📋 Planned
@@ -378,6 +386,9 @@ Questions, Answers, Tags, Votes, Collections, and Community are handled via Serv
 
 | Feature | Action | Description |
 |---------|--------|-------------|
+| **Users** | `getUser` | Get profile data, statistics, top questions and answers, and up to six question tags |
+| | `getUserQuestionsActivity` | Get paginated profile questions |
+| | `getUserAnswersActivity` | Get paginated profile answers with the current user's vote state |
 | **Questions** | `createQuestion` | Create new question with tags |
 | | `editQuestion` | Edit existing question |
 | | `getQuestion` | Get single question by ID |
@@ -453,7 +464,8 @@ GitHub Actions automate testing and deployment:
 - 🎯 **Next.js App Router** with Server Components and Server Actions
 - 🧩 **Client-only MDX editor** loaded with `next/dynamic` to keep it out of server rendering
 - 🗜️ **Optimized Bundle** with tree-shaking
-- 📦 **MongoDB Indexing** for fast queries
+- 📦 **MongoDB Indexing** for profile question/answer ordering and author-tag queries
+- 🏷️ **Bounded Tag Retrieval** groups profile tags, limits the IDs, then fetches names in one query without `$lookup`
 - 🚀 **Docker Multi-stage Build** for minimal image size
 
 ---
