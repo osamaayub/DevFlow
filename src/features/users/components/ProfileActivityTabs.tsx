@@ -18,7 +18,11 @@ const ProfileActivityTabs = ({
 }: ProfileActivityTabsProps) => (
   <Tabs
     value={activityType}
-    onValueChange={(value) => onSelect(value as ActivityType)}
+    onValueChange={(value) => {
+      if (value === "questions" || value === "answers") {
+        onSelect(value)
+      }
+    }}
     aria-label="Profile activity"
   >
     <TabsList>
