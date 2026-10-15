@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { TagCards } from "@/features/tags/components"
+import { Votes } from "@/features/votes/components"
 import { UserAvatar, RelativeTime } from "@/shared/components/common"
 import ROUTES from "@/shared/constants/route"
 import { formatNumber } from "@/shared/lib/utils"
@@ -20,6 +21,9 @@ export interface TopAnswer {
   _id: string
   content: string
   upvotes: number
+  downvotes: number
+  hasUpVoted: boolean
+  hasDownVoted: boolean
   createdAt: Date | string
   question: {
     _id: string
@@ -179,16 +183,28 @@ export const ProfileAnswerCard = ({
   userImage,
 }: ProfileAnswerCardProps) => (
   <article className="card-wrapper w-full min-w-0 rounded-xl p-4 transition-shadow hover:shadow-md sm:p-5 sm:px-6">
-    <Link
-      href={
-        answer.question ? ROUTES.QUESTION(answer.question._id) : ROUTES.HOME
-      }
-      className="block min-w-0"
-    >
-      <h3 className="base-semibold text-dark200_light900 line-clamp-2">
-        {answer.question?.title ?? "Answer"}
-      </h3>
-    </Link>
+    <div className="flex items-start justify-between gap-3">
+      <Link
+        href={
+          answer.question ? ROUTES.QUESTION(answer.question._id) : ROUTES.HOME
+        }
+        className="block min-w-0 flex-1"
+      >
+        <h3 className="base-semibold text-dark200_light900 line-clamp-2">
+          {answer.question?.title ?? "Answer"}
+        </h3>
+      </Link>
+      <Votes
+        targetId={answer._id}
+        targetType="answer"
+        upvotes={answer.upvotes}
+        downvotes={answer.downvotes}
+        initialVoteState={{
+          hasUpVoted: answer.hasUpVoted,
+          hasDownVoted: answer.hasDownVoted,
+        }}
+      />
+    </div>
 
     <p className="body-regular mt-3 line-clamp-3 text-dark400_light700">
       {answer.content}

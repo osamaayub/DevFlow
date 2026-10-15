@@ -33,6 +33,17 @@ const PAGE_SIZE = 10
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback
 
+const mergeRefreshedItems = <T extends { _id: string }>(
+  currentItems: T[],
+  refreshedItems: T[]
+) => {
+  const refreshedById = new Map(
+    refreshedItems.map((item) => [item._id, item])
+  )
+
+  return currentItems.map((item) => refreshedById.get(item._id) ?? item)
+}
+
 export const useProfileActivity = ({
   userId,
   topQuestions,
@@ -55,14 +66,27 @@ export const useProfileActivity = ({
   })
   const requestInProgress = useRef(false)
   const activityDataVersion = useRef(0)
+  const currentUserId = useRef(userId)
 
   useEffect(() => {
     activityDataVersion.current += 1
+    const isDifferentUser = currentUserId.current !== userId
+    currentUserId.current = userId
+
     setState((currentState) => ({
       ...currentState,
-      pages: { questions: 1, answers: 1 },
-      questions: topQuestions,
-      answers: topAnswers,
+      activityType: isDifferentUser ? "questions" : currentState.activityType,
+      pages: isDifferentUser
+        ? { questions: 1, answers: 1 }
+        : currentState.pages,
+      questions:
+        isDifferentUser || currentState.pages.questions === 1
+          ? topQuestions
+          : mergeRefreshedItems(currentState.questions, topQuestions),
+      answers:
+        isDifferentUser || currentState.pages.answers === 1
+          ? topAnswers
+          : mergeRefreshedItems(currentState.answers, topAnswers),
       hasMore: {
         questions: hasMoreQuestions,
         answers: hasMoreAnswers,

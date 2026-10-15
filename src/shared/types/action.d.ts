@@ -63,13 +63,18 @@ export type VoteState = {
   hasDownVoted: boolean
 }
 
-export interface VoteParams {
+interface VoteParamsBase {
   targetId: string
   targetType: "question" | "answer"
   upvotes: number
   downvotes: number
-  hasVotedPromise: Promise<ActionResponse<VoteState>>
 }
+
+export type VoteParams = VoteParamsBase &
+  (
+    | { hasVotedPromise: Promise<ActionResponse<VoteState>>; initialVoteState?: never }
+    | { hasVotedPromise?: never; initialVoteState: VoteState }
+  )
 
 
 export interface collectionBaseParams{
