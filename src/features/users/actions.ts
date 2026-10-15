@@ -10,7 +10,7 @@ import { HandleError } from "@/server/errors/error-handler"
 import { NotFoundError } from "@/server/errors/http-error"
 import { assignBadges } from "@/shared/lib/utils"
 import {
-  GetUserActivitySchema,
+  GetUserActivityPageSchema,
   GetUserSchema,
   UpdateUserProfileSchema,
 } from "@/shared/lib/validation"
@@ -32,10 +32,14 @@ const handleActionError = (error: unknown): ErrorResponse =>
   ) as unknown as ErrorResponse
 
 const getAnswerVoteStates = async (answerIds: string[]) => {
+  if (answerIds.length === 0) {
+    return new Map<string, { hasUpVoted: boolean; hasDownVoted: boolean }>()
+  }
+
   const session = await auth()
   const userId = session?.user?.id
 
-  if (!userId || answerIds.length === 0) {
+  if (!userId) {
     return new Map<string, { hasUpVoted: boolean; hasDownVoted: boolean }>()
   }
 
@@ -58,26 +62,38 @@ const getAnswerVoteStates = async (answerIds: string[]) => {
   )
 }
 
-const getUserTopTags = async (authorId: Types.ObjectId): Promise<UserTopTag[]> => {
-  const tags = await Question.aggregate<UserTopTag>([
+const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = async (
+  authorId
+) => {
+  const tagCounts = await Question.aggregate<{
+    _id: Types.ObjectId
+    count: number
+  }>([
     { $match: { author: authorId } },
     { $unwind: "$tags" },
     { $group: { _id: "$tags", count: { $sum: 1 } } },
-    {
-      $lookup: {
-        from: Tag.collection.name,
-        localField: "_id",
-        foreignField: "_id",
-        as: "tag",
-      },
-    },
-    { $unwind: "$tag" },
-    { $project: { _id: 1, name: "$tag.name", count: 1 } },
-    { $sort: { count: -1, name: 1 } },
     { $limit: TOP_TAGS_LIMIT },
   ])
 
-  return tags.map((tag) => ({ ...tag, _id: String(tag._id) }))
+  if (tagCounts.length === 0) {
+    return []
+  }
+
+  const tags = await Tag.find({
+    _id: { $in: tagCounts.map(({ _id }) => _id) },
+  })
+    .select("name")
+    .lean()
+  const tagNames = new Map(
+    tags.map((tag) => [String(tag._id), tag.name])
+  )
+
+  return tagCounts
+    .flatMap(({ _id, count }) => {
+      const id = String(_id)
+      const name = tagNames.get(id)
+      return name === undefined ? [] : [{ _id: id, name, count }]
+    })
 }
 
 export const getUser = async (
@@ -222,14 +238,60 @@ export const getUser = async (
   }
 }
 
-export const getUserActivity = async (params: {
+export const getUserQuestionsActivity = async (params: {
   userId: string
-  type: "questions" | "answers"
   page: number
   pageSize?: number
 }): Promise<
   ActionResponse<{
     questions: QuestionType[]
+    isNext: boolean
+  }>
+> => {
+  const validationResult = await action({
+    params,
+    schema: GetUserActivityPageSchema,
+  })
+
+  if (validationResult instanceof Error) {
+    return handleActionError(validationResult)
+  }
+
+  const { userId, page, pageSize = 10 } = validationResult.validatedData
+
+  try {
+    const authorId = new Types.ObjectId(userId)
+    const skip = (page - 1) * pageSize
+
+    const [questions, total] = await Promise.all([
+      Question.find({ author: authorId })
+        .populate("tags", "_id name")
+        .populate("author", "_id name image")
+        .sort({ upvotes: -1, views: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Question.countDocuments({ author: authorId }),
+    ])
+
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(questions)),
+        isNext: skip + questions.length < total,
+      },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export const getUserAnswersActivity = async (params: {
+  userId: string
+  page: number
+  pageSize?: number
+}): Promise<
+  ActionResponse<{
     answers: Array<{
       _id: string
       content: string
@@ -250,40 +312,18 @@ export const getUserActivity = async (params: {
 > => {
   const validationResult = await action({
     params,
-    schema: GetUserActivitySchema,
+    schema: GetUserActivityPageSchema,
   })
 
   if (validationResult instanceof Error) {
     return handleActionError(validationResult)
   }
 
-  const { userId, type, page, pageSize = 10 } = validationResult.validatedData
+  const { userId, page, pageSize = 10 } = validationResult.validatedData
 
   try {
     const authorId = new Types.ObjectId(userId)
     const skip = (page - 1) * pageSize
-
-    if (type === "questions") {
-      const [questions, total] = await Promise.all([
-        Question.find({ author: authorId })
-          .populate("tags", "_id name")
-          .populate("author", "_id name image")
-          .sort({ upvotes: -1, views: -1, createdAt: -1 })
-          .skip(skip)
-          .limit(pageSize)
-          .lean(),
-        Question.countDocuments({ author: authorId }),
-      ])
-
-      return {
-        success: true,
-        data: {
-          questions: JSON.parse(JSON.stringify(questions)),
-          answers: [],
-          isNext: skip + questions.length < total,
-        },
-      }
-    }
 
     const [answers, total] = await Promise.all([
       Answer.find({ author: authorId })
@@ -301,12 +341,10 @@ export const getUserActivity = async (params: {
     const answerVotes = await getAnswerVoteStates(
       answers.map((answer) => String(answer._id))
     )
-    const isnext=skip+answers.length<total
 
     return {
       success: true,
       data: {
-        questions: [],
         answers: JSON.parse(
           JSON.stringify(
             answers.map((answer) => ({
@@ -319,7 +357,7 @@ export const getUserActivity = async (params: {
             }))
           )
         ),
-        isNext: isnext,
+        isNext: skip + answers.length < total,
       },
     }
   } catch (error) {

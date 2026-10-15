@@ -18,3 +18,5 @@ export const AnswerSchema = new Schema({
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
 },{timestamps:true})
+
+AnswerSchema.index({ author: 1, upvotes: -1, createdAt: -1 })
