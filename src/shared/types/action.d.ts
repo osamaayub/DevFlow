@@ -27,6 +27,15 @@ export interface GetTagQuestionsParams extends PaginatedSearchParams {
   tagId: string
 }
 
+export interface GetJobsParams extends PaginatedSearchParams {
+  location?: string
+  category?: string
+}
+
+export interface GetJobParams {
+  jobId: string
+}
+
 export interface GetQuestionParams {
   questionId: string
 }
