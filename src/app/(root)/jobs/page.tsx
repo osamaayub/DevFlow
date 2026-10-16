@@ -8,6 +8,7 @@ import { Pagination } from "@/shared/components/navigation"
 import { EMPTY_JOBS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
 
+
 const Jobs = async ({ searchParams }: RouteParams) => {
   const resolvedSearchParams = await searchParams
   const { page, pageSize, query, filter, location, category } = resolvedSearchParams || {}
