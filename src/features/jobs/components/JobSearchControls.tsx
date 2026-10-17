@@ -87,7 +87,7 @@ const JobSearchControls = ({ locations }: JobSearchControlsProps) => {
       <button
         type="submit"
         disabled={isPending}
-        className="primary-gradient inline-flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-lg px-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:w-[120px] sm:px-4 sm:text-sm"
+        className="primary-gradient inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 rounded-lg px-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:w-[120px] sm:px-4 sm:text-sm"
       >
         {isPending ? "Finding…" : "Find Jobs"}
       </button>
