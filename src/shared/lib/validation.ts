@@ -98,6 +98,74 @@ export const GetQuestionSchema = z.object({
 export const GetJobSchema = z.object({
   jobId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid job ID" })
 })
+export const JobApplicationFormSchema = z.object({
+  applicantName: z.string().trim().min(2, { message: "Full name must be at least 2 characters." }),
+  applicantEmail: z.string().trim().email({ message: "Please provide a valid email address." }),
+  phone: z
+    .string()
+    .trim()
+    .max(20, { message: "Phone number is too long." })
+    .regex(/^[+()\-\s\d]*$/, { message: "Please provide a valid phone number." }),
+  resumeUrl: z.string().trim().url({ message: "Please provide a valid link to your resume." }),
+  portfolioUrl: z.union([
+    z.literal(""),
+    z.string().trim().url({ message: "Please provide a valid portfolio URL." }),
+  ]),
+  coverLetter: z
+    .string()
+    .trim()
+    .min(50, { message: "Cover letter must be at least 50 characters." })
+    .max(2000, { message: "Cover letter cannot exceed 2000 characters." }),
+})
+export const ApplyJobSchema = GetJobSchema.merge(JobApplicationFormSchema)
+export const JOB_EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Internship", "Freelance"] as const
+export const JOB_APPLICATION_STATUSES = ["submitted", "reviewing", "accepted", "rejected"] as const
+export const CreateJobSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(3, { message: "Job title must be at least 3 characters." })
+    .max(120, { message: "Job title cannot exceed 120 characters." }),
+  company: z
+    .string()
+    .trim()
+    .min(2, { message: "Company name must be at least 2 characters." })
+    .max(80, { message: "Company name cannot exceed 80 characters." }),
+  companyLogo: z.union([
+    z.literal(""),
+    z
+      .string()
+      .max(200_000, { message: "Logo image is too large. Please choose a smaller image." })
+      .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/, {
+        message: "Please upload a valid image.",
+      }),
+  ]),
+  category: z
+    .string()
+    .trim()
+    .min(2, { message: "Category must be at least 2 characters." })
+    .max(40, { message: "Category cannot exceed 40 characters." }),
+  employmentType: z.enum(JOB_EMPLOYMENT_TYPES, { message: "Please select an employment type." }),
+  location: z
+    .string()
+    .trim()
+    .min(2, { message: "Location must be at least 2 characters." })
+    .max(80, { message: "Location cannot exceed 80 characters." }),
+  salaryRange: z
+    .string()
+    .trim()
+    .min(2, { message: "Please provide a salary range, e.g. 80k - 100k." })
+    .max(50, { message: "Salary range cannot exceed 50 characters." }),
+  description: z
+    .string()
+    .trim()
+    .min(50, { message: "Description must be at least 50 characters." })
+    .max(5000, { message: "Description cannot exceed 5000 characters." }),
+})
+export const UpdateApplicationStatusSchema = z.object({
+  applicationId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid application ID" }),
+  status: z.enum(JOB_APPLICATION_STATUSES),
+})
 export const GetUserSchema = z.object({
   userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" })
 })

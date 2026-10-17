@@ -1,6 +1,7 @@
-import { ArrowUpRight, BriefcaseBusiness, Clock3, MapPin } from "lucide-react"
+import { ArrowUpRight, CircleDollarSign, Clock3, ImageIcon, MapPin } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import type { Job } from "@/features/jobs/types"
 import { Badge } from "@/shared/components/ui/badge"
@@ -16,40 +17,54 @@ const JobCard = ({
   employmentType,
   salaryRange,
   location,
-}: Job) => (
-  <article className="card-wrapper light-border rounded-[10px] border p-6 transition-shadow hover:shadow-md sm:p-8">
-    <div className="flex items-start gap-4">
-      <div className="background-light800_dark300 light-border flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border sm:size-14">
-        {companyLogo ? (
-          <Image src={companyLogo} alt={`${company} logo`} width={42} height={42} className="size-10 object-contain" />
-        ) : (
-          <BriefcaseBusiness className="size-5 text-primary-500" aria-hidden="true" />
-        )}
-      </div>
+  extra,
+}: Job & { extra?: ReactNode }) => (
+  <article className="card-wrapper light-border rounded-[10px] border p-5 sm:px-8 sm:py-7">
+    <div className="flex items-start gap-4 sm:gap-6">
+      {companyLogo ? (
+        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:size-16">
+          <Image src={companyLogo} alt={`${company} logo`} width={64} height={64} unoptimized className="size-full object-contain" />
+        </div>
+      ) : (
+        <div className="background-light800_dark400 flex size-12 shrink-0 items-center justify-center rounded-xl sm:size-16">
+          <ImageIcon className="size-5 text-light-400 sm:size-6" aria-label={`${company} logo`} />
+        </div>
+      )}
 
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h2 className="body-semibold text-dark200_light900 text-base">{title}</h2>
-            <Badge className="background-light800_dark300 text-primary-500 rounded-md border-0 px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase">
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+            <h2 className="base-semibold text-dark200_light900 min-w-0 break-words">{title}</h2>
+            <Badge className="background-light800_dark400 text-light400_light500 rounded-md border-0 px-3 py-1 text-[10px] font-medium uppercase">
               {category}
             </Badge>
           </div>
-          <span className="text-primary-500 inline-flex shrink-0 items-center gap-1 text-xs font-medium">
-            <MapPin className="size-3.5" aria-hidden="true" />{location}
+          <span className="background-light800_dark400 text-dark400_light700 body-medium inline-flex min-w-0 items-center gap-2 rounded-full px-3 py-1.5">
+            <MapPin className="size-4 shrink-0 text-primary-500" aria-hidden="true" />
+            <span className="break-words">{location}</span>
           </span>
         </div>
 
-        <p className="small-regular text-dark400_light500 mt-1">{company}</p>
-        <p className="small-regular text-dark400_light500 mt-2 line-clamp-2">{description}</p>
+        <p className="body-regular text-dark500_light700 mt-2 line-clamp-2 max-w-xl">{description}</p>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="small-regular text-dark400_light500 inline-flex items-center gap-1.5"><Clock3 className="size-3.5" aria-hidden="true" />{employmentType}</span>
-            <span className="small-regular text-dark400_light500 inline-flex items-center gap-1.5"><span className="text-primary-500" aria-hidden="true">$</span>{salaryRange}</span>
+        {extra && <div className="mt-4 flex flex-wrap items-center gap-3">{extra}</div>}
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span className="body-medium text-light400_light500 inline-flex items-center gap-1.5">
+              <Clock3 className="size-4" aria-hidden="true" />
+              {employmentType}
+            </span>
+            <span className="body-medium text-light400_light500 inline-flex items-center gap-1.5">
+              <CircleDollarSign className="size-4" aria-hidden="true" />
+              {salaryRange}
+            </span>
           </div>
-          <Link href={ROUTES.JOBS_DETAILS(_id)} className="small-semibold inline-flex items-center gap-1 text-primary-500 hover:underline">
-            View job <ArrowUpRight className="size-3.5" aria-hidden="true" />
+          <Link
+            href={ROUTES.JOBS_DETAILS(_id)}
+            className="body-semibold inline-flex items-center gap-1.5 text-primary-500 hover:underline"
+          >
+            View job <ArrowUpRight className="size-4" aria-hidden="true" />
           </Link>
         </div>
       </div>

@@ -1,10 +1,11 @@
-import { ArrowLeft, Building2 } from "lucide-react"
+import { ArrowLeft, Building2, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { getJobById } from "@/features/jobs/actions"
 import { JobActions } from "@/features/jobs/components"
+import { auth } from "@/server/auth"
 import { BackButton, Metric } from "@/shared/components/common"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
@@ -14,11 +15,12 @@ import { RouteParams } from "@/shared/types"
 
 const JobDetails = async ({ params }: RouteParams) => {
   const { id } = await params
-  const { success, data } = await getJobById({ jobId: id })
+  const [session, { success, data }] = await Promise.all([auth(), getJobById({ jobId: id })])
 
   if (!success || !data?.job) redirect("/404")
 
   const job = data.job
+  const isOwner = Boolean(session?.user?.id && job.postedBy && String(job.postedBy) === String(session.user.id))
   return (
     <main className="mx-auto w-full max-w-5xl">
       <BackButton href={ROUTES.JOBS} />
@@ -27,7 +29,7 @@ const JobDetails = async ({ params }: RouteParams) => {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <div className="background-light800_dark300 light-border flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border sm:size-20">
             {job.companyLogo ? (
-              <Image src={job.companyLogo} alt={`${job.company} logo`} width={60} height={60} className="size-14 object-contain" />
+              <Image src={job.companyLogo} alt={`${job.company} logo`} width={60} height={60} unoptimized className="size-14 object-contain" />
             ) : (
               <Building2 className="size-8 text-primary-500" aria-hidden="true" />
             )}
@@ -43,7 +45,17 @@ const JobDetails = async ({ params }: RouteParams) => {
           </div>
 
           <div className="w-full sm:w-44 sm:shrink-0">
-            <JobActions jobId={job._id} />
+            {isOwner ? (
+              <Link
+                href={ROUTES.JOBS_APPLICANTS(job._id)}
+                className="primary-gradient inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white hover:opacity-90"
+              >
+                <Users className="size-4" aria-hidden="true" />
+                View applicants
+              </Link>
+            ) : (
+              <JobActions jobId={job._id} />
+            )}
           </div>
         </div>
 
@@ -59,21 +71,21 @@ const JobDetails = async ({ params }: RouteParams) => {
             imgUrl="/icons/suitcase.svg"
             alt="Employment type"
             value={job.employmentType}
-            title="Employment Type"
+            title=""
             textStyles="small-regular text-dark400_light700"
           />
           <Metric
             imgUrl="/icons/currency-dollar-circle.svg"
             alt="Salary"
             value={job.salaryRange}
-            title="Salary"
+            title=""
             textStyles="small-regular text-dark400_light700"
           />
           <Metric
             imgUrl="/icons/location.svg"
             alt="Location"
             value={job.location}
-            title="Location"
+            title=""
             textStyles="small-regular text-dark400_light700"
           />
         </div>

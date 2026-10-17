@@ -36,6 +36,31 @@ export interface GetJobParams {
   jobId: string
 }
 
+export interface CreateJobParams {
+  title: string
+  company: string
+  companyLogo: string
+  category: string
+  employmentType: "Full-time" | "Part-time" | "Contract" | "Internship" | "Freelance"
+  location: string
+  salaryRange: string
+  description: string
+}
+
+export interface UpdateApplicationStatusParams {
+  applicationId: string
+  status: "submitted" | "reviewing" | "accepted" | "rejected"
+}
+
+export interface ApplyJobParams extends GetJobParams {
+  applicantName: string
+  applicantEmail: string
+  phone: string
+  resumeUrl: string
+  portfolioUrl: string
+  coverLetter: string
+}
+
 export interface GetQuestionParams {
   questionId: string
 }

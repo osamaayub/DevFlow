@@ -68,3 +68,39 @@ export const EMPTY_JOBS = {
     href: ROUTES.JOBS
   }
 }
+
+export const EMPTY_APPLIED_JOBS = {
+  title: "No Applications Yet",
+  message: "You haven't applied to any jobs. Find a role you like and send your first application!",
+  button: {
+    text: "Browse Jobs",
+    href: ROUTES.JOBS
+  }
+}
+
+export const EMPTY_POSTED_JOBS = {
+  title: "No Jobs Posted",
+  message: "You haven't posted any jobs yet. Hiring? Post your first job and start receiving applications.",
+  button: {
+    text: "Post a Job",
+    href: ROUTES.JOBS_NEW
+  }
+}
+
+export const EMPTY_APPLICANTS = {
+  title: "No Applicants Yet",
+  message: "Nobody has applied to this job yet. Check back soon!",
+  button: {
+    text: "Back to My Jobs",
+    href: `${ROUTES.MY_JOBS}?tab=posted`
+  }
+}
+
+export const EMPTY_SAVED_JOBS = {
+  title: "No Saved Jobs",
+  message: "Save jobs you're interested in and they'll show up here so you can apply later.",
+  button: {
+    text: "Browse Jobs",
+    href: ROUTES.JOBS
+  }
+}

@@ -1,3 +1,6 @@
+import { BriefcaseBusiness, Plus } from "lucide-react"
+import Link from "next/link"
+
 import { getJobs } from "@/features/jobs/actions"
 import {
   JobCard,
@@ -5,6 +8,7 @@ import {
 } from "@/features/jobs/components"
 import { DataRender } from "@/shared/components/common"
 import { Pagination } from "@/shared/components/navigation"
+import ROUTES from "@/shared/constants/route"
 import { EMPTY_JOBS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
 
@@ -23,18 +27,30 @@ const Jobs = async ({ searchParams }: RouteParams) => {
     category: typeof category === "string" ? category : undefined,
   })
 
-  const { jobs, isNext, totalJobs } = data || {}
+  const { jobs, isNext } = data || {}
 
   return (
     <div>
-      <h1 className="h3-semibold text-dark200_light900">Jobs</h1>
-      <JobSearchControls locations={data?.locations || []} />
-
-      <div className="mt-8 flex items-center justify-end border-b border-light-800 pb-4 dark:border-dark-300">
-        <p className="small-regular text-dark400_light500" aria-live="polite">
-          {totalJobs ?? 0} {totalJobs === 1 ? "job" : "jobs"} found
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="h1-bold text-dark100_light900">Jobs</h1>
+        <div className="flex items-center gap-3">
+          <Link
+            href={ROUTES.MY_JOBS}
+            className="body-semibold light-border text-dark400_light700 inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 transition-colors hover:text-primary-500"
+          >
+            <BriefcaseBusiness className="size-4" aria-hidden="true" />
+            My Jobs
+          </Link>
+          <Link
+            href={ROUTES.JOBS_NEW}
+            className="body-semibold primary-gradient inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-light-900 transition-opacity hover:opacity-90"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Post a Job
+          </Link>
+        </div>
       </div>
+      <JobSearchControls locations={data?.locations || []} />
 
       <DataRender
         success={success}
@@ -42,7 +58,7 @@ const Jobs = async ({ searchParams }: RouteParams) => {
         empty={EMPTY_JOBS}
         error={error}
         render={(jobs) => (
-          <div className="mt-12 flex flex-col gap-6">
+          <div className="mt-8 flex flex-col gap-5 sm:mt-12 sm:gap-8">
             {jobs.map((job) => (
               <JobCard key={job._id} {...job} />
             ))}

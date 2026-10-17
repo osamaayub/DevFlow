@@ -43,7 +43,7 @@ const MobileNavigation = ({ userId }: { userId?: string }) => {
         <div className="no-scrollbar flex h-[calc(100vh-80px)] flex-col overflow-y-auto pb-6">
           <SheetClose asChild>
             <section className="flex flex-col gap-6 pt-16">
-              <NavLinks isMobileNav userId={userId} />
+              <NavLinks isMobileNav userId={userId} hideProfile={Boolean(userId)} />
             </section>
           </SheetClose>
           <div className="mt-6 flex flex-col gap-3">

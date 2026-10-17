@@ -29,17 +29,15 @@ const JobLoading = ({ variant }: JobLoadingProps) => {
 
   return (
     <div role="status" aria-label="Loading jobs" className="animate-pulse">
-      <div className="mb-8 space-y-3">
-        <div className="h-4 w-32 rounded bg-light-800 dark:bg-dark-300" />
-        <div className="h-10 w-64 rounded bg-light-800 dark:bg-dark-300" />
+      <div className="h-10 w-28 rounded bg-light-800 dark:bg-dark-300" />
+      <div className="mb-8 mt-8 grid grid-cols-1 gap-3 sm:mb-12 sm:mt-10 sm:grid-cols-2 sm:gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_172px]">
+        <div className="h-14 rounded-lg bg-light-800 dark:bg-dark-300" />
+        <div className="h-14 rounded-lg bg-light-800 dark:bg-dark-300" />
+        <div className="h-14 rounded-lg bg-light-800 dark:bg-dark-300 sm:col-span-2 md:col-span-1" />
       </div>
-      <div className="mb-10 flex gap-4">
-        <div className="h-14 flex-1 rounded-lg bg-light-800 dark:bg-dark-300" />
-        <div className="h-14 w-56 rounded-lg bg-light-800 dark:bg-dark-300" />
-      </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5 sm:gap-8">
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="card-wrapper light-border h-40 rounded-[10px] border p-6 sm:p-8" />
+          <div key={index} className="card-wrapper light-border h-44 rounded-[10px] border" />
         ))}
       </div>
       <span className="sr-only">Loading jobs</span>

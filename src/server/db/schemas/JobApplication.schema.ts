@@ -5,6 +5,10 @@ export interface IJobApplication {
   job: Types.ObjectId
   applicantName: string
   applicantEmail: string
+  phone?: string
+  resumeUrl?: string
+  portfolioUrl?: string
+  coverLetter?: string
   status: "submitted" | "reviewing" | "rejected" | "accepted"
   appliedAt: Date
 }
@@ -28,6 +32,22 @@ export const JobApplicationSchema = new Schema<IJobApplication>(
     applicantEmail: {
       type: String,
       required: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    resumeUrl: {
+      type: String,
+      default: "",
+    },
+    portfolioUrl: {
+      type: String,
+      default: "",
+    },
+    coverLetter: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,

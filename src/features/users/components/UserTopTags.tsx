@@ -5,7 +5,7 @@ interface Props {
 }
 
 const UserTopTags = ({ tags }: Props) => (
-  <section className="mt-8 min-w-0 sm:mt-10">
+  <section className="mt-8 min-w-0 max-sm:hidden sm:mt-10">
     <h4 className="h3-semibold text-dark200_light900">Top Tags</h4>
 
     {tags.length > 0 ? (

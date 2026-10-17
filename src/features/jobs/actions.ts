@@ -1,3 +1,4 @@
+
 "use server"
 
 import type { FilterQuery } from "mongoose"
@@ -5,7 +6,13 @@ import mongoose from "mongoose"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-import type { Job } from "@/features/jobs/types"
+import type {
+  AppliedJob,
+  Job,
+  JobApplicant,
+  PostedJob,
+  SavedJobItem,
+} from "@/features/jobs/types"
 import { action } from "@/server/action"
 import {
   Job as JobModel,
@@ -15,14 +22,24 @@ import {
 } from "@/server/db"
 import { dbConnect } from "@/server/db/connect"
 import { HandleError } from "@/server/errors/error-handler"
-import { NotFoundError, UnauthorizedError } from "@/server/errors/http-error"
+import { ForbiddenError, NotFoundError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
-import { GetJobSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
+import {
+  ApplyJobSchema,
+  CreateJobSchema,
+  GetJobSchema,
+  paginatedSearchParamsSchema,
+  UpdateApplicationStatusSchema,
+} from "@/shared/lib/validation"
 import {
   ActionResponse,
+  ApplyJobParams,
+  CreateJobParams,
   ErrorResponse,
   GetJobParams,
   GetJobsParams,
+  PaginatedSearchParams,
+  UpdateApplicationStatusParams,
 } from "@/shared/types"
 
 const jobSearchParamsSchema = paginatedSearchParamsSchema.extend({
@@ -250,6 +267,7 @@ export async function toggleSaveJob(
 
     revalidatePath(ROUTES.JOBS)
     revalidatePath(ROUTES.JOBS_DETAILS(jobId))
+    revalidatePath(ROUTES.MY_JOBS)
     return { success: true, data: { saved } }
   } catch (error) {
     return handleActionError(error)
@@ -285,19 +303,18 @@ export async function hasAppliedToJob(
 }
 
 export async function applyToJob(
-  params: GetJobParams
+  params: ApplyJobParams
 ): Promise<ActionResponse<{ applied: boolean; alreadyApplied: boolean }>> {
   const validationResult = await action({
     params,
-    schema: GetJobSchema,
+    schema: ApplyJobSchema,
     authorize: true,
   })
 
   if (validationResult instanceof Error) return handleActionError(validationResult)
 
-  const { jobId } = validationResult.validatedData
-  const applicant = validationResult.session?.user
-  const applicantId = applicant?.id
+  const { jobId, ...application } = validationResult.validatedData
+  const applicantId = validationResult.session?.user?.id
   if (!applicantId) return handleActionError(new UnauthorizedError())
 
   try {
@@ -318,11 +335,11 @@ export async function applyToJob(
     await JobApplication.create({
       job: jobId,
       applicant: applicantId,
-      applicantName: applicant.name || "DevFlow member",
-      applicantEmail: applicant.email || "",
+      ...application,
     })
 
     revalidatePath(ROUTES.JOBS_DETAILS(jobId))
+    revalidatePath(ROUTES.MY_JOBS)
     return {
       success: true,
       data: { applied: true, alreadyApplied: false },
@@ -340,6 +357,290 @@ export async function applyToJob(
       }
     }
 
+    return handleActionError(error)
+  }
+}
+
+const myJobsParamsSchema = paginatedSearchParamsSchema.pick({
+  page: true,
+  pageSize: true,
+})
+
+export async function getAppliedJobs(
+  params: Pick<PaginatedSearchParams, "page" | "pageSize">
+): Promise<ActionResponse<{ applications: AppliedJob[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: myJobsParamsSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { page = 1, pageSize = 10 } = validationResult.validatedData
+  const skip = (page - 1) * pageSize
+
+  try {
+    const [total, applications] = await Promise.all([
+      JobApplication.countDocuments({ applicant: userId }),
+      JobApplication.find({ applicant: userId })
+        .sort({ appliedAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .populate("job")
+        .lean(),
+    ])
+
+    const items = applications
+      .filter((application) => application.job)
+      .map(({ _id, job, status, appliedAt }) => ({ _id, job, status, appliedAt }))
+
+    return {
+      success: true,
+      data: JSON.parse(
+        JSON.stringify({
+          applications: items,
+          isNext: total > skip + applications.length,
+        })
+      ) as { applications: AppliedJob[]; isNext: boolean },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function getSavedJobs(
+  params: Pick<PaginatedSearchParams, "page" | "pageSize">
+): Promise<ActionResponse<{ savedJobs: SavedJobItem[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: myJobsParamsSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { page = 1, pageSize = 10 } = validationResult.validatedData
+  const skip = (page - 1) * pageSize
+
+  try {
+    const [total, savedJobs] = await Promise.all([
+      SavedJob.countDocuments({ author: userId }),
+      SavedJob.find({ author: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .populate("job")
+        .lean(),
+    ])
+
+    const items = savedJobs
+      .filter((savedJob) => savedJob.job)
+      .map(({ _id, job, createdAt }) => ({ _id, job, savedAt: createdAt }))
+
+    return {
+      success: true,
+      data: JSON.parse(
+        JSON.stringify({
+          savedJobs: items,
+          isNext: total > skip + savedJobs.length,
+        })
+      ) as { savedJobs: SavedJobItem[]; isNext: boolean },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function createJob(
+  params: CreateJobParams
+): Promise<ActionResponse<{ job: Job }>> {
+  const validationResult = await action({
+    params,
+    schema: CreateJobSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  try {
+    const job = await JobModel.create({
+      ...validationResult.validatedData,
+      postedBy: userId,
+      postedDate: new Date(),
+    })
+
+    revalidatePath(ROUTES.JOBS)
+    revalidatePath(ROUTES.MY_JOBS)
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify({ job })) as { job: Job },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function getPostedJobs(
+  params: Pick<PaginatedSearchParams, "page" | "pageSize">
+): Promise<ActionResponse<{ jobs: PostedJob[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: myJobsParamsSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { page = 1, pageSize = 10 } = validationResult.validatedData
+  const skip = (page - 1) * pageSize
+
+  try {
+    const [total, jobs] = await Promise.all([
+      JobModel.countDocuments({ postedBy: userId }),
+      JobModel.find({ postedBy: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+    ])
+
+    const counts = await JobApplication.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
+      { $match: { job: { $in: jobs.map((job) => new mongoose.Types.ObjectId(String(job._id))) } } },
+      { $group: { _id: "$job", count: { $sum: 1 } } },
+    ])
+    const countByJob = new Map(counts.map(({ _id, count }) => [String(_id), count]))
+
+    return {
+      success: true,
+      data: JSON.parse(
+        JSON.stringify({
+          jobs: jobs.map((job) => ({
+            ...job,
+            applicantCount: countByJob.get(String(job._id)) ?? 0,
+          })),
+          isNext: total > skip + jobs.length,
+        })
+      ) as { jobs: PostedJob[]; isNext: boolean },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function getJobApplicants(
+  params: GetJobParams
+): Promise<ActionResponse<{ job: Job; applicants: JobApplicant[] }>> {
+  const validationResult = await action({
+    params,
+    schema: GetJobSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { jobId } = validationResult.validatedData
+
+  try {
+    const job = await JobModel.findById(jobId).lean<IJob>()
+    if (!job) throw new NotFoundError()
+    if (String(job.postedBy) !== String(userId)) throw new ForbiddenError()
+
+    const applicants = await JobApplication.find({ job: jobId })
+      .sort({ appliedAt: -1 })
+      .select("applicantName applicantEmail phone resumeUrl portfolioUrl coverLetter status appliedAt")
+      .lean()
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify({ job, applicants })) as {
+        job: Job
+        applicants: JobApplicant[]
+      },
+    }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function updateApplicationStatus(
+  params: UpdateApplicationStatusParams
+): Promise<ActionResponse<{ status: UpdateApplicationStatusParams["status"] }>> {
+  const validationResult = await action({
+    params,
+    schema: UpdateApplicationStatusSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { applicationId, status } = validationResult.validatedData
+
+  try {
+    const application = await JobApplication.findById(applicationId)
+    if (!application) throw new NotFoundError()
+
+    const isJobOwner = await JobModel.exists({ _id: application.job, postedBy: userId })
+    if (!isJobOwner) throw new ForbiddenError()
+
+    application.status = status
+    await application.save()
+
+    revalidatePath(ROUTES.JOBS_APPLICANTS(String(application.job)))
+    revalidatePath(ROUTES.MY_JOBS)
+    return { success: true, data: { status } }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function withdrawApplication(
+  params: GetJobParams
+): Promise<ActionResponse<{ withdrawn: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: GetJobSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { jobId } = validationResult.validatedData
+
+  try {
+    const removed = await JobApplication.findOneAndDelete({
+      job: jobId,
+      applicant: userId,
+      status: { $in: ["submitted", "reviewing"] },
+    })
+    if (!removed) throw new NotFoundError()
+
+    revalidatePath(ROUTES.MY_JOBS)
+    revalidatePath(ROUTES.JOBS_DETAILS(jobId))
+    revalidatePath(ROUTES.JOBS_APPLICANTS(jobId))
+    return { success: true, data: { withdrawn: true } }
+  } catch (error) {
     return handleActionError(error)
   }
 }

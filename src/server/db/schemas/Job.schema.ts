@@ -1,4 +1,4 @@
-import { Schema } from "mongoose"
+import { Schema, Types } from "mongoose"
 
 export interface IJob {
   _id: string
@@ -11,6 +11,7 @@ export interface IJob {
   salaryRange: string
   location: string
   postedDate: Date
+  postedBy?: Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -53,6 +54,10 @@ export const JobSchema = new Schema<IJob>(
       type: Date,
       default: Date.now,
     },
+    postedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 )
@@ -64,5 +69,6 @@ JobSchema.index({
   location: "text",
 })
 JobSchema.index({ createdAt: -1 })
+JobSchema.index({ postedBy: 1, createdAt: -1 })
 JobSchema.index({ postedDate: -1 })
 JobSchema.index({ category: 1, postedDate: -1 })

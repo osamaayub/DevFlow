@@ -1,16 +1,19 @@
 "use client"
 
-import { ExternalLink } from "lucide-react"
+import { CheckCircle2, ExternalLink } from "lucide-react"
+import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 
-import { applyToJob, hasAppliedToJob } from "@/features/jobs/actions"
+import { hasAppliedToJob } from "@/features/jobs/actions"
+import ROUTES from "@/shared/constants/route"
+
+const buttonClasses =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-opacity"
 
 const ApplyJob = ({ jobId }: { jobId: string }) => {
   const session = useSession()
   const userId = session.data?.user?.id
-  const [isApplying, setIsApplying] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
   const [isCheckingApplication, setIsCheckingApplication] = useState(true)
 
@@ -44,30 +47,6 @@ const ApplyJob = ({ jobId }: { jobId: string }) => {
     }
   }, [jobId, session.status, userId])
 
-  const handleApply = async () => {
-    if (isApplying || isCheckingApplication || hasApplied) return
-    if (!userId) return toast("You must be logged in to apply for a job.")
-
-    setIsApplying(true)
-    try {
-      const result = await applyToJob({ jobId })
-      if (result.success && result.data) {
-        setHasApplied(true)
-        toast.success(
-          result.data.alreadyApplied
-            ? "You have already applied for this job."
-            : "Your application has been recorded in DevFlow."
-        )
-      } else {
-        toast.error(result.error?.message || "Could not submit your application.")
-      }
-    } catch {
-      toast.error("An error occurred while submitting your application.")
-    } finally {
-      setIsApplying(false)
-    }
-  }
-
   if (isCheckingApplication) {
     return (
       <div
@@ -78,16 +57,26 @@ const ApplyJob = ({ jobId }: { jobId: string }) => {
     )
   }
 
+  if (hasApplied) {
+    return (
+      <Link
+        href={`${ROUTES.MY_JOBS}?tab=applied`}
+        className={`${buttonClasses} background-light800_dark300 text-dark400_light700 hover:opacity-90`}
+      >
+        <CheckCircle2 className="size-4 text-green-500" aria-hidden="true" />
+        Applied
+      </Link>
+    )
+  }
+
   return (
-    <button
-      type="button"
-      disabled={isApplying || hasApplied}
-      onClick={handleApply}
-      className="primary-gradient inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+    <Link
+      href={userId ? ROUTES.JOBS_APPLY(jobId) : ROUTES.SIGN_IN}
+      className={`${buttonClasses} primary-gradient text-white hover:opacity-90`}
     >
-      {isApplying ? "Submitting…" : hasApplied ? "Applied" : "Apply now"}
-      {!hasApplied && <ExternalLink className="size-4" aria-hidden="true" />}
-    </button>
+      Apply now
+      <ExternalLink className="size-4" aria-hidden="true" />
+    </Link>
   )
 }
 

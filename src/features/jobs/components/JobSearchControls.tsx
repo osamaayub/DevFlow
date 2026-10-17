@@ -53,9 +53,9 @@ const JobSearchControls = ({ locations }: JobSearchControlsProps) => {
   return (
     <form
       onSubmit={handleSearch}
-      className="mt-7 grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px] items-center gap-2 sm:gap-4"
+      className="mt-8 grid w-full grid-cols-1 items-center gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_172px]"
     >
-      <label className="background-light800_darkgradient light-border flex min-h-[56px] min-w-0 items-center gap-4 rounded-[10px] border px-4">
+      <label className="background-light800_darkgradient light-border flex min-h-[56px] min-w-0 items-center gap-3 rounded-[10px] border px-4 sm:gap-4">
         <Search className="size-5 shrink-0 text-light-400" aria-hidden="true" />
         <span className="sr-only">Job title, company, or keywords</span>
         <Input
@@ -67,7 +67,7 @@ const JobSearchControls = ({ locations }: JobSearchControlsProps) => {
       </label>
 
       <Select value={location} onValueChange={setLocation}>
-        <SelectTrigger className="background-light800_darkgradient light-border text-dark400_light500 min-h-[56px] w-full rounded-[10px] border px-4 shadow-none focus:ring-0 focus:ring-offset-0">
+        <SelectTrigger className="background-light800_darkgradient light-border text-dark400_light500 min-h-[56px] w-full min-w-0 rounded-[10px] border px-4 shadow-none focus:ring-0 focus:ring-offset-0">
           <MapPin className="size-5 shrink-0 text-light-400" aria-hidden="true" />
           <SelectValue placeholder="Select Location" />
         </SelectTrigger>
@@ -87,7 +87,7 @@ const JobSearchControls = ({ locations }: JobSearchControlsProps) => {
       <button
         type="submit"
         disabled={isPending}
-        className="primary-gradient inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 rounded-lg px-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:w-[120px] sm:px-4 sm:text-sm"
+        className="primary-gradient body-semibold inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 rounded-lg px-4 text-light-900 transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:col-span-2 md:col-span-1"
       >
         {isPending ? "Finding…" : "Find Jobs"}
       </button>
