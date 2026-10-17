@@ -9,6 +9,7 @@ const ROUTES = {
   COMMUNITY_MEMBER_DETAILS: (id: string) => `/community/${id}/details`,
   TAGS: "/tags",
   JOBS: "/jobs",
+  JOBS_DETAILS: (id: string) => `/jobs/${id}`,
   PROFILE: (id: string) => `/profile/${id}`,
   QUESTION: (id: string) => `/questions/${id}`,
   TAG: (id: string) => `/tags/${id}`,

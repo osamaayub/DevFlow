@@ -59,3 +59,12 @@ export const EMPTY_USERS = {
     href: ROUTES.SIGN_UP
   }
 }
+
+export const EMPTY_JOBS = {
+  title: "No Jobs Found",
+  message: "The job board is empty. Check back later for new opportunities!",
+  button: {
+    text: "Browse Jobs",
+    href: ROUTES.JOBS
+  }
+}

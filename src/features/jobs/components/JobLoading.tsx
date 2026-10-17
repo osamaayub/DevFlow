@@ -1,0 +1,50 @@
+interface JobLoadingProps {
+  variant: "list" | "details"
+}
+
+const JobLoading = ({ variant }: JobLoadingProps) => {
+  if (variant === "details") {
+    return (
+      <div role="status" aria-label="Loading job details" className="mx-auto w-full max-w-5xl animate-pulse">
+        <div className="mb-6 h-9 w-28 rounded bg-light-800 dark:bg-dark-300" />
+        <div className="background-light900_dark200 light-border rounded-2xl border p-6 sm:p-8">
+          <div className="flex gap-5">
+            <div className="size-20 rounded-2xl bg-light-800 dark:bg-dark-300" />
+            <div className="flex-1 space-y-3 py-2">
+              <div className="h-4 w-32 rounded bg-light-800 dark:bg-dark-300" />
+              <div className="h-7 w-3/4 rounded bg-light-800 dark:bg-dark-300" />
+              <div className="h-4 w-1/2 rounded bg-light-800 dark:bg-dark-300" />
+            </div>
+          </div>
+          <div className="mt-8 h-16 rounded bg-light-800 dark:bg-dark-300" />
+        </div>
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="h-64 rounded-2xl bg-light-800 dark:bg-dark-300" />
+          <div className="h-52 rounded-2xl bg-light-800 dark:bg-dark-300" />
+        </div>
+        <span className="sr-only">Loading job details</span>
+      </div>
+    )
+  }
+
+  return (
+    <div role="status" aria-label="Loading jobs" className="animate-pulse">
+      <div className="mb-8 space-y-3">
+        <div className="h-4 w-32 rounded bg-light-800 dark:bg-dark-300" />
+        <div className="h-10 w-64 rounded bg-light-800 dark:bg-dark-300" />
+      </div>
+      <div className="mb-10 flex gap-4">
+        <div className="h-14 flex-1 rounded-lg bg-light-800 dark:bg-dark-300" />
+        <div className="h-14 w-56 rounded-lg bg-light-800 dark:bg-dark-300" />
+      </div>
+      <div className="flex flex-col gap-6">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="card-wrapper light-border h-40 rounded-[10px] border p-6 sm:p-8" />
+        ))}
+      </div>
+      <span className="sr-only">Loading jobs</span>
+    </div>
+  )
+}
+
+export default JobLoading
