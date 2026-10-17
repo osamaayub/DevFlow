@@ -1,9 +1,8 @@
-
 "use server"
 
-import type { FilterQuery } from "mongoose"
+import type { FilterQuery, PipelineStage } from "mongoose"
 import mongoose from "mongoose"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, unstable_cache, updateTag } from "next/cache"
 import { z } from "zod"
 
 import type {
@@ -14,9 +13,11 @@ import type {
   SavedJobItem,
 } from "@/features/jobs/types"
 import { action } from "@/server/action"
+import { auth } from "@/server/auth"
 import {
   Job as JobModel,
   JobApplication,
+  parseSalaryRange,
   SavedJob,
   type IJob,
 } from "@/server/db"
@@ -42,40 +43,112 @@ import {
   UpdateApplicationStatusParams,
 } from "@/shared/types"
 
-const jobSearchParamsSchema = paginatedSearchParamsSchema.extend({
-  location: z.string().optional(),
-  category: z.string().optional(),
+// Server actions are public endpoints, so page sizes are capped to keep queries bounded
+const MAX_PAGE_SIZE = 50
+const boundedPageSchema = z.object({
+  page: z.number().int().positive().max(10_000).default(1),
+  pageSize: z.number().int().positive().max(MAX_PAGE_SIZE).default(10),
 })
+
+const jobSearchParamsSchema = paginatedSearchParamsSchema.merge(boundedPageSchema).extend({
+  location: z.string().max(100).optional(),
+  category: z.string().max(100).optional(),
+  query: z.string().max(100).optional(),
+})
+
+const myJobsParamsSchema = boundedPageSchema
+
+const jobApplicantsParamsSchema = GetJobSchema.merge(boundedPageSchema)
+
+const JOB_FILTERS_TAG = "job-filter-options"
+
+// Job cards only show two lines of description, so lists never ship the full text
+const JOB_LIST_PROJECTION = {
+  title: 1,
+  company: 1,
+  companyLogo: 1,
+  category: 1,
+  employmentType: 1,
+  salaryRange: 1,
+  location: 1,
+  postedDate: 1,
+  description: { $substrCP: [{ $ifNull: ["$description", ""] }, 0, 300] },
+} as const
+
+const JOB_POPULATE_SELECT =
+  "title company companyLogo category description employmentType salaryRange location postedDate"
 
 type JobSortCriteria = Record<string, 1 | -1>
 
 const escapeRegex = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
-const getSalaryValue = (salaryRange: string, index: number) => {
-  const value = salaryRange.split("-")[index]?.trim().toLowerCase() || "0"
-  const amount = Number(value.match(/[\d,.]+/)?.[0]?.replaceAll(",", "") || 0)
-
-  if (value.includes("m")) return amount * 1_000_000
-  if (value.includes("k")) return amount * 1_000
-  return amount
-}
-
 const getJobSortCriteria = (filter?: string): JobSortCriteria => {
   switch (filter) {
     case "oldest":
       return { postedDate: 1, _id: 1 }
     case "salary-high":
+      return { salaryMax: -1, _id: -1 }
     case "salary-low":
-      return {}
+      return { salaryMin: 1, _id: 1 }
     case "recent":
     default:
       return { postedDate: -1, _id: -1 }
   }
 }
 
+const isDuplicateKeyError = (error: unknown) =>
+  typeof error === "object" && error !== null && "code" in error && error.code === 11000
+
 const handleActionError = (error: unknown): ErrorResponse =>
   HandleError(error instanceof Error ? error : new Error(String(error))) as unknown as ErrorResponse
+
+// Jobs created before salaryMin/salaryMax existed get them filled in once per server process
+let salaryBackfill: Promise<void> | null = null
+const ensureSalaryFields = () => {
+  salaryBackfill ??= (async () => {
+    const legacyJobs = await JobModel.find({ salaryMin: { $exists: false } })
+      .select("salaryRange")
+      .lean<Array<{ _id: mongoose.Types.ObjectId; salaryRange: string }>>()
+
+    if (legacyJobs.length === 0) return
+
+    await JobModel.bulkWrite(
+      legacyJobs.map(({ _id, salaryRange }) => ({
+        updateOne: {
+          filter: { _id },
+          update: { $set: parseSalaryRange(salaryRange ?? "") },
+        },
+      }))
+    )
+  })().catch((error) => {
+    salaryBackfill = null
+    throw error
+  })
+
+  return salaryBackfill
+}
+
+// Dropdown options change only when a job is posted, so they are cached instead of
+// running two full-collection distinct() scans on every page view
+const getJobFilterOptions = unstable_cache(
+  async () => {
+    await dbConnect()
+    const [categories, locations] = await Promise.all([
+      JobModel.distinct("category"),
+      JobModel.distinct("location"),
+    ])
+
+    return {
+      categories: (categories as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+      locations: (locations as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+    }
+  },
+  [JOB_FILTERS_TAG],
+  { tags: [JOB_FILTERS_TAG], revalidate: 3600 }
+)
+
+const toPlain = <T>(value: unknown) => JSON.parse(JSON.stringify(value)) as T
 
 export async function getJobs(
   params: GetJobsParams
@@ -83,7 +156,6 @@ export async function getJobs(
   ActionResponse<{
     jobs: Job[]
     isNext: boolean
-    totalJobs: number
     categories: string[]
     locations: string[]
   }>
@@ -118,58 +190,34 @@ export async function getJobs(
     ]
   }
 
-  if (location?.trim()) {
-    filterQuery.location = {
-      $regex: escapeRegex(location.trim()),
-      $options: "i",
-    }
-  }
-
-  if (category?.trim()) {
-    filterQuery.category = {
-      $regex: `^${escapeRegex(category.trim())}$`,
-      $options: "i",
-    }
-  }
+  // Location and category values come from the dropdown, so exact matches can use indexes
+  if (location?.trim()) filterQuery.location = location.trim()
+  if (category?.trim()) filterQuery.category = category.trim()
 
   try {
-    const [totalJobs, matchingJobs, categories, locations] = await Promise.all([
-      JobModel.countDocuments(filterQuery),
-      JobModel.find(filterQuery)
-        .sort(getJobSortCriteria(filter))
-        .lean(),
-      JobModel.distinct("category"),
-      JobModel.distinct("location"),
-    ])
+    if (filter === "salary-high" || filter === "salary-low") await ensureSalaryFields()
 
-    const sortedJobs =
-      filter === "salary-high" || filter === "salary-low"
-        ? matchingJobs.sort((a, b) => {
-            const salaryDifference =
-              getSalaryValue(a.salaryRange, filter === "salary-high" ? 1 : 0) -
-              getSalaryValue(b.salaryRange, filter === "salary-high" ? 1 : 0)
-            return filter === "salary-high" ? -salaryDifference : salaryDifference
-          })
-        : matchingJobs
-    const jobs = sortedJobs.slice(skip, skip + pageSize)
+    const pipeline: PipelineStage[] = [
+      { $match: filterQuery },
+      { $sort: getJobSortCriteria(filter) },
+      { $skip: skip },
+      // One extra row tells us whether there is a next page without a separate count query
+      { $limit: pageSize + 1 },
+      { $project: JOB_LIST_PROJECTION },
+    ]
+
+    const [results, filterOptions] = await Promise.all([
+      JobModel.aggregate(pipeline),
+      getJobFilterOptions(),
+    ])
 
     return {
       success: true,
-      data: JSON.parse(
-        JSON.stringify({
-          jobs,
-          isNext: totalJobs > skip + jobs.length,
-          totalJobs,
-          categories: categories.sort((a, b) => a.localeCompare(b)),
-          locations: locations.sort((a, b) => a.localeCompare(b)),
-        })
-      ) as {
-        jobs: Job[]
-        isNext: boolean
-        totalJobs: number
-        categories: string[]
-        locations: string[]
-      },
+      data: toPlain({
+        jobs: results.slice(0, pageSize),
+        isNext: results.length > pageSize,
+        ...filterOptions,
+      }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -189,38 +237,44 @@ export async function getJobById(
   }
 
   try {
-    const job = await JobModel.findById(validationResult.validatedData.jobId).lean()
+    const job = await JobModel.findById(validationResult.validatedData.jobId)
+      .select("-__v -salaryMin -salaryMax")
+      .lean()
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify({ job })) as { job: Job | null },
+      data: toPlain({ job }),
     }
   } catch (error) {
     return handleActionError(error)
   }
 }
 
-export async function hasSavedJob(
+// Loads the signed-in user's relationship to a job in one round trip, so the
+// details page can render Apply/Save state on the server instead of the client
+export async function getJobViewerState(
   params: GetJobParams
-): Promise<ActionResponse<{ saved: boolean }>> {
+): Promise<ActionResponse<{ applied: boolean; saved: boolean }>> {
   const validationResult = await action({
     params,
     schema: GetJobSchema,
-    authorize: true,
   })
 
   if (validationResult instanceof Error) return handleActionError(validationResult)
 
-  const userId = validationResult.session?.user?.id
-  if (!userId) return handleActionError(new UnauthorizedError())
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) return { success: true, data: { applied: false, saved: false } }
+
+  const { jobId } = validationResult.validatedData
 
   try {
-    const saved = await SavedJob.exists({
-      job: validationResult.validatedData.jobId,
-      author: userId,
-    })
+    const [applied, saved] = await Promise.all([
+      JobApplication.exists({ job: jobId, applicant: userId }),
+      SavedJob.exists({ job: jobId, author: userId }),
+    ])
 
-    return { success: true, data: { saved: Boolean(saved) } }
+    return { success: true, data: { applied: Boolean(applied), saved: Boolean(saved) } }
   } catch (error) {
     return handleActionError(error)
   }
@@ -241,38 +295,27 @@ export async function toggleSaveJob(
   const userId = validationResult.session?.user?.id
   if (!userId) return handleActionError(new UnauthorizedError())
 
-  await dbConnect()
-  const mongoSession = await mongoose.startSession()
-
   try {
-    if (!(await JobModel.exists({ _id: jobId }))) throw new NotFoundError()
-
+    // The unique (author, job) index makes this safe without a transaction
+    const removed = await SavedJob.findOneAndDelete({ job: jobId, author: userId })
     let saved = false
-    await mongoSession.withTransaction(async () => {
-      const removed = await SavedJob.findOneAndDelete(
-        { job: jobId, author: userId },
-        { session: mongoSession }
-      )
 
-      if (removed) {
-        saved = false
-        return
+    if (!removed) {
+      if (!(await JobModel.exists({ _id: jobId }))) throw new NotFoundError()
+
+      try {
+        await SavedJob.create({ job: jobId, author: userId })
+      } catch (error) {
+        if (!isDuplicateKeyError(error)) throw error
       }
-
-      await SavedJob.create([{ job: jobId, author: userId }], {
-        session: mongoSession,
-      })
       saved = true
-    })
+    }
 
-    revalidatePath(ROUTES.JOBS)
     revalidatePath(ROUTES.JOBS_DETAILS(jobId))
     revalidatePath(ROUTES.MY_JOBS)
     return { success: true, data: { saved } }
   } catch (error) {
     return handleActionError(error)
-  } finally {
-    await mongoSession.endSession()
   }
 }
 
@@ -320,18 +363,7 @@ export async function applyToJob(
   try {
     if (!(await JobModel.exists({ _id: jobId }))) throw new NotFoundError()
 
-    const existingApplication = await JobApplication.exists({
-      job: jobId,
-      applicant: applicantId,
-    })
-
-    if (existingApplication) {
-      return {
-        success: true,
-        data: { applied: true, alreadyApplied: true },
-      }
-    }
-
+    // The unique (applicant, job) index rejects duplicates, so no pre-check query is needed
     await JobApplication.create({
       job: jobId,
       applicant: applicantId,
@@ -345,12 +377,7 @@ export async function applyToJob(
       data: { applied: true, alreadyApplied: false },
     }
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === 11000
-    ) {
+    if (isDuplicateKeyError(error)) {
       return {
         success: true,
         data: { applied: true, alreadyApplied: true },
@@ -360,11 +387,6 @@ export async function applyToJob(
     return handleActionError(error)
   }
 }
-
-const myJobsParamsSchema = paginatedSearchParamsSchema.pick({
-  page: true,
-  pageSize: true,
-})
 
 export async function getAppliedJobs(
   params: Pick<PaginatedSearchParams, "page" | "pageSize">
@@ -384,28 +406,25 @@ export async function getAppliedJobs(
   const skip = (page - 1) * pageSize
 
   try {
-    const [total, applications] = await Promise.all([
-      JobApplication.countDocuments({ applicant: userId }),
-      JobApplication.find({ applicant: userId })
-        .sort({ appliedAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .populate("job")
-        .lean(),
-    ])
+    const applications = await JobApplication.find({ applicant: userId })
+      .sort({ appliedAt: -1 })
+      .skip(skip)
+      .limit(pageSize + 1)
+      .select("job status appliedAt")
+      .populate("job", JOB_POPULATE_SELECT)
+      .lean()
 
     const items = applications
+      .slice(0, pageSize)
       .filter((application) => application.job)
       .map(({ _id, job, status, appliedAt }) => ({ _id, job, status, appliedAt }))
 
     return {
       success: true,
-      data: JSON.parse(
-        JSON.stringify({
-          applications: items,
-          isNext: total > skip + applications.length,
-        })
-      ) as { applications: AppliedJob[]; isNext: boolean },
+      data: toPlain({
+        applications: items,
+        isNext: applications.length > pageSize,
+      }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -430,28 +449,25 @@ export async function getSavedJobs(
   const skip = (page - 1) * pageSize
 
   try {
-    const [total, savedJobs] = await Promise.all([
-      SavedJob.countDocuments({ author: userId }),
-      SavedJob.find({ author: userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .populate("job")
-        .lean(),
-    ])
+    const savedJobs = await SavedJob.find({ author: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize + 1)
+      .select("job createdAt")
+      .populate("job", JOB_POPULATE_SELECT)
+      .lean<Array<{ _id: mongoose.Types.ObjectId; job: Job | null; createdAt: Date }>>()
 
     const items = savedJobs
+      .slice(0, pageSize)
       .filter((savedJob) => savedJob.job)
       .map(({ _id, job, createdAt }) => ({ _id, job, savedAt: createdAt }))
 
     return {
       success: true,
-      data: JSON.parse(
-        JSON.stringify({
-          savedJobs: items,
-          isNext: total > skip + savedJobs.length,
-        })
-      ) as { savedJobs: SavedJobItem[]; isNext: boolean },
+      data: toPlain({
+        savedJobs: items,
+        isNext: savedJobs.length > pageSize,
+      }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -479,11 +495,12 @@ export async function createJob(
       postedDate: new Date(),
     })
 
+    updateTag(JOB_FILTERS_TAG)
     revalidatePath(ROUTES.JOBS)
     revalidatePath(ROUTES.MY_JOBS)
     return {
       success: true,
-      data: JSON.parse(JSON.stringify({ job })) as { job: Job },
+      data: toPlain({ job }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -508,32 +525,31 @@ export async function getPostedJobs(
   const skip = (page - 1) * pageSize
 
   try {
-    const [total, jobs] = await Promise.all([
-      JobModel.countDocuments({ postedBy: userId }),
-      JobModel.find({ postedBy: userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean(),
+    const results = await JobModel.aggregate([
+      { $match: { postedBy: new mongoose.Types.ObjectId(String(userId)) } },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: pageSize + 1 },
+      { $project: JOB_LIST_PROJECTION },
     ])
+    const jobs = results.slice(0, pageSize)
 
+    // Counts are computed from the (job, appliedAt) index for just this page of jobs
     const counts = await JobApplication.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
-      { $match: { job: { $in: jobs.map((job) => new mongoose.Types.ObjectId(String(job._id))) } } },
+      { $match: { job: { $in: jobs.map((job) => job._id) } } },
       { $group: { _id: "$job", count: { $sum: 1 } } },
     ])
     const countByJob = new Map(counts.map(({ _id, count }) => [String(_id), count]))
 
     return {
       success: true,
-      data: JSON.parse(
-        JSON.stringify({
-          jobs: jobs.map((job) => ({
-            ...job,
-            applicantCount: countByJob.get(String(job._id)) ?? 0,
-          })),
-          isNext: total > skip + jobs.length,
-        })
-      ) as { jobs: PostedJob[]; isNext: boolean },
+      data: toPlain({
+        jobs: jobs.map((job) => ({
+          ...job,
+          applicantCount: countByJob.get(String(job._id)) ?? 0,
+        })),
+        isNext: results.length > pageSize,
+      }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -541,11 +557,13 @@ export async function getPostedJobs(
 }
 
 export async function getJobApplicants(
-  params: GetJobParams
-): Promise<ActionResponse<{ job: Job; applicants: JobApplicant[] }>> {
+  params: GetJobParams & Partial<Pick<PaginatedSearchParams, "page" | "pageSize">>
+): Promise<
+  ActionResponse<{ job: Job; applicants: JobApplicant[]; totalApplicants: number; isNext: boolean }>
+> {
   const validationResult = await action({
-    params,
-    schema: GetJobSchema,
+    params: { pageSize: 20, ...params },
+    schema: jobApplicantsParamsSchema,
     authorize: true,
   })
 
@@ -554,24 +572,34 @@ export async function getJobApplicants(
   const userId = validationResult.session?.user?.id
   if (!userId) return handleActionError(new UnauthorizedError())
 
-  const { jobId } = validationResult.validatedData
+  const { jobId, page = 1, pageSize = 20 } = validationResult.validatedData
+  const skip = (page - 1) * pageSize
 
   try {
-    const job = await JobModel.findById(jobId).lean<IJob>()
+    const job = await JobModel.findById(jobId)
+      .select("title company postedBy")
+      .lean<Pick<IJob, "title" | "company" | "postedBy"> & { _id: mongoose.Types.ObjectId }>()
     if (!job) throw new NotFoundError()
     if (String(job.postedBy) !== String(userId)) throw new ForbiddenError()
 
-    const applicants = await JobApplication.find({ job: jobId })
-      .sort({ appliedAt: -1 })
-      .select("applicantName applicantEmail phone resumeUrl portfolioUrl coverLetter status appliedAt")
-      .lean()
+    const [totalApplicants, applicants] = await Promise.all([
+      JobApplication.countDocuments({ job: jobId }),
+      JobApplication.find({ job: jobId })
+        .sort({ appliedAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .select("applicantName applicantEmail phone resumeUrl portfolioUrl coverLetter status appliedAt")
+        .lean(),
+    ])
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify({ job, applicants })) as {
-        job: Job
-        applicants: JobApplicant[]
-      },
+      data: toPlain({
+        job,
+        applicants,
+        totalApplicants,
+        isNext: totalApplicants > skip + applicants.length,
+      }),
     }
   } catch (error) {
     return handleActionError(error)
@@ -596,13 +624,14 @@ export async function updateApplicationStatus(
 
   try {
     const application = await JobApplication.findById(applicationId)
+      .select("job")
+      .lean<{ _id: mongoose.Types.ObjectId; job: mongoose.Types.ObjectId }>()
     if (!application) throw new NotFoundError()
 
     const isJobOwner = await JobModel.exists({ _id: application.job, postedBy: userId })
     if (!isJobOwner) throw new ForbiddenError()
 
-    application.status = status
-    await application.save()
+    await JobApplication.updateOne({ _id: applicationId }, { $set: { status } })
 
     revalidatePath(ROUTES.JOBS_APPLICANTS(String(application.job)))
     revalidatePath(ROUTES.MY_JOBS)

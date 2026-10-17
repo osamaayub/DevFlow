@@ -5,6 +5,7 @@ import { getJobApplicants } from "@/features/jobs/actions"
 import { ApplicantStatusSelect } from "@/features/jobs/components"
 import { auth } from "@/server/auth"
 import { BackButton, DataRender } from "@/shared/components/common"
+import { Pagination } from "@/shared/components/navigation"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_APPLICANTS } from "@/shared/constants/states"
 import { getTimeStamp } from "@/shared/lib/utils"
@@ -12,12 +13,14 @@ import { RouteParams } from "@/shared/types"
 
 const linkClasses = "body-medium inline-flex items-center gap-1.5 text-primary-500 hover:underline"
 
-const JobApplicants = async ({ params }: RouteParams) => {
+const JobApplicants = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params
+  const { page } = (await searchParams) || {}
+  const pageNumber = Number(page) || 1
   const session = await auth()
   if (!session?.user?.id) redirect(ROUTES.SIGN_IN)
 
-  const { success, data, error } = await getJobApplicants({ jobId: id })
+  const { success, data, error } = await getJobApplicants({ jobId: id, page: pageNumber })
 
   // Only the person who posted the job may see its applicants
   if (!success && (error?.message?.includes("Forbidden") || error?.message?.includes("Not Found"))) {
@@ -31,8 +34,8 @@ const JobApplicants = async ({ params }: RouteParams) => {
       <h1 className="h1-bold text-dark100_light900 mt-2">Applicants</h1>
       {data?.job && (
         <p className="body-regular text-dark400_light500 mt-2">
-          {data.job.title} · {data.job.company} · {data.applicants.length}{" "}
-          {data.applicants.length === 1 ? "applicant" : "applicants"}
+          {data.job.title} · {data.job.company} · {data.totalApplicants}{" "}
+          {data.totalApplicants === 1 ? "applicant" : "applicants"}
         </p>
       )}
 
@@ -98,6 +101,8 @@ const JobApplicants = async ({ params }: RouteParams) => {
           </div>
         )}
       />
+
+      <Pagination pageNumber={pageNumber} isNext={data?.isNext || false} />
     </div>
   )
 }

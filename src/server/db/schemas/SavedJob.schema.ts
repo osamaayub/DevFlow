@@ -22,3 +22,4 @@ export const SavedJobSchema = new Schema<ISavedJob>(
 )
 
 SavedJobSchema.index({ author: 1, job: 1 }, { unique: true })
+SavedJobSchema.index({ author: 1, createdAt: -1 })

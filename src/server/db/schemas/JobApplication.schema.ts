@@ -63,3 +63,5 @@ export const JobApplicationSchema = new Schema<IJobApplication>(
 )
 
 JobApplicationSchema.index({ applicant: 1, job: 1 }, { unique: true })
+JobApplicationSchema.index({ applicant: 1, appliedAt: -1 })
+JobApplicationSchema.index({ job: 1, appliedAt: -1 })

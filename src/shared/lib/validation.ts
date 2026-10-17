@@ -135,7 +135,7 @@ export const CreateJobSchema = z.object({
     z.literal(""),
     z
       .string()
-      .max(200_000, { message: "Logo image is too large. Please choose a smaller image." })
+      .max(100_000, { message: "Logo image is too large. Please choose a smaller image." })
       .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/, {
         message: "Please upload a valid image.",
       }),

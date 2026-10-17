@@ -3,7 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
-import { getJobById } from "@/features/jobs/actions"
+import { getJobById, getJobViewerState } from "@/features/jobs/actions"
 import { JobActions } from "@/features/jobs/components"
 import { auth } from "@/server/auth"
 import { BackButton, Metric } from "@/shared/components/common"
@@ -15,7 +15,11 @@ import { RouteParams } from "@/shared/types"
 
 const JobDetails = async ({ params }: RouteParams) => {
   const { id } = await params
-  const [session, { success, data }] = await Promise.all([auth(), getJobById({ jobId: id })])
+  const [session, { success, data }, viewerState] = await Promise.all([
+    auth(),
+    getJobById({ jobId: id }),
+    getJobViewerState({ jobId: id }),
+  ])
 
   if (!success || !data?.job) redirect("/404")
 
@@ -54,7 +58,12 @@ const JobDetails = async ({ params }: RouteParams) => {
                 View applicants
               </Link>
             ) : (
-              <JobActions jobId={job._id} />
+              <JobActions
+                jobId={job._id}
+                hasApplied={Boolean(viewerState.data?.applied)}
+                hasSaved={Boolean(viewerState.data?.saved)}
+                isAuthenticated={Boolean(session?.user?.id)}
+              />
             )}
           </div>
         </div>

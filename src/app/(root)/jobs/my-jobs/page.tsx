@@ -110,7 +110,7 @@ const SavedJobsList = async ({ params }: { params: ListParams }) => {
                 {...job}
                 extra={
                   <>
-                    <SaveJob jobId={job._id} />
+                    <SaveJob jobId={job._id} initialSaved isAuthenticated />
                     <span className="small-regular text-light400_light500">
                       Saved {getTimeStamp(savedAt)}
                     </span>
