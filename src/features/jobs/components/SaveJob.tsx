@@ -1,50 +1,24 @@
 "use client"
 
 import { Bookmark, Check } from "lucide-react"
-import { useSession } from "next-auth/react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
-import { hasSavedJob, toggleSaveJob } from "@/features/jobs/actions"
+import { toggleSaveJob } from "@/features/jobs/actions"
 
-const SaveJob = ({ jobId }: { jobId: string }) => {
-  const session = useSession()
-  const userId = session.data?.user?.id
+interface SaveJobProps {
+  jobId: string
+  initialSaved: boolean
+  isAuthenticated: boolean
+}
+
+const SaveJob = ({ jobId, initialSaved, isAuthenticated }: SaveJobProps) => {
   const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-  const [isCheckingSaved, setIsCheckingSaved] = useState(true)
-
-  useEffect(() => {
-    if (session.status === "loading") return
-    if (!userId) {
-      setIsSaved(false)
-      setIsCheckingSaved(false)
-      return
-    }
-
-    let isActive = true
-    setIsCheckingSaved(true)
-
-    const loadSavedState = async () => {
-      try {
-        const result = await hasSavedJob({ jobId })
-        if (isActive) setIsSaved(result.success && Boolean(result.data?.saved))
-      } catch {
-        if (isActive) setIsSaved(false)
-      } finally {
-        if (isActive) setIsCheckingSaved(false)
-      }
-    }
-
-    void loadSavedState()
-    return () => {
-      isActive = false
-    }
-  }, [jobId, session.status, userId])
+  const [isSaved, setIsSaved] = useState(initialSaved)
 
   const handleSaveJob = async () => {
-    if (isSaving || isCheckingSaved) return
-    if (!userId) return toast("You must be logged in to save a job.")
+    if (isSaving) return
+    if (!isAuthenticated) return toast("You must be logged in to save a job.")
 
     setIsSaving(true)
     try {
@@ -64,16 +38,6 @@ const SaveJob = ({ jobId }: { jobId: string }) => {
     } finally {
       setIsSaving(false)
     }
-  }
-
-  if (isCheckingSaved) {
-    return (
-      <div
-        role="status"
-        aria-label="Checking saved job"
-        className="min-h-10 animate-pulse rounded-lg bg-light-800 dark:bg-dark-300"
-      />
-    )
   }
 
   return (
