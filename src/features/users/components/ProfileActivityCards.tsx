@@ -7,6 +7,8 @@ import { UserAvatar, RelativeTime } from "@/shared/components/common"
 import ROUTES from "@/shared/constants/route"
 import { formatNumber } from "@/shared/lib/utils"
 
+import DeleteQuestionButton from "./DeleteQuestionButton"
+
 export interface TopQuestion {
   _id: string
   title: string
@@ -97,7 +99,7 @@ interface ProfileQuestionCardProps {
   question: TopQuestion
   isOwnProfile: boolean
   isLoading: boolean
-  onDelete: (questionId: string) => void
+  onDelete: (questionId: string) => Promise<boolean>
   userId: string
   userName: string
   userImage: string
@@ -122,21 +124,18 @@ export const ProfileQuestionCard = ({
       {isOwnProfile && (
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href={`/questions/${question._id}/edit`}
+            href={ROUTES.EDIT_QUESTION(question._id)}
             aria-label={`Edit ${question.title}`}
-            className="rounded p-1.5 text-sky-500 transition hover:bg-sky-500/10"
+            title="Edit question"
+            className="rounded p-1.5 transition hover:bg-sky-500/10"
           >
             <Image src="/icons/edit.svg" alt="" width={16} height={16} />
           </Link>
-          <button
-            type="button"
-            aria-label={`Delete ${question.title}`}
+          <DeleteQuestionButton
+            questionTitle={question.title}
             disabled={isLoading}
-            onClick={() => onDelete(question._id)}
-            className="rounded p-1.5 text-red-500 transition hover:bg-red-500/10 disabled:opacity-50"
-          >
-            <Image src="/icons/trash.svg" alt="" width={16} height={16} />
-          </button>
+            onDelete={() => onDelete(question._id)}
+          />
         </div>
       )}
     </div>

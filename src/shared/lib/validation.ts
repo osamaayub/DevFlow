@@ -95,6 +95,9 @@ export const EditQuestionSchema = AskQuestionSchema.extend({
 export const GetQuestionSchema = z.object({
   questionId: z.string().min(1, { message: "QuestionId is required" })
 })
+export const DeleteQuestionSchema = z.object({
+  questionId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid question ID" })
+})
 export const GetJobSchema = z.object({
   jobId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid job ID" })
 })

@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { use, useOptimistic, useTransition } from "react"
 import { toast } from "sonner"
@@ -24,7 +23,6 @@ export function useVote({
   initialVoteState
 }: VoteParams) {
   const session = useSession()
-  const router = useRouter()
   const userId = session.data?.user?.id
   const [isPending, startTransition] = useTransition()
 
@@ -70,8 +68,8 @@ export function useVote({
           return
         }
 
+        // CreateVote refreshes the current page in its own response, so no router.refresh()
         toast.success(getVoteSuccessMessage(targetType, voteType, before))
-        router.refresh()
       } catch {
         toast.error(getVoteErrorMessage(targetType, voteType))
       }

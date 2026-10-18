@@ -6,14 +6,16 @@ import { cache } from "react";
 
 import { PopulatedTag, processTags, removeTags } from "@/features/tags/tag-helpers"
 import { action } from "@/server/action"
-import { auth } from "@/server/auth";
 import { Answer, Collection, Vote, Question, TagQuestion, Tag } from "@/server/db";
 import dbConnect from "@/server/db/connect";
 import { HandleError } from "@/server/errors/error-handler"
-import { AskQuestionSchema, EditQuestionSchema, GetQuestionSchema, IncrementQuestionViewsSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
+import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
+import ROUTES from "@/shared/constants/route"
+import { AskQuestionSchema, DeleteQuestionSchema, EditQuestionSchema, GetQuestionSchema, IncrementQuestionViewsSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
 import {
   ActionResponse,
   CreateQuestionParams,
+  DeleteQuestionParams,
   EditQuestionParams,
   ErrorResponse,
   GetQuestionParams,
@@ -339,66 +341,76 @@ export async function getHotQuestions(): Promise<ActionResponse<QuestionType[]>>
 }
 
 export async function deleteQuestion(
-  params: { questionId: string }
+  params: DeleteQuestionParams
 ): Promise<ActionResponse> {
-  await dbConnect();
+  const validationResult = await action({
+    params,
+    schema: DeleteQuestionSchema,
+    authorize: true,
+  });
 
+  if (validationResult instanceof Error) {
+    return HandleError(validationResult) as unknown as ErrorResponse;
+  }
+
+  const userId = validationResult.session?.user?.id;
+  if (!userId) return HandleError(new UnauthorizedError()) as unknown as ErrorResponse;
+
+  const { questionId } = validationResult.validatedData;
   const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
-    const { questionId } = params;
-    const sessionAuth = await auth();
-    const userId = sessionAuth?.user?.id;
+    // withTransaction commits on success, aborts on any throw and retries transient errors
+    await session.withTransaction(async () => {
+      const question = await Question.findById(questionId)
+        .select("author tags")
+        .session(session);
 
-    if (!userId) throw new Error("Unauthorized");
+      if (!question) {
+        throw new RequestError("This question no longer exists.", 404);
+      }
 
-    const question = await Question.findById(questionId).session(session);
-    if (!question) throw new Error("Question not found");
+      if (normalizeAuthorId(question.author) !== userId) {
+        throw new RequestError("You can only delete your own questions.", 403);
+      }
 
-    const questionAuthorId = normalizeAuthorId(question.author);
-    if (!questionAuthorId || questionAuthorId !== userId) {
-      throw new Error("You are not authorized to delete this question");
-    }
+      const answerIds = await Answer.find({ question: questionId })
+        .distinct("_id")
+        .session(session);
 
-    await Collection.deleteMany({ question: questionId }).session(session);
-    await TagQuestion.deleteMany({ question: questionId }).session(session);
+      // Operations on one transaction session must run sequentially
+      await Collection.deleteMany({ question: questionId }, { session });
+      await TagQuestion.deleteMany({ question: questionId }, { session });
+      await Vote.deleteMany({ actionId: questionId, actionType: "question" }, { session });
 
-    if (question.tags.length > 0) {
-      await Tag.updateMany(
-        { _id: { $in: question.tags } },
-        { $inc: { questions: -1 } },
-        { session }
-      );
-    }
+      if (answerIds.length > 0) {
+        await Vote.deleteMany(
+          { actionId: { $in: answerIds }, actionType: "answer" },
+          { session }
+        );
+        await Answer.deleteMany({ question: questionId }, { session });
+      }
 
-    await Vote.deleteMany({
-      actionId: questionId,
-      actionType: "question",
-    }).session(session);
+      if (question.tags.length > 0) {
+        await Tag.updateMany(
+          { _id: { $in: question.tags } },
+          { $inc: { questions: -1 } },
+          { session }
+        );
+      }
 
-    const answers = await Answer.find({ question: questionId }).session(session);
+      await Question.deleteOne({ _id: questionId }, { session });
+    });
 
-    if (answers.length > 0) {
-      await Answer.deleteMany({ question: questionId }).session(session);
-
-      await Vote.deleteMany({
-        actionId: { $in: answers.map((answer) => answer._id) },
-        actionType: "answer",
-      }).session(session);
-    }
-
-    await Question.findByIdAndDelete(questionId).session(session);
-
-    await session.commitTransaction();
-
-    revalidatePath(`/profile/${userId}`);
+    revalidatePath(ROUTES.PROFILE(userId));
+    revalidatePath(ROUTES.HOME);
 
     return { success: true };
   } catch (error) {
-    await session.abortTransaction();
-    return HandleError(String(error)) as unknown as ErrorResponse;
+    return HandleError(
+      error instanceof Error ? error : String(error)
+    ) as unknown as ErrorResponse;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 }

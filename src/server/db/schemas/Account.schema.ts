@@ -41,3 +41,7 @@ export const AccountSchema= new Schema({
     }
 
 },{timestamps:true});
+
+// Every sign-in looks an account up by (provider, providerAccountId)
+AccountSchema.index({ provider: 1, providerAccountId: 1 }, { unique: true });
+AccountSchema.index({ userId: 1 });

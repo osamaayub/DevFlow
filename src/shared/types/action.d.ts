@@ -63,6 +63,10 @@ export interface ApplyJobParams extends GetJobParams {
   coverLetter: string
 }
 
+export interface DeleteQuestionParams {
+  questionId: string
+}
+
 export interface GetQuestionParams {
   questionId: string
 }

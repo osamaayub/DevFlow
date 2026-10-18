@@ -1,7 +1,7 @@
 "use server"
 
 import mongoose, { ClientSession } from "mongoose"
-import { revalidatePath } from "next/cache"
+import { refresh, revalidatePath } from "next/cache"
 
 import { action } from "@/server/action"
 import { Vote } from "@/server/db"
@@ -24,13 +24,16 @@ async function revalidateVoteTarget(
   try {
     if (targetType === "question") {
       revalidatePath(ROUTES.QUESTION(targetId))
-      return
+    } else {
+      const answer = await Answer.findById(targetId).select("question").lean<{ question?: unknown }>()
+      if (answer?.question) {
+        revalidatePath(ROUTES.QUESTION(String(answer.question)))
+      }
     }
 
-    const answer = await Answer.findById(targetId).select("question")
-    if (answer?.question) {
-      revalidatePath(ROUTES.QUESTION(String(answer.question)))
-    }
+    // Votes also appear outside the question page (e.g. profile activity). Re-render whatever
+    // page the voter is on inside this same response, instead of a second client round trip.
+    refresh()
   } catch {
     // Revalidation must not fail the vote response after a successful commit.
   }
