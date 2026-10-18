@@ -2,11 +2,10 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 import { getQuestions } from "@/features/questions/actions"
-import { QuestionCard } from "@/features/questions/components"
+import { QuestionFeed } from "@/features/questions/components"
 import { DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
 import HomeFilters from "@/shared/components/filters/HomeFilters"
-import { Pagination } from "@/shared/components/navigation"
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import { Button } from "@/shared/components/ui"
 import { homeFilters } from "@/shared/constants/filter"
@@ -38,9 +37,12 @@ async function Home({ searchParams }: RouteParams) {
     ? filter[0]
     : filter
 
+  const pageNumber = Number(page) || 1
+  const pageSizeNumber = Number(pageSize) || 10
+
   const { success, data, error } = await getQuestions({
-    page: Number(page)|| 1,
-    pageSize: Number(pageSize)|| 10,
+    page: pageNumber,
+    pageSize: pageSizeNumber,
     query: normalizedQuery,
     filter: normalizedFilter
   })
@@ -94,17 +96,18 @@ async function Home({ searchParams }: RouteParams) {
         data={questions}
         empty={EMPTY_QUESTION}
         render={(questions) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
-            {questions.map((question) => (
-              <QuestionCard
-                key={question._id}
-                question={question}
-              />
-            ))}
-          </div>
+          // Keyed by the filters, so a new search or filter starts the list over
+          <QuestionFeed
+            key={`${normalizedQuery ?? ""}|${normalizedFilter ?? ""}|${pageNumber}|${pageSizeNumber}`}
+            initialQuestions={questions}
+            initialHasMore={isNext || false}
+            initialPage={pageNumber}
+            pageSize={pageSizeNumber}
+            query={normalizedQuery}
+            filter={normalizedFilter}
+          />
         )}
       />
-      <Pagination pageNumber={Number(page) || 1} isNext={isNext || false} />
     </>
   )
 }

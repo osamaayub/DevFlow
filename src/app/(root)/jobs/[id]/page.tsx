@@ -59,23 +59,23 @@ const JobDetails = async ({ params }: RouteParams) => {
             <p className="body-regular text-dark400_light500 mt-2">Find your next opportunity with {job.company}.</p>
           </div>
 
-          <div className="w-full sm:w-44 sm:shrink-0">
-            {isOwner ? (
+          {/* Apply, Save and Share show for everyone; the poster also gets View applicants */}
+          <div className="flex w-full flex-col gap-2 sm:w-44 sm:shrink-0">
+            {isOwner && (
               <Link
                 href={ROUTES.JOBS_APPLICANTS(job._id)}
-                className="primary-gradient inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white hover:opacity-90"
+                className="light-border-2 text-dark400_light700 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-5 text-sm font-semibold hover:opacity-80"
               >
                 <Users className="size-4" aria-hidden="true" />
                 View applicants
               </Link>
-            ) : (
-              <JobActions
-                jobId={job._id}
-                hasApplied={Boolean(viewerState.data?.applied)}
-                hasSaved={Boolean(viewerState.data?.saved)}
-                isAuthenticated={Boolean(session?.user?.id)}
-              />
             )}
+            <JobActions
+              jobId={job._id}
+              hasApplied={Boolean(viewerState.data?.applied)}
+              hasSaved={Boolean(viewerState.data?.saved)}
+              isAuthenticated={Boolean(session?.user?.id)}
+            />
           </div>
         </div>
 

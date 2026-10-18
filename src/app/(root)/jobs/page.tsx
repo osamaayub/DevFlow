@@ -2,12 +2,8 @@ import { Plus } from "lucide-react"
 import Link from "next/link"
 
 import { getJobs } from "@/features/jobs/actions"
-import {
-  JobCard,
-  JobSearchControls,
-} from "@/features/jobs/components"
+import { JobFeed, JobSearchControls } from "@/features/jobs/components"
 import { DataRender } from "@/shared/components/common"
-import { Pagination } from "@/shared/components/navigation"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_JOBS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
@@ -17,15 +13,15 @@ const Jobs = async ({ searchParams }: RouteParams) => {
   const resolvedSearchParams = await searchParams
   const { page, pageSize, query, filter, location, category } = resolvedSearchParams || {}
   const pageNumber = Number(page) || 1
-
-  const { success, data, error } = await getJobs({
-    page: pageNumber,
+  const listParams = {
     pageSize: Number(pageSize) || 10,
     query: typeof query === "string" ? query : undefined,
     filter: typeof filter === "string" ? filter : undefined,
     location: typeof location === "string" ? location : undefined,
     category: typeof category === "string" ? category : undefined,
-  })
+  }
+
+  const { success, data, error } = await getJobs({ page: pageNumber, ...listParams })
 
   const { jobs, isNext } = data || {}
 
@@ -51,15 +47,16 @@ const Jobs = async ({ searchParams }: RouteParams) => {
         empty={EMPTY_JOBS}
         error={error}
         render={(jobs) => (
-          <div className="mt-8 flex flex-col gap-5 sm:mt-12 sm:gap-8">
-            {jobs.map((job) => (
-              <JobCard key={job._id} {...job} />
-            ))}
-          </div>
+          // Keyed by the filters, so a new search or filter starts the list over
+          <JobFeed
+            key={JSON.stringify({ pageNumber, ...listParams })}
+            initialJobs={jobs}
+            initialHasMore={isNext || false}
+            initialPage={pageNumber}
+            {...listParams}
+          />
         )}
       />
-
-      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </div>
   )
 }
