@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import Link from "next/link"
 
 import { getJobs } from "@/features/jobs/actions"
@@ -34,13 +34,6 @@ const Jobs = async ({ searchParams }: RouteParams) => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="h1-bold text-dark100_light900">Jobs</h1>
         <div className="flex items-center gap-3">
-          <Link
-            href={ROUTES.MY_JOBS}
-            className="body-semibold light-border text-dark400_light700 inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 transition-colors hover:text-primary-500"
-          >
-            <BriefcaseBusiness className="size-4" aria-hidden="true" />
-            My Jobs
-          </Link>
           <Link
             href={ROUTES.JOBS_NEW}
             className="body-semibold primary-gradient inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-light-900 transition-opacity hover:opacity-90"

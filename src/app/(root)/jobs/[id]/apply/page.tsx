@@ -42,13 +42,13 @@ const ApplyToJob = async ({ params }: RouteParams) => {
               <CheckCircle2 className="size-12 text-green-500" aria-hidden="true" />
               <h2 className="h3-semibold text-dark200_light900">You&apos;ve already applied</h2>
               <p className="body-regular text-dark400_light500 max-w-md">
-                Your application for {job.title} has been submitted. You can track its status in My Jobs.
+                Your application for {job.title} has been submitted.
               </p>
               <Link
-                href={`${ROUTES.MY_JOBS}?tab=applied`}
+                href={ROUTES.JOBS_DETAILS(job._id)}
                 className="primary-gradient body-semibold mt-2 rounded-lg px-6 py-3 text-light-900"
               >
-                View my applications
+                Back to job
               </Link>
             </div>
           ) : (

@@ -47,6 +47,8 @@ export interface CreateJobParams {
   description: string
 }
 
+export interface EditJobParams extends CreateJobParams, GetJobParams {}
+
 export interface UpdateApplicationStatusParams {
   applicationId: string
   status: "submitted" | "reviewing" | "accepted" | "rejected"

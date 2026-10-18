@@ -5,13 +5,8 @@ import mongoose from "mongoose"
 import { revalidatePath, unstable_cache, updateTag } from "next/cache"
 import { z } from "zod"
 
-import type {
-  AppliedJob,
-  Job,
-  JobApplicant,
-  PostedJob,
-  SavedJobItem,
-} from "@/features/jobs/types"
+import type { Job, JobApplicant } from "@/features/jobs/types"
+import { canManageJob } from "@/features/jobs/utils"
 import { action } from "@/server/action"
 import { auth } from "@/server/auth"
 import {
@@ -28,6 +23,7 @@ import ROUTES from "@/shared/constants/route"
 import {
   ApplyJobSchema,
   CreateJobSchema,
+  EditJobSchema,
   GetJobSchema,
   paginatedSearchParamsSchema,
   UpdateApplicationStatusSchema,
@@ -36,6 +32,7 @@ import {
   ActionResponse,
   ApplyJobParams,
   CreateJobParams,
+  EditJobParams,
   ErrorResponse,
   GetJobParams,
   GetJobsParams,
@@ -56,8 +53,6 @@ const jobSearchParamsSchema = paginatedSearchParamsSchema.merge(boundedPageSchem
   query: z.string().max(100).optional(),
 })
 
-const myJobsParamsSchema = boundedPageSchema
-
 const jobApplicantsParamsSchema = GetJobSchema.merge(boundedPageSchema)
 
 const JOB_FILTERS_TAG = "job-filter-options"
@@ -74,9 +69,6 @@ const JOB_LIST_PROJECTION = {
   postedDate: 1,
   description: { $substrCP: [{ $ifNull: ["$description", ""] }, 0, 300] },
 } as const
-
-const JOB_POPULATE_SELECT =
-  "title company companyLogo category description employmentType salaryRange location postedDate"
 
 type JobSortCriteria = Record<string, 1 | -1>
 
@@ -312,7 +304,6 @@ export async function toggleSaveJob(
     }
 
     revalidatePath(ROUTES.JOBS_DETAILS(jobId))
-    revalidatePath(ROUTES.MY_JOBS)
     return { success: true, data: { saved } }
   } catch (error) {
     return handleActionError(error)
@@ -371,7 +362,6 @@ export async function applyToJob(
     })
 
     revalidatePath(ROUTES.JOBS_DETAILS(jobId))
-    revalidatePath(ROUTES.MY_JOBS)
     return {
       success: true,
       data: { applied: true, alreadyApplied: false },
@@ -384,92 +374,6 @@ export async function applyToJob(
       }
     }
 
-    return handleActionError(error)
-  }
-}
-
-export async function getAppliedJobs(
-  params: Pick<PaginatedSearchParams, "page" | "pageSize">
-): Promise<ActionResponse<{ applications: AppliedJob[]; isNext: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: myJobsParamsSchema,
-    authorize: true,
-  })
-
-  if (validationResult instanceof Error) return handleActionError(validationResult)
-
-  const userId = validationResult.session?.user?.id
-  if (!userId) return handleActionError(new UnauthorizedError())
-
-  const { page = 1, pageSize = 10 } = validationResult.validatedData
-  const skip = (page - 1) * pageSize
-
-  try {
-    const applications = await JobApplication.find({ applicant: userId })
-      .sort({ appliedAt: -1 })
-      .skip(skip)
-      .limit(pageSize + 1)
-      .select("job status appliedAt")
-      .populate("job", JOB_POPULATE_SELECT)
-      .lean()
-
-    const items = applications
-      .slice(0, pageSize)
-      .filter((application) => application.job)
-      .map(({ _id, job, status, appliedAt }) => ({ _id, job, status, appliedAt }))
-
-    return {
-      success: true,
-      data: toPlain({
-        applications: items,
-        isNext: applications.length > pageSize,
-      }),
-    }
-  } catch (error) {
-    return handleActionError(error)
-  }
-}
-
-export async function getSavedJobs(
-  params: Pick<PaginatedSearchParams, "page" | "pageSize">
-): Promise<ActionResponse<{ savedJobs: SavedJobItem[]; isNext: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: myJobsParamsSchema,
-    authorize: true,
-  })
-
-  if (validationResult instanceof Error) return handleActionError(validationResult)
-
-  const userId = validationResult.session?.user?.id
-  if (!userId) return handleActionError(new UnauthorizedError())
-
-  const { page = 1, pageSize = 10 } = validationResult.validatedData
-  const skip = (page - 1) * pageSize
-
-  try {
-    const savedJobs = await SavedJob.find({ author: userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(pageSize + 1)
-      .select("job createdAt")
-      .populate("job", JOB_POPULATE_SELECT)
-      .lean<Array<{ _id: mongoose.Types.ObjectId; job: Job | null; createdAt: Date }>>()
-
-    const items = savedJobs
-      .slice(0, pageSize)
-      .filter((savedJob) => savedJob.job)
-      .map(({ _id, job, createdAt }) => ({ _id, job, savedAt: createdAt }))
-
-    return {
-      success: true,
-      data: toPlain({
-        savedJobs: items,
-        isNext: savedJobs.length > pageSize,
-      }),
-    }
-  } catch (error) {
     return handleActionError(error)
   }
 }
@@ -497,7 +401,6 @@ export async function createJob(
 
     updateTag(JOB_FILTERS_TAG)
     revalidatePath(ROUTES.JOBS)
-    revalidatePath(ROUTES.MY_JOBS)
     return {
       success: true,
       data: toPlain({ job }),
@@ -507,12 +410,12 @@ export async function createJob(
   }
 }
 
-export async function getPostedJobs(
-  params: Pick<PaginatedSearchParams, "page" | "pageSize">
-): Promise<ActionResponse<{ jobs: PostedJob[]; isNext: boolean }>> {
+export async function editJob(
+  params: EditJobParams
+): Promise<ActionResponse<{ job: Job }>> {
   const validationResult = await action({
     params,
-    schema: myJobsParamsSchema,
+    schema: EditJobSchema,
     authorize: true,
   })
 
@@ -521,36 +424,61 @@ export async function getPostedJobs(
   const userId = validationResult.session?.user?.id
   if (!userId) return handleActionError(new UnauthorizedError())
 
-  const { page = 1, pageSize = 10 } = validationResult.validatedData
-  const skip = (page - 1) * pageSize
+  const { jobId, ...updates } = validationResult.validatedData
 
   try {
-    const results = await JobModel.aggregate([
-      { $match: { postedBy: new mongoose.Types.ObjectId(String(userId)) } },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: pageSize + 1 },
-      { $project: JOB_LIST_PROJECTION },
-    ])
-    const jobs = results.slice(0, pageSize)
+    const job = await JobModel.findById(jobId)
+    if (!job) throw new NotFoundError()
+    if (!canManageJob(job.postedBy, userId)) throw new ForbiddenError()
 
-    // Counts are computed from the (job, appliedAt) index for just this page of jobs
-    const counts = await JobApplication.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
-      { $match: { job: { $in: jobs.map((job) => job._id) } } },
-      { $group: { _id: "$job", count: { $sum: 1 } } },
-    ])
-    const countByJob = new Map(counts.map(({ _id, count }) => [String(_id), count]))
+    // save() rather than updateOne() so the pre-save hook keeps salaryMin/salaryMax in sync
+    job.set(updates)
+    await job.save()
 
+    updateTag(JOB_FILTERS_TAG)
+    revalidatePath(ROUTES.JOBS)
+    revalidatePath(ROUTES.JOBS_DETAILS(jobId))
     return {
       success: true,
-      data: toPlain({
-        jobs: jobs.map((job) => ({
-          ...job,
-          applicantCount: countByJob.get(String(job._id)) ?? 0,
-        })),
-        isNext: results.length > pageSize,
-      }),
+      data: toPlain({ job }),
     }
+  } catch (error) {
+    return handleActionError(error)
+  }
+}
+
+export async function deleteJob(
+  params: GetJobParams
+): Promise<ActionResponse<{ deleted: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: GetJobSchema,
+    authorize: true,
+  })
+
+  if (validationResult instanceof Error) return handleActionError(validationResult)
+
+  const userId = validationResult.session?.user?.id
+  if (!userId) return handleActionError(new UnauthorizedError())
+
+  const { jobId } = validationResult.validatedData
+
+  try {
+    const job = await JobModel.findById(jobId).select("postedBy").lean<Pick<IJob, "postedBy">>()
+    if (!job) throw new NotFoundError()
+    if (!canManageJob(job.postedBy, userId)) throw new ForbiddenError()
+
+    // Remove the job first so no new applications or saves can attach to it, then clean up
+    await JobModel.deleteOne({ _id: jobId })
+    await Promise.all([
+      JobApplication.deleteMany({ job: jobId }),
+      SavedJob.deleteMany({ job: jobId }),
+    ])
+
+    updateTag(JOB_FILTERS_TAG)
+    revalidatePath(ROUTES.JOBS)
+    revalidatePath(ROUTES.JOBS_DETAILS(jobId))
+    return { success: true, data: { deleted: true } }
   } catch (error) {
     return handleActionError(error)
   }
@@ -634,41 +562,7 @@ export async function updateApplicationStatus(
     await JobApplication.updateOne({ _id: applicationId }, { $set: { status } })
 
     revalidatePath(ROUTES.JOBS_APPLICANTS(String(application.job)))
-    revalidatePath(ROUTES.MY_JOBS)
     return { success: true, data: { status } }
-  } catch (error) {
-    return handleActionError(error)
-  }
-}
-
-export async function withdrawApplication(
-  params: GetJobParams
-): Promise<ActionResponse<{ withdrawn: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: GetJobSchema,
-    authorize: true,
-  })
-
-  if (validationResult instanceof Error) return handleActionError(validationResult)
-
-  const userId = validationResult.session?.user?.id
-  if (!userId) return handleActionError(new UnauthorizedError())
-
-  const { jobId } = validationResult.validatedData
-
-  try {
-    const removed = await JobApplication.findOneAndDelete({
-      job: jobId,
-      applicant: userId,
-      status: { $in: ["submitted", "reviewing"] },
-    })
-    if (!removed) throw new NotFoundError()
-
-    revalidatePath(ROUTES.MY_JOBS)
-    revalidatePath(ROUTES.JOBS_DETAILS(jobId))
-    revalidatePath(ROUTES.JOBS_APPLICANTS(jobId))
-    return { success: true, data: { withdrawn: true } }
   } catch (error) {
     return handleActionError(error)
   }
