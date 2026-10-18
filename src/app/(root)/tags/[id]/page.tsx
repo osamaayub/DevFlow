@@ -1,10 +1,10 @@
-import { QuestionCard } from "@/features/questions/components"
+import { QuestionFeed } from "@/features/questions/components"
 import { getTagQuestions } from "@/features/tags/actions"
 import { BackButton, DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
-import { Pagination } from "@/shared/components/navigation";
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar";
 import { TagFilters } from "@/shared/constants/filter"
+import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import ROUTES from "@/shared/constants/route";
 import { EMPTY_QUESTION } from "@/shared/constants/states";
 import { RouteParams, Question } from "@/shared/types";
@@ -15,13 +15,16 @@ const Page = async ({ params, searchParams }: RouteParams) => {
   const resolvedSearchParams = await searchParams
   const { page, pageSize, query, filter } = resolvedSearchParams || {};
   const pageNumber = Number(page) || 1;
+  const pageSizeNumber = Number(pageSize) || QUESTIONS_PER_PAGE;
+  const queryValue = typeof query === "string" ? query : undefined;
+  const filterValue = typeof filter === "string" ? filter : undefined;
 
   const { success, data, error } = await getTagQuestions({
     tagId: id,
     page: pageNumber,
-    pageSize: Number(pageSize) || 10,
-    query: typeof query === "string" ? query : undefined,
-    filter: typeof filter === "string" ? filter : undefined,
+    pageSize: pageSizeNumber,
+    query: queryValue,
+    filter: filterValue,
   });
 
   const { tag, questions,isNext } = data || {};
@@ -59,14 +62,16 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         data={questions as unknown as Question[] | undefined}
         empty={EMPTY_QUESTION}
         render={(questions: Question[]) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
-            {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
-            ))}
-          </div>
+          <QuestionFeed
+            key={`${id}|${queryValue ?? ""}|${filterValue ?? ""}|${pageNumber}|${pageSizeNumber}`}
+            source={{ kind: "tag", tagId: id, query: queryValue, filter: filterValue }}
+            initialQuestions={questions}
+            initialHasMore={isNext || false}
+            initialPage={pageNumber}
+            pageSize={pageSizeNumber}
+          />
         )}
       />
-      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 };

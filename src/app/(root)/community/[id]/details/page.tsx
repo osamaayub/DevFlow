@@ -2,16 +2,18 @@ import { notFound } from "next/navigation"
 
 import { getCommunityMember } from "@/features/community/actions"
 import { CommunityMemberProfile } from "@/features/community/components"
+import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import { RouteParams } from "@/shared/types"
 
 const CommunityMemberDetailsPage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params
   const { page, pageSize } = (await searchParams) || {}
   const pageNumber = Number(page) || 1
+  const pageSizeNumber = Number(pageSize) || QUESTIONS_PER_PAGE
   const result = await getCommunityMember({
     userId: id,
     page: pageNumber,
-    pageSize: Number(pageSize) || 10,
+    pageSize: pageSizeNumber,
   })
 
   if (!result.success) {
@@ -31,6 +33,7 @@ const CommunityMemberDetailsPage = async ({ params, searchParams }: RouteParams)
       user={user}
       questions={questions}
       pageNumber={pageNumber}
+      pageSize={pageSizeNumber}
       isNext={isNext}
     />
   )
