@@ -1,5 +1,6 @@
 "use client"
 
+import { LoadMoreButton } from "@/shared/components/common"
 import { Pagination } from "@/shared/components/navigation/Pagination"
 
 import type { TopAnswer, TopQuestion } from "./ProfileActivityCards"
@@ -44,6 +45,7 @@ const ProfileActivity = ({
     error,
     handleTabChange,
     handlePageChange,
+    loadMoreQuestions,
     removeQuestion,
   } = useProfileActivity({
     userId,
@@ -81,12 +83,22 @@ const ProfileActivity = ({
 
         <ProfileActivityError error={error} />
 
-        {currentItems.length > 0 && (
-          <Pagination
-            pageNumber={page}
-            isNext={hasMore}
-            onPageChange={handlePageChange}
+        {/* Top Posts load more in place; Answers keep Prev/Next */}
+        {isQuestionActivity ? (
+          <LoadMoreButton
+            hasMore={hasMoreQuestions}
+            isLoading={isLoading}
+            onLoadMore={loadMoreQuestions}
+            label="Load more posts"
           />
+        ) : (
+          currentItems.length > 0 && (
+            <Pagination
+              pageNumber={page}
+              isNext={hasMore}
+              onPageChange={handlePageChange}
+            />
+          )
         )}
 
         <span className="sr-only" aria-live="polite">

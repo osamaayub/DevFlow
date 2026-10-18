@@ -9,6 +9,7 @@ import HomeFilters from "@/shared/components/filters/HomeFilters"
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import { Button } from "@/shared/components/ui"
 import { homeFilters } from "@/shared/constants/filter"
+import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_QUESTION } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
@@ -38,7 +39,8 @@ async function Home({ searchParams }: RouteParams) {
     : filter
 
   const pageNumber = Number(page) || 1
-  const pageSizeNumber = Number(pageSize) || 10
+  // Show 3 questions first; "Load more" appends 3 at a time
+  const pageSizeNumber = Number(pageSize) || QUESTIONS_PER_PAGE
 
   const { success, data, error } = await getQuestions({
     page: pageNumber,
@@ -99,12 +101,11 @@ async function Home({ searchParams }: RouteParams) {
           // Keyed by the filters, so a new search or filter starts the list over
           <QuestionFeed
             key={`${normalizedQuery ?? ""}|${normalizedFilter ?? ""}|${pageNumber}|${pageSizeNumber}`}
+            source={{ kind: "all", query: normalizedQuery, filter: normalizedFilter }}
             initialQuestions={questions}
             initialHasMore={isNext || false}
             initialPage={pageNumber}
             pageSize={pageSizeNumber}
-            query={normalizedQuery}
-            filter={normalizedFilter}
           />
         )}
       />

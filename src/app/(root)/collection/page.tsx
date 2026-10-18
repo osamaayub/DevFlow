@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation"
 
 import { getSaveQuestions } from "@/features/collections/actions"
-import { QuestionCard } from "@/features/questions/components"
+import { QuestionFeed } from "@/features/questions/components"
 import { auth } from "@/server/auth"
 import { BackButton, DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
-import { Pagination } from "@/shared/components/navigation"
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import { CollectionFilters } from "@/shared/constants/filter"
+import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_COLLECTIONS } from "@/shared/constants/states"
 import { Question as QuestionType, RouteParams } from "@/shared/types"
@@ -22,13 +22,17 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
 
   const { page, pageSize, query, filter, tag } = (await searchParams) || {}
   const pageNumber = Number(page) || 1
-
-  const { success, data, error } = await getSaveQuestions({
-    page: pageNumber,
-    pageSize: Number(pageSize) || 10,
+  const pageSizeNumber = Number(pageSize) || QUESTIONS_PER_PAGE
+  const listFilters = {
     query: typeof query === "string" ? query : "",
     filter: typeof filter === "string" ? filter : "",
     tag: typeof tag === "string" ? tag : "",
+  }
+
+  const { success, data, error } = await getSaveQuestions({
+    page: pageNumber,
+    pageSize: pageSizeNumber,
+    ...listFilters,
   })
 
   const { questions, isNext } = data || {}
@@ -61,19 +65,17 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
         empty={EMPTY_COLLECTIONS}
         error={error}
         render={(savedQuestions) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
-            {savedQuestions.map((question) => (
-              <QuestionCard
-                key={question._id}
-                question={question}
-                showSavedIcon
-              />
-            ))}
-          </div>
+          <QuestionFeed
+            key={JSON.stringify({ pageNumber, pageSizeNumber, ...listFilters })}
+            source={{ kind: "saved", ...listFilters }}
+            initialQuestions={savedQuestions}
+            initialHasMore={isNext || false}
+            initialPage={pageNumber}
+            pageSize={pageSizeNumber}
+            showSavedIcon
+          />
         )}
       />
-
-      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 }
