@@ -2,6 +2,9 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Prerender a static shell for every route and stream request-time parts behind Suspense
+  cacheComponents: true,
+  partialPrefetching: true,
   images: {
     remotePatterns: [
       {

@@ -4,7 +4,6 @@ import "./globals.css"
 import { ReactNode } from "react"
 
 import { Providers } from "@/app/Providers"
-import { auth } from "@/server/auth"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,9 +26,10 @@ export const metadata: Metadata = {
   }
 }
 
-const RootLayout = async ({ children }: { children: ReactNode }) => {
-  const session = await auth()
-
+// No session read here: a request-time read at the top of the root layout would block the
+// whole app. Client components get the session from SessionProvider; server components
+// call auth() inside their own Suspense boundary.
+const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -40,7 +40,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
         />
       </head>
       <body className={`${inter.className} ${spaceGrotesk.variable} antialiased`}>
-        <Providers session={session}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

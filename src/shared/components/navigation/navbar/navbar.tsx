@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { Suspense } from "react"
 
 
 import { auth } from "@/server/auth"
@@ -9,10 +10,24 @@ import { Theme } from "@/shared/components/navigation"
 import MobileNavigation from "./MobileNavigation"
 
 
-export async function Navbar() {
+// Reads the session, so it streams in behind the Suspense boundary in Navbar
+async function NavbarUser() {
   const session = await auth()
   const user = session?.user
 
+  return (
+    <>
+      {user?.id && user.name && (
+        <UserAvatar id={user.id} name={user.name} image={user.image} className="size-9" />
+      )}
+
+      <MobileNavigation userId={user?.id} />
+    </>
+  )
+}
+
+// Static, so it prerenders into the shell and shows instantly on every page
+export function Navbar() {
   return (
     <nav className="flex-between background-light900_dark200 fixed z-50 w-full p-4 shadow-light-300 dark:shadow-none sm:px-12">
       <Link href="/" className="flex items-center gap-1">
@@ -25,11 +40,9 @@ export async function Navbar() {
       <div className="flex-between gap-5">
         <Theme />
 
-        {user?.id && user.name && (
-          <UserAvatar id={user.id} name={user.name} image={user.image} className="size-9" />
-        )}
-
-        <MobileNavigation userId={user?.id} />
+        <Suspense fallback={<MobileNavigation />}>
+          <NavbarUser />
+        </Suspense>
       </div>
     </nav>
   )

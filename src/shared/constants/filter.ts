@@ -140,7 +140,7 @@ export const questions: Question[] = [
     downvotes: 2,
     answers: 5,
     views: 100,
-    createdAt: new Date()
+    createdAt: new Date("2021-10-01")
   },
   {
     _id: "2",

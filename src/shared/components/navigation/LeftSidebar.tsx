@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import React from "react"
+import React, { Suspense } from "react"
 
 import { auth, signOut } from "@/server/auth"
 import ROUTES from "@/shared/constants/route"
@@ -12,12 +12,13 @@ import NavLinks from "./navbar/NavLinks"
 
 
 
-const LeftSidebar = async () => {
+// Reads the session, so it renders behind the Suspense boundary in LeftSidebar
+const LeftSidebarContent = async () => {
   const session = await auth()
   const userId = session?.user?.id
 
   return (
-    <section className="custom-scrollbar background-light900_dark200 light-border sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto border-r p-6 pt-36 shadow-light-300 dark:shadow-none max-sm:hidden lg:w-[266px]">
+    <>
       <div className="flex flex-1 flex-col gap-6">
         <NavLinks userId={userId} hideProfile={Boolean(userId)} />
       </div>
@@ -72,8 +73,26 @@ const LeftSidebar = async () => {
           </>
         )}
       </div>
-    </section>
+    </>
   )
 }
+
+// Placeholder rows while the session streams in. A fallback renders outside its own
+// boundary, so it can't use NavLinks (which reads the current path at request time).
+const LeftSidebarFallback = () => (
+  <div className="flex flex-1 flex-col gap-6" aria-hidden="true">
+    {Array.from({ length: 6 }, (_, index) => (
+      <div key={index} className="background-light800_dark300 h-11 animate-pulse rounded-lg" />
+    ))}
+  </div>
+)
+
+const LeftSidebar = () => (
+  <section className="custom-scrollbar background-light900_dark200 light-border sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto border-r p-6 pt-36 shadow-light-300 dark:shadow-none max-sm:hidden lg:w-[266px]">
+    <Suspense fallback={<LeftSidebarFallback />}>
+      <LeftSidebarContent />
+    </Suspense>
+  </section>
+)
 
 export default LeftSidebar

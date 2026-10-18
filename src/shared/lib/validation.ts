@@ -198,11 +198,12 @@ export const GetCommunityMemberSchema = GetUserSchema.extend({
   pageSize: z.number().int().positive().default(10),
 })
 
+// Server actions are public endpoints, so list inputs are bounded
 export const paginatedSearchParamsSchema = z.object({
-  page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(10),
-  query: z.string().optional(),
-  filter: z.string().optional(),
+  page: z.number().int().positive().max(10_000).default(1),
+  pageSize: z.number().int().positive().max(50).default(10),
+  query: z.string().trim().max(100).optional(),
+  filter: z.string().max(30).optional(),
   tag: z.string().optional(),
   sort: z.string().optional()
 })

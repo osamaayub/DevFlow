@@ -41,7 +41,8 @@ export function useVote({
   )
 
   const handleVote = (voteType: VoteKind) => {
-    if (!userId) {
+    // While the session is still loading, let the server decide (CreateVote checks auth)
+    if (session.status === "unauthenticated" || (session.status === "authenticated" && !userId)) {
       toast.error(getSignInToVoteMessage(targetType, voteType))
       return
     }

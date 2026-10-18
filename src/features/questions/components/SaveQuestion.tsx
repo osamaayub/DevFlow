@@ -51,7 +51,7 @@ const SaveQuestion = ({
 
 
     const handleSaveQuestion = async () => {
-        if (isSaving) return;
+        if (isSaving || session.status === "loading") return;
         if (!userId) return toast("You must be logged in to save a question.");
 
         setIsSaving(true);

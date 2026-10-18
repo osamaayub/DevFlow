@@ -64,6 +64,7 @@ export const dbConnect = async (): Promise<Mongoose> => {
   return cached.conn;
 };
 
+
 // For NextAuth MongoDBAdapter
 const createClientPromise = async (): Promise<MongoClient> => {
   const client = new MongoClient(getMongoUri());

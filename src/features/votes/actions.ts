@@ -1,9 +1,10 @@
 "use server"
 
 import mongoose, { ClientSession } from "mongoose"
-import { refresh, revalidatePath } from "next/cache"
+import { refresh, revalidatePath, updateTag } from "next/cache"
 
 import { action } from "@/server/action"
+import { CACHE_TAGS } from "@/server/cache-tags"
 import { Vote } from "@/server/db"
 import { Question, Answer } from "@/server/db"
 import { HandleError } from "@/server/errors/error-handler"
@@ -23,6 +24,8 @@ async function revalidateVoteTarget(
 ): Promise<void> {
   try {
     if (targetType === "question") {
+      // Question upvotes drive the "popular" and "recommended" list order
+      updateTag(CACHE_TAGS.questions)
       revalidatePath(ROUTES.QUESTION(targetId))
     } else {
       const answer = await Answer.findById(targetId).select("question").lean<{ question?: unknown }>()

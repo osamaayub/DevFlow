@@ -18,3 +18,7 @@ export const CollectionSchema = new Schema({
         required:true
     }
 }, { timestamps: true })
+
+// Saved-question lookups for a user, and cleanup by question
+CollectionSchema.index({ author: 1, question: 1 })
+CollectionSchema.index({ question: 1 })

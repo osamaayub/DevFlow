@@ -20,3 +20,7 @@ export const AnswerSchema = new Schema({
 },{timestamps:true})
 
 AnswerSchema.index({ author: 1, upvotes: -1, createdAt: -1 })
+
+// Answers on a question page, newest or most voted first
+AnswerSchema.index({ question: 1, createdAt: -1 })
+AnswerSchema.index({ question: 1, upvotes: -1 })

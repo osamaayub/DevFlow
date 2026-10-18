@@ -12,4 +12,7 @@ export const TagSchema=new Schema({
   name:{type:String,required:true,unique:true},
   questions:{type:Number,default:0}
 
-},{timestamps:true})              
+},{timestamps:true})
+
+// Popular tags (sidebar, tags page default sort)
+TagSchema.index({ questions: -1, name: 1 })
