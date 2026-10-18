@@ -66,7 +66,7 @@ const JobApplyForm = ({ jobId, defaultName = "", defaultEmail = "" }: JobApplyFo
           ? "You have already applied for this job."
           : "Application submitted successfully!"
       )
-      router.push(`${ROUTES.MY_JOBS}?tab=applied`)
+      router.push(ROUTES.JOBS_DETAILS(jobId))
     })
   }
 

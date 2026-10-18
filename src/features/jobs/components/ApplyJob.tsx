@@ -15,13 +15,10 @@ interface ApplyJobProps {
 const ApplyJob = ({ jobId, hasApplied, isAuthenticated }: ApplyJobProps) => {
   if (hasApplied) {
     return (
-      <Link
-        href={`${ROUTES.MY_JOBS}?tab=applied`}
-        className={`${buttonClasses} background-light800_dark300 text-dark400_light700 hover:opacity-90`}
-      >
+      <span className={`${buttonClasses} background-light800_dark300 text-dark400_light700`}>
         <CheckCircle2 className="size-4 text-green-500" aria-hidden="true" />
         Applied
-      </Link>
+      </span>
     )
   }
 

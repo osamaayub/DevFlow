@@ -29,7 +29,7 @@ const JobApplicants = async ({ params, searchParams }: RouteParams) => {
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <BackButton href={`${ROUTES.MY_JOBS}?tab=posted`} />
+      <BackButton href={ROUTES.JOBS_DETAILS(id)} />
 
       <h1 className="h1-bold text-dark100_light900 mt-2">Applicants</h1>
       {data?.job && (

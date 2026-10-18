@@ -15,7 +15,7 @@ const PostJob = async () => {
 
       <h1 className="h1-bold text-dark100_light900 mt-2">Post a Job</h1>
       <p className="body-regular text-dark400_light500 mt-2">
-        Share an opening with the DevFlow community. Applications will appear under My Jobs → Posted.
+        Share an opening with the DevFlow community. You can view applicants from the job&apos;s page.
       </p>
 
       <section className="background-light900_dark200 light-border mt-8 rounded-2xl border p-5 sm:p-8">

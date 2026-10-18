@@ -162,6 +162,7 @@ export const CreateJobSchema = z.object({
     .min(50, { message: "Description must be at least 50 characters." })
     .max(5000, { message: "Description cannot exceed 5000 characters." }),
 })
+export const EditJobSchema = GetJobSchema.merge(CreateJobSchema)
 export const UpdateApplicationStatusSchema = z.object({
   applicationId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid application ID" }),
   status: z.enum(JOB_APPLICATION_STATUSES),

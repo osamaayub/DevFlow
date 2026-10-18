@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { createJob } from "@/features/jobs/actions"
+import { createJob, editJob } from "@/features/jobs/actions"
+import type { Job } from "@/features/jobs/types"
 import {
   Button,
   Form,
@@ -40,20 +41,28 @@ const inputClasses =
 
 const Required = () => <span className="text-primary-500">*</span>
 
-const JobForm = () => {
+interface JobFormProps {
+  job?: Job
+  isEdit?: boolean
+}
+
+const isEmploymentType = (value?: string): value is JobFormValues["employmentType"] =>
+  (JOB_EMPLOYMENT_TYPES as readonly string[]).includes(value ?? "")
+
+const JobForm = ({ job, isEdit = false }: JobFormProps) => {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const form = useForm<JobFormValues>({
     resolver: zodResolver(CreateJobSchema),
     defaultValues: {
-      title: "",
-      company: "",
-      companyLogo: "",
-      category: "",
-      employmentType: "Full-time",
-      location: "",
-      salaryRange: "",
-      description: "",
+      title: job?.title ?? "",
+      company: job?.company ?? "",
+      companyLogo: job?.companyLogo ?? "",
+      category: job?.category ?? "",
+      employmentType: isEmploymentType(job?.employmentType) ? job.employmentType : "Full-time",
+      location: job?.location ?? "",
+      salaryRange: job?.salaryRange ?? "",
+      description: job?.description ?? "",
     },
   })
 
@@ -61,14 +70,15 @@ const JobForm = () => {
 
   const handleSubmit = (values: JobFormValues) => {
     startTransition(async () => {
-      const result = await createJob(values)
+      const result =
+        isEdit && job ? await editJob({ jobId: job._id, ...values }) : await createJob(values)
 
       if (!result.success || !result.data) {
-        toast.error(result.error?.message || "Could not post this job.")
+        toast.error(result.error?.message || (isEdit ? "Could not update this job." : "Could not post this job."))
         return
       }
 
-      toast.success("Job posted successfully!")
+      toast.success(isEdit ? "Job updated successfully!" : "Job posted successfully!")
       router.push(ROUTES.JOBS_DETAILS(result.data.job._id))
     })
   }
@@ -236,7 +246,7 @@ const JobForm = () => {
             type="button"
             variant="outline"
             disabled={isPending}
-            onClick={() => router.push(ROUTES.JOBS)}
+            onClick={() => router.push(isEdit && job ? ROUTES.JOBS_DETAILS(job._id) : ROUTES.JOBS)}
             className="light-border-2 text-dark400_light700 min-h-12 px-6"
           >
             Cancel
@@ -249,8 +259,10 @@ const JobForm = () => {
             {isPending ? (
               <>
                 <LoaderIcon className="size-4 animate-spin" aria-hidden="true" />
-                Posting…
+                {isEdit ? "Saving…" : "Posting…"}
               </>
+            ) : isEdit ? (
+              "Save changes"
             ) : (
               "Post job"
             )}

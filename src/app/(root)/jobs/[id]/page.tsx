@@ -4,7 +4,8 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { getJobById, getJobViewerState } from "@/features/jobs/actions"
-import { JobActions } from "@/features/jobs/components"
+import { JobActions, JobEditDeleteActions } from "@/features/jobs/components"
+import { canManageJob } from "@/features/jobs/utils"
 import { auth } from "@/server/auth"
 import { BackButton, Metric } from "@/shared/components/common"
 import { Badge } from "@/shared/components/ui/badge"
@@ -25,6 +26,7 @@ const JobDetails = async ({ params }: RouteParams) => {
 
   const job = data.job
   const isOwner = Boolean(session?.user?.id && job.postedBy && String(job.postedBy) === String(session.user.id))
+  const canManage = canManageJob(job.postedBy, session?.user?.id)
   return (
     <main className="mx-auto w-full max-w-5xl">
       <BackButton href={ROUTES.JOBS} />
@@ -41,6 +43,15 @@ const JobDetails = async ({ params }: RouteParams) => {
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
+              {canManage && (
+                <div className="order-last ml-auto">
+                  <JobEditDeleteActions
+                    jobId={job._id}
+                    title={job.title}
+                    redirectTo={ROUTES.JOBS}
+                  />
+                </div>
+              )}
               <Badge className="background-light800_dark300 text-dark400_light700 rounded-md border-0 px-2.5 py-1 text-[10px] font-semibold tracking-wide">{job.category}</Badge>
               <span className="small-regular text-dark400_light500">{job.company}</span>
             </div>
