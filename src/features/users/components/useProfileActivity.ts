@@ -214,23 +214,18 @@ export const useProfileActivity = ({
     }
   }
 
-  const removeQuestion = async (questionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) {
-      return
-    }
-
+  /** Deletes a question after the user confirms it. Resolves to true on success. */
+  const removeQuestion = async (questionId: string): Promise<boolean> => {
     if (!beginRequest()) {
-      return
+      return false
     }
 
     try {
       const result = await deleteQuestion({ questionId })
 
       if (!result.success) {
-        const message = result.error?.message ?? "Failed to delete this post."
-        setActivityError("questions", message)
-        toast.error(message)
-        return
+        toast.error(result.error?.message ?? "Failed to delete this question.")
+        return false
       }
 
       toast.success("Question deleted successfully.")
@@ -241,13 +236,12 @@ export const useProfileActivity = ({
         ),
       }))
       router.refresh()
+      return true
     } catch (error) {
-      const message = getErrorMessage(
-        error,
-        "Failed to delete this post. Please try again."
+      toast.error(
+        getErrorMessage(error, "Failed to delete this question. Please try again.")
       )
-      setActivityError("questions", message)
-      toast.error(message)
+      return false
     } finally {
       endRequest()
     }

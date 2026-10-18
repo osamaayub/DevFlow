@@ -17,7 +17,7 @@ interface ProfileActivityListProps {
   userImage: string
   isOwnProfile: boolean
   isLoading: boolean
-  onDeleteQuestion: (questionId: string) => Promise<void>
+  onDeleteQuestion: (questionId: string) => Promise<boolean>
 }
 
 const ProfileActivityList = ({

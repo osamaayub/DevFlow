@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs"
+import type { Types } from "mongoose"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
@@ -101,23 +102,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session
     },
-    async jwt({ token, account }) {
-      if (account) {
-        await dbConnect()
-
-        const providerId = account.type === "credentials" ? token.email! : account.providerAccountId
-
-        const existingAccount = (await Account.findOne(
-          account.type === "credentials"
-            ? { provider: "credentials", providerAccountId: providerId }
-            : { provider: account.provider, providerAccountId: providerId }
-        ).lean()) as { userId: string } | null
-
-        if (!existingAccount) return token
-
-        if (existingAccount.userId) {
-          token.sub = existingAccount.userId.toString()
-        }
+    async jwt({ token, user }) {
+      // `user` is only present on sign-in. Credentials authorize() returns the DevFlow user id,
+      // and the OAuth signIn callback below writes it onto the same object, so no lookup is needed.
+      if (user?.id) {
+        token.sub = user.id
       }
 
       return token
@@ -149,31 +138,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       try {
-        let existingUser = await User.findOne({ email: userInfo.email })
-
-        if (!existingUser) {
-          existingUser = await User.create({
-            name: userInfo.name,
-            email: userInfo.email,
-            username: userInfo.username,
-            image: userInfo.image
+        // Both lookups are independent, so run them together (one round trip instead of two)
+        const [existingAccount, existingUser] = await Promise.all([
+          Account.findOne({
+            provider: account.provider,
+            providerAccountId: account.providerAccountId
           })
-        }
+            .select("userId")
+            .lean<{ userId: Types.ObjectId } | null>(),
+          User.findOne({ email: userInfo.email }).select("_id").lean<{ _id: Types.ObjectId } | null>()
+        ])
 
-        const existingAccount = await Account.findOne({
-          provider: account.provider,
-          providerAccountId: account.providerAccountId
-        })
+        // A linked account is authoritative, then a user with this email, else a new user
+        const userId: Types.ObjectId =
+          existingAccount?.userId ??
+          existingUser?._id ??
+          (
+            await User.create({
+              name: userInfo.name,
+              email: userInfo.email,
+              username: userInfo.username,
+              image: userInfo.image
+            })
+          )._id
 
         if (!existingAccount) {
           await Account.create({
-            userId: existingUser._id,
+            userId,
             provider: account.provider,
             providerAccountId: account.providerAccountId,
             name: userInfo.name,
             image: userInfo.image
           })
         }
+
+        // Auth.js passes this same object to the jwt callback, which stores it as token.sub
+        user.id = userId.toString()
 
         return true
       } catch (error) {
