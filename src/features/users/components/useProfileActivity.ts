@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -54,7 +53,6 @@ export const useProfileActivity = ({
   hasMoreQuestions,
   hasMoreAnswers,
 }: UseProfileActivityOptions) => {
-  const router = useRouter()
   const [state, setState] = useState<ActivityState>({
     activityType: "questions",
     pages: { questions: 1, answers: 1 },
@@ -235,7 +233,7 @@ export const useProfileActivity = ({
           (question) => question._id !== questionId
         ),
       }))
-      router.refresh()
+      // deleteQuestion revalidates this profile, which re-renders it in the same response
       return true
     } catch (error) {
       toast.error(
