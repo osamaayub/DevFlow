@@ -221,6 +221,10 @@ export const AnswerFormSchema = z.object({
 export const CreateAnswerSchema = AnswerFormSchema.extend({
   questionId: z.string().min(1, { message: "Question Id is required" })
 })
+export const AnswerIdSchema = z.object({
+  answerId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid answer ID" })
+})
+export const EditAnswerSchema = AnswerFormSchema.merge(AnswerIdSchema)
 export const GetAnswersSchema = paginatedSearchParamsSchema.extend({
   questionId: z.string().min(1, { message: "Question Id is required" }),
   filter: z.enum(["latest", "oldest", "popular"]).optional()

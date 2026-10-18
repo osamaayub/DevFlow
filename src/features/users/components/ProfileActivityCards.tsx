@@ -3,11 +3,10 @@ import Link from "next/link"
 
 import { TagCards } from "@/features/tags/components"
 import { Votes } from "@/features/votes/components"
-import { UserAvatar, RelativeTime } from "@/shared/components/common"
+import { ConfirmDeleteButton, UserAvatar, RelativeTime } from "@/shared/components/common"
 import ROUTES from "@/shared/constants/route"
 import { formatNumber } from "@/shared/lib/utils"
 
-import DeleteQuestionButton from "./DeleteQuestionButton"
 
 export interface TopQuestion {
   _id: string
@@ -131,8 +130,10 @@ export const ProfileQuestionCard = ({
           >
             <Image src="/icons/edit.svg" alt="" width={16} height={16} />
           </Link>
-          <DeleteQuestionButton
-            questionTitle={question.title}
+          <ConfirmDeleteButton
+            itemType="question"
+            itemTitle={question.title}
+            consequence="Its answers and votes will be removed too."
             disabled={isLoading}
             onDelete={() => onDelete(question._id)}
           />
@@ -170,6 +171,9 @@ export const ProfileQuestionCard = ({
 
 interface ProfileAnswerCardProps {
   answer: TopAnswer
+  isOwnProfile: boolean
+  isLoading: boolean
+  onDelete: (answerId: string) => Promise<boolean>
   userId: string
   userName: string
   userImage: string
@@ -177,6 +181,9 @@ interface ProfileAnswerCardProps {
 
 export const ProfileAnswerCard = ({
   answer,
+  isOwnProfile,
+  isLoading,
+  onDelete,
   userId,
   userName,
   userImage,
@@ -193,16 +200,37 @@ export const ProfileAnswerCard = ({
           {answer.question?.title ?? "Answer"}
         </h3>
       </Link>
-      <Votes
-        targetId={answer._id}
-        targetType="answer"
-        upvotes={answer.upvotes}
-        downvotes={answer.downvotes}
-        initialVoteState={{
-          hasUpVoted: answer.hasUpVoted,
-          hasDownVoted: answer.hasDownVoted,
-        }}
-      />
+      <div className="flex shrink-0 items-center gap-2">
+        {isOwnProfile && (
+          <div className="flex items-center gap-1">
+            <Link
+              href={ROUTES.EDIT_ANSWER(answer._id)}
+              aria-label={`Edit your answer to ${answer.question?.title ?? "this question"}`}
+              title="Edit answer"
+              className="rounded p-1.5 transition hover:bg-sky-500/10"
+            >
+              <Image src="/icons/edit.svg" alt="" width={16} height={16} />
+            </Link>
+            <ConfirmDeleteButton
+              itemType="answer"
+              itemTitle={`your answer to ${answer.question?.title ?? "this question"}`}
+              consequence="Its votes will be removed too."
+              disabled={isLoading}
+              onDelete={() => onDelete(answer._id)}
+            />
+          </div>
+        )}
+        <Votes
+          targetId={answer._id}
+          targetType="answer"
+          upvotes={answer.upvotes}
+          downvotes={answer.downvotes}
+          initialVoteState={{
+            hasUpVoted: answer.hasUpVoted,
+            hasDownVoted: answer.hasDownVoted,
+          }}
+        />
+      </div>
     </div>
 
     <p className="body-regular mt-3 line-clamp-3 text-dark400_light700">

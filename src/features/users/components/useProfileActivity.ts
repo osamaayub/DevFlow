@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { deleteAnswer } from "@/features/answers/actions"
 import { deleteQuestion } from "@/features/questions/actions"
 import {
   getUserAnswersActivity,
@@ -46,12 +47,6 @@ const mergeRefreshedItems = <T extends { _id: string }>(
   )
 
   return currentItems.map((item) => refreshedById.get(item._id) ?? item)
-}
-
-// Appends a page, skipping items already shown (a new post can shift offsets between requests)
-const appendUnique = <T extends { _id: string }>(currentItems: T[], nextItems: T[]) => {
-  const shown = new Set(currentItems.map((item) => item._id))
-  return [...currentItems, ...nextItems.filter((item) => !shown.has(item._id))]
 }
 
 export const useProfileActivity = ({
@@ -137,50 +132,6 @@ export const useProfileActivity = ({
       activityType,
       error: "",
     }))
-  }
-
-  /** Top Posts: appends the next page of questions under the ones already shown */
-  const loadMoreQuestions = async () => {
-    if (!state.hasMore.questions || !beginRequest()) {
-      return
-    }
-
-    const nextPage = state.pages.questions + 1
-    const requestDataVersion = activityDataVersion.current
-
-    try {
-      const result = await getUserQuestionsActivity({
-        userId,
-        page: nextPage,
-        pageSize: PAGE_SIZE,
-      })
-
-      if (requestDataVersion !== activityDataVersion.current) {
-        return
-      }
-
-      if (!result.success || !result.data) {
-        setActivityError("questions", result.error?.message ?? "Failed to load more posts.")
-        return
-      }
-
-      const { data } = result
-      setState((currentState) => ({
-        ...currentState,
-        questions: appendUnique(currentState.questions, data.questions),
-        pages: { ...currentState.pages, questions: nextPage },
-        hasMore: { ...currentState.hasMore, questions: data.isNext },
-      }))
-    } catch (error) {
-      if (requestDataVersion === activityDataVersion.current) {
-        setActivityError(
-          "questions",
-          getErrorMessage(error, "Failed to load more posts. Please try again.")
-        )
-      }
-    } finally {
-      endRequest()
-    }
   }
 
   const handlePageChange = async (direction: "prev" | "next") => {
@@ -297,6 +248,35 @@ export const useProfileActivity = ({
     }
   }
 
+  /** Deletes an answer after the user confirms it. Resolves to true on success. */
+  const removeAnswer = async (answerId: string): Promise<boolean> => {
+    if (!beginRequest()) {
+      return false
+    }
+
+    try {
+      const result = await deleteAnswer({ answerId })
+
+      if (!result.success) {
+        toast.error(result.error?.message ?? "Failed to delete this answer.")
+        return false
+      }
+
+      toast.success("Answer deleted successfully.")
+      setState((currentState) => ({
+        ...currentState,
+        answers: currentState.answers.filter((answer) => answer._id !== answerId),
+      }))
+      // deleteAnswer revalidates this profile, which re-renders it in the same response
+      return true
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to delete this answer. Please try again."))
+      return false
+    } finally {
+      endRequest()
+    }
+  }
+
   return {
     ...state,
     page: state.pages[state.activityType],
@@ -304,7 +284,7 @@ export const useProfileActivity = ({
     hasMoreAnswers: state.hasMore.answers,
     handleTabChange,
     handlePageChange,
-    loadMoreQuestions,
     removeQuestion,
+    removeAnswer,
   }
 }

@@ -3,20 +3,28 @@
 import Image from "next/image"
 import { useState, useTransition } from "react"
 
-import { ConfirmDialog } from "@/shared/components/common"
+import ConfirmDialog from "./ConfirmDialog"
 
-interface DeleteQuestionButtonProps {
-  questionTitle: string
+interface ConfirmDeleteButtonProps {
+  /** What is being deleted, e.g. "question" or "answer" */
+  itemType: string
+  /** Shown in the accessible label and the dialog, e.g. the question title */
+  itemTitle: string
+  /** Extra sentence for the dialog, e.g. what else gets removed */
+  consequence?: string
   disabled?: boolean
-  /** Resolves to true when the question was deleted, which closes the dialog */
+  /** Resolves to true when the item was deleted, which closes the dialog */
   onDelete: () => Promise<boolean>
 }
 
-const DeleteQuestionButton = ({
-  questionTitle,
+/** Trash icon that asks "Are you sure?" in a modal before deleting. */
+const ConfirmDeleteButton = ({
+  itemType,
+  itemTitle,
+  consequence,
   disabled = false,
   onDelete,
-}: DeleteQuestionButtonProps) => {
+}: ConfirmDeleteButtonProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -31,8 +39,8 @@ const DeleteQuestionButton = ({
     <>
       <button
         type="button"
-        aria-label={`Delete ${questionTitle}`}
-        title="Delete question"
+        aria-label={`Delete ${itemType}: ${itemTitle}`}
+        title={`Delete ${itemType}`}
         disabled={disabled}
         onClick={() => setIsOpen(true)}
         className="rounded p-1.5 transition hover:bg-red-500/10 disabled:opacity-50"
@@ -43,12 +51,12 @@ const DeleteQuestionButton = ({
       <ConfirmDialog
         open={isOpen}
         onOpenChange={setIsOpen}
-        title="Delete this question?"
+        title={`Delete this ${itemType}?`}
         description={
           <>
             Are you sure you want to delete{" "}
-            <span className="font-semibold">&ldquo;{questionTitle}&rdquo;</span>? Its answers and
-            votes will be removed too. This can&apos;t be undone.
+            <span className="font-semibold">&ldquo;{itemTitle}&rdquo;</span>?
+            {consequence ? ` ${consequence}` : ""} This can&apos;t be undone.
           </>
         }
         confirmLabel="Yes, delete"
@@ -61,4 +69,4 @@ const DeleteQuestionButton = ({
   )
 }
 
-export default DeleteQuestionButton
+export default ConfirmDeleteButton

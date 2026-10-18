@@ -2,10 +2,11 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 import { getQuestions } from "@/features/questions/actions"
-import { QuestionFeed } from "@/features/questions/components"
+import { QuestionCard } from "@/features/questions/components"
 import { DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
 import HomeFilters from "@/shared/components/filters/HomeFilters"
+import { Pagination } from "@/shared/components/navigation"
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import { Button } from "@/shared/components/ui"
 import { homeFilters } from "@/shared/constants/filter"
@@ -39,7 +40,7 @@ async function Home({ searchParams }: RouteParams) {
     : filter
 
   const pageNumber = Number(page) || 1
-  // Show 3 questions first; "Load more" appends 3 at a time
+  // 3 questions per page
   const pageSizeNumber = Number(pageSize) || QUESTIONS_PER_PAGE
 
   const { success, data, error } = await getQuestions({
@@ -98,17 +99,14 @@ async function Home({ searchParams }: RouteParams) {
         data={questions}
         empty={EMPTY_QUESTION}
         render={(questions) => (
-          // Keyed by the filters, so a new search or filter starts the list over
-          <QuestionFeed
-            key={`${normalizedQuery ?? ""}|${normalizedFilter ?? ""}|${pageNumber}|${pageSizeNumber}`}
-            source={{ kind: "all", query: normalizedQuery, filter: normalizedFilter }}
-            initialQuestions={questions}
-            initialHasMore={isNext || false}
-            initialPage={pageNumber}
-            pageSize={pageSizeNumber}
-          />
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
+          </div>
         )}
       />
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 }

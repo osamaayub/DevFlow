@@ -4,11 +4,19 @@ import { revalidatePath, updateTag } from "next/cache"
 
 import { action } from "@/server/action"
 import { CACHE_TAGS } from "@/server/cache-tags"
-import { IAnswer, Question, Answer } from "@/server/db";
+import { IAnswer, Question, Answer, Vote } from "@/server/db";
 import { HandleError } from "@/server/errors/error-handler"
+import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
-import { CreateAnswerSchema, GetAnswersSchema } from "@/shared/lib/validation";
-import { ActionResponse, CreateAnswerParams, ErrorResponse, GetAnswersParams} from "@/shared/types";
+import { AnswerIdSchema, CreateAnswerSchema, EditAnswerSchema, GetAnswersSchema } from "@/shared/lib/validation";
+import {
+  ActionResponse,
+  AnswerIdParams,
+  CreateAnswerParams,
+  EditAnswerParams,
+  ErrorResponse,
+  GetAnswersParams,
+} from "@/shared/types";
 
 
 export async function createAnswer(
@@ -135,5 +143,144 @@ export async function getAnswers(
   } catch (error) {
     const finalError = error instanceof Error ? error : new Error(String(error));
     return HandleError(finalError) as unknown as ErrorResponse;
+  }
+}
+
+const toErrorResponse = (error: unknown) =>
+  HandleError(error instanceof Error ? error : String(error)) as unknown as ErrorResponse;
+
+export interface EditableAnswer {
+  _id: string;
+  content: string;
+  author: string;
+  question: { _id: string; title: string } | null;
+}
+
+/** Loads one answer for its edit page. Only the answer's author may load it. */
+export async function getAnswerForEdit(
+  params: AnswerIdParams
+): Promise<ActionResponse<EditableAnswer>> {
+  const validationResult = await action({
+    params,
+    schema: AnswerIdSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) return toErrorResponse(validationResult);
+
+  const userId = validationResult.session?.user?.id;
+  if (!userId) return toErrorResponse(new UnauthorizedError());
+
+  try {
+    const answer = await Answer.findById(validationResult.validatedData.answerId)
+      .select("content author question")
+      .populate("question", "_id title")
+      .lean<{ _id: unknown; content: string; author: unknown; question: { _id: unknown; title: string } | null }>();
+
+    if (!answer) throw new RequestError("This answer no longer exists.", 404);
+    if (String(answer.author) !== userId) {
+      throw new RequestError("You can only edit your own answers.", 403);
+    }
+
+    return { success: true, data: JSON.parse(JSON.stringify(answer)) };
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
+
+export async function editAnswer(
+  params: EditAnswerParams
+): Promise<ActionResponse<{ questionId: string }>> {
+  const validationResult = await action({
+    params,
+    schema: EditAnswerSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) return toErrorResponse(validationResult);
+
+  const userId = validationResult.session?.user?.id;
+  if (!userId) return toErrorResponse(new UnauthorizedError());
+
+  const { answerId, content } = validationResult.validatedData;
+
+  try {
+    // The author filter makes the ownership check and the update one atomic step
+    const answer = await Answer.findOneAndUpdate(
+      { _id: answerId, author: userId },
+      { $set: { content } },
+      { projection: { question: 1 } }
+    ).lean<{ question: unknown } | null>();
+
+    if (!answer) {
+      const exists = await Answer.exists({ _id: answerId });
+      throw exists
+        ? new RequestError("You can only edit your own answers.", 403)
+        : new RequestError("This answer no longer exists.", 404);
+    }
+
+    const questionId = String(answer.question);
+    revalidatePath(ROUTES.QUESTION(questionId));
+    revalidatePath(ROUTES.PROFILE(userId));
+
+    return { success: true, data: { questionId } };
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
+
+export async function deleteAnswer(params: AnswerIdParams): Promise<ActionResponse> {
+  const validationResult = await action({
+    params,
+    schema: AnswerIdSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) return toErrorResponse(validationResult);
+
+  const userId = validationResult.session?.user?.id;
+  if (!userId) return toErrorResponse(new UnauthorizedError());
+
+  const { answerId } = validationResult.validatedData;
+  const session = await mongoose.startSession();
+
+  try {
+    let questionId = "";
+
+    // withTransaction commits on success, aborts on any throw and retries transient errors
+    await session.withTransaction(async () => {
+      const answer = await Answer.findById(answerId)
+        .select("author question")
+        .session(session)
+        .lean<{ author: unknown; question: unknown } | null>();
+
+      if (!answer) throw new RequestError("This answer no longer exists.", 404);
+      if (String(answer.author) !== userId) {
+        throw new RequestError("You can only delete your own answers.", 403);
+      }
+
+      questionId = String(answer.question);
+
+      // Votes are stored as { id, type }
+      await Vote.deleteMany({ id: answerId, type: "answer" }, { session });
+      await Answer.deleteOne({ _id: answerId }, { session });
+      // Never let the count go below zero
+      await Question.updateOne(
+        { _id: answer.question, answers: { $gt: 0 } },
+        { $inc: { answers: -1 } },
+        { session }
+      );
+    });
+
+    // Answer counts show on the cached question lists
+    updateTag(CACHE_TAGS.questions);
+    revalidatePath(ROUTES.QUESTION(questionId));
+    revalidatePath(ROUTES.PROFILE(userId));
+
+    return { success: true };
+  } catch (error) {
+    return toErrorResponse(error);
+  } finally {
+    await session.endSession();
   }
 }

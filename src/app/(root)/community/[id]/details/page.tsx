@@ -33,7 +33,6 @@ const CommunityMemberDetailsPage = async ({ params, searchParams }: RouteParams)
       user={user}
       questions={questions}
       pageNumber={pageNumber}
-      pageSize={pageSizeNumber}
       isNext={isNext}
     />
   )

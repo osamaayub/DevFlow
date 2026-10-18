@@ -1,8 +1,9 @@
 import Image from "next/image"
 
-import { QuestionFeed } from "@/features/questions/components"
+import { QuestionCard } from "@/features/questions/components"
 import { IUser } from "@/server/db"
 import { BackButton, UserAvatar } from "@/shared/components/common"
+import { Pagination } from "@/shared/components/navigation"
 import ROUTES from "@/shared/constants/route"
 import { Question } from "@/shared/types"
 
@@ -10,11 +11,10 @@ interface Props {
   user: IUser
   questions: Question[]
   pageNumber: number
-  pageSize: number
   isNext: boolean
 }
 
-const CommunityMemberProfile = ({ user, questions, pageNumber, pageSize, isNext }: Props) => (
+const CommunityMemberProfile = ({ user, questions, pageNumber, isNext }: Props) => (
   <>
     <BackButton href={ROUTES.COMMUNITY} />
 
@@ -77,20 +77,17 @@ const CommunityMemberProfile = ({ user, questions, pageNumber, pageSize, isNext 
         Questions by {user.name}
       </h2>
       {questions.length > 0 ? (
-        <QuestionFeed
-          key={`${user._id}|${pageNumber}|${pageSize}`}
-          source={{ kind: "member", userId: String(user._id) }}
-          initialQuestions={questions}
-          initialHasMore={isNext}
-          initialPage={pageNumber}
-          pageSize={pageSize}
-          className="mt-6"
-        />
+        <div className="mt-6 flex flex-col gap-6">
+          {questions.map((question) => (
+            <QuestionCard key={question._id} question={question} />
+          ))}
+        </div>
       ) : (
         <p className="body-regular mt-5 text-dark400_light700">
           This community member hasn&apos;t asked any questions yet.
         </p>
       )}
+      {questions.length > 0 && <Pagination pageNumber={pageNumber} isNext={isNext} />}
     </section>
   </>
 )

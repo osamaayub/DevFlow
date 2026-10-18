@@ -18,6 +18,7 @@ interface ProfileActivityListProps {
   isOwnProfile: boolean
   isLoading: boolean
   onDeleteQuestion: (questionId: string) => Promise<boolean>
+  onDeleteAnswer: (answerId: string) => Promise<boolean>
 }
 
 const ProfileActivityList = ({
@@ -30,6 +31,7 @@ const ProfileActivityList = ({
   isOwnProfile,
   isLoading,
   onDeleteQuestion,
+  onDeleteAnswer,
 }: ProfileActivityListProps) => {
   const isQuestionActivity = activityType === "questions"
   const currentItems = isQuestionActivity ? questions : answers
@@ -65,6 +67,9 @@ const ProfileActivityList = ({
         <ProfileAnswerCard
           key={answer._id}
           answer={answer}
+          isOwnProfile={isOwnProfile}
+          isLoading={isLoading}
+          onDelete={onDeleteAnswer}
           userId={userId}
           userName={userName}
           userImage={userImage}

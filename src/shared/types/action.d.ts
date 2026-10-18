@@ -80,6 +80,14 @@ export interface CreateAnswerParams {
   content: string
 }
 
+export interface AnswerIdParams {
+  answerId: string
+}
+
+export interface EditAnswerParams extends AnswerIdParams {
+  content: string
+}
+
 export interface GetAnswersParams extends PaginatedSearchParams {
   questionId: string
 }

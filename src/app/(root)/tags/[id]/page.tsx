@@ -1,7 +1,8 @@
-import { QuestionFeed } from "@/features/questions/components"
+import { QuestionCard } from "@/features/questions/components"
 import { getTagQuestions } from "@/features/tags/actions"
 import { BackButton, DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
+import { Pagination } from "@/shared/components/navigation";
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar";
 import { TagFilters } from "@/shared/constants/filter"
 import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
@@ -62,16 +63,14 @@ const Page = async ({ params, searchParams }: RouteParams) => {
         data={questions as unknown as Question[] | undefined}
         empty={EMPTY_QUESTION}
         render={(questions: Question[]) => (
-          <QuestionFeed
-            key={`${id}|${queryValue ?? ""}|${filterValue ?? ""}|${pageNumber}|${pageSizeNumber}`}
-            source={{ kind: "tag", tagId: id, query: queryValue, filter: filterValue }}
-            initialQuestions={questions}
-            initialHasMore={isNext || false}
-            initialPage={pageNumber}
-            pageSize={pageSizeNumber}
-          />
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
+          </div>
         )}
       />
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 };
