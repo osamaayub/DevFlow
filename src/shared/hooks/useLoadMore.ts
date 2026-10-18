@@ -34,6 +34,21 @@ export function useLoadMore<T extends { _id: string }>({
   const [error, setError] = useState("")
   const [isLoading, startTransition] = useTransition()
 
+  // When the server sends a fresh first page (after a vote, a view, a revalidation, or when
+  // returning to a page kept mounted by Cache Components), show its up-to-date items and keep
+  // any extra pages already loaded below them. Adjusting state during render is React's
+  // recommended pattern for reacting to a changed prop.
+  const [syncedInitialItems, setSyncedInitialItems] = useState(initialItems)
+  if (initialItems !== syncedInitialItems) {
+    setSyncedInitialItems(initialItems)
+    setItems((current) => {
+      const fresh = new Set(initialItems.map((item) => item._id))
+      const loadedLater = current.slice(syncedInitialItems.length).filter((item) => !fresh.has(item._id))
+      return [...initialItems, ...loadedLater]
+    })
+    if (page === initialPage) setHasMore(initialHasMore)
+  }
+
   const loadMore = () => {
     if (isLoading || !hasMore) return
 

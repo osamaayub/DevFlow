@@ -9,14 +9,19 @@ import { connection } from "next/server"
  * prefetches) without a live request. Uncached database work can't run there: Mongoose and
  * the MongoDB driver read the clock and generate random IDs, which a prerender rejects.
  * Awaiting `connection()` first moves that work to request time.
- *
- * `connection()` throws in scopes where the question doesn't apply (inside `after()` or a
- * cache scope, both of which may already use the database), so those throws are ignored.
  */
 export async function deferToRequestTime(): Promise<void> {
+  let requestReady: Promise<void>
+
   try {
-    await connection()
+    requestReady = connection()
   } catch {
-    // Not in a request-scoped render (after(), cache scope): continue normally
+    // connection() throws synchronously where the question doesn't apply: inside after()
+    // or a cache scope, both of which may use the database. Continue normally there.
+    return
   }
+
+  // Not caught: during a prerender this promise never resolves, and Next.js rejects it to
+  // stop the render. Swallowing that would let the caller keep running in the prerender.
+  await requestReady
 }

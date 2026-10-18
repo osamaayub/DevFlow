@@ -1,7 +1,7 @@
 "use server";
 
 import mongoose, { FilterQuery } from "mongoose";
-import { revalidatePath, unstable_cache, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache, updateTag } from "next/cache";
 import { cache } from "react";
 
 import { insertQuestion } from "@/features/questions/service"
@@ -292,6 +292,11 @@ export async function incrementQuestionViews(
       { new: true, projection: { views: 1 } }
     ).lean<{ views: number } | null>();
     if (!question) throw new Error("Question not found");
+
+    // View counts show on the cached question lists (home feed, sidebar). Expire them now so
+    // the next visit shows the new count. This runs from after(), where updateTag isn't
+    // available, so it uses revalidateTag with immediate expiry.
+    revalidateTag(CACHE_TAGS.questions, { expire: 0 });
 
     return {
       success: true,
