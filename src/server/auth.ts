@@ -4,9 +4,11 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
+import { cache } from "react"
 
 import { Account, User } from "@/server/db"
 import { dbConnect } from "@/server/db/connect"
+import { deferToRequestTime } from "@/server/request-time"
 import logger from "@/shared/lib/logger"
 
 function buildOAuthUsername(
@@ -29,7 +31,7 @@ function buildOAuthUsername(
   return `${provider}_${providerAccountId}`.slice(0, 30)
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const nextAuth = NextAuth({
   trustHost: true,
   providers: [
     GitHub({
@@ -182,4 +184,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     }
   }
+})
+
+export const { handlers, signIn, signOut } = nextAuth
+
+/**
+ * Session for the current request. The root layout, navbar, left sidebar and page all ask
+ * for it; React's cache() makes them share one decode per request instead of one each.
+ */
+export const auth = cache(async () => {
+  // Reading the session can re-encrypt the cookie (random IV), which a prefetch render
+  // rejects, so session reads only run while serving a real request
+  await deferToRequestTime()
+  return nextAuth.auth()
 })

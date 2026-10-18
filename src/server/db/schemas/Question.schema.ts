@@ -56,3 +56,9 @@ QuestionSchema.index({
   createdAt: -1,
 })
 QuestionSchema.index({ author: 1, tags: 1 })
+
+// Home feed / sidebar sorts and filters
+QuestionSchema.index({ createdAt: -1 })
+QuestionSchema.index({ upvotes: -1, createdAt: -1 })
+QuestionSchema.index({ views: -1, createdAt: -1 })
+QuestionSchema.index({ answers: 1, createdAt: -1 })

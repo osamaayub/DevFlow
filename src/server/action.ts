@@ -6,6 +6,7 @@ import { ZodError } from "zod"
 import { auth } from "@/server/auth"
 import { dbConnect } from "@/server/db/connect"
 import { UnauthorizedError, ValidationError } from "@/server/errors/http-error"
+import { deferToRequestTime } from "@/server/request-time"
 import { ActionOptions } from "@/shared/types"
 
 type ActionResult<T> =
@@ -18,6 +19,9 @@ type ActionResult<T> =
 export async function action<T>({
     schema, params, authorize = false
 }: ActionOptions<T>): Promise<ActionResult<T>> {
+  // Every data loader and mutation goes through here before touching the database
+  await deferToRequestTime()
+
   try {
     if (!schema || !params) {
       return new Error("Schema and params are required")

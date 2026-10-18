@@ -1,5 +1,2 @@
-import { JobLoading } from "@/features/jobs/components"
-
-export default function LoadingJobDetails() {
-  return <JobLoading variant="details" />
-}
+// Route loading UI: the shared Loader is the Suspense fallback for this segment
+export { Loader as default } from "@/shared/components/common"

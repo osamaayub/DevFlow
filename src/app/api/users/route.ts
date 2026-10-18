@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { connection, NextRequest, NextResponse } from "next/server"
 
 import { User } from "@/server/db"
 import { dbConnect } from "@/server/db/connect"
@@ -7,6 +7,8 @@ import { APIErrorResponse } from "@/shared/types";
 
 export async function GET() {
   try {
+    // Database data: render at request time, never at build time
+    await connection();
     await dbConnect();
     const users = await User.find();
     return NextResponse.json({ success: true, data: users, statusCode: 200 });

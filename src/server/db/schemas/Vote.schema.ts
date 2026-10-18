@@ -41,3 +41,7 @@ export const VoteSchema = new Schema<IVote>(
     },
     { timestamps: true }
 );
+
+// "Has this user voted on these targets?" lookups and cleanup by target
+VoteSchema.index({ author: 1, id: 1, type: 1 })
+VoteSchema.index({ id: 1, type: 1 })

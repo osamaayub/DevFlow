@@ -1,11 +1,12 @@
 "use server";
 
 import mongoose, { FilterQuery } from "mongoose";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache, updateTag } from "next/cache";
 import { cache } from "react";
 
 import { PopulatedTag, processTags, removeTags } from "@/features/tags/tag-helpers"
 import { action } from "@/server/action"
+import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/server/cache-tags"
 import { Answer, Collection, Vote, Question, TagQuestion, Tag } from "@/server/db";
 import dbConnect from "@/server/db/connect";
 import { HandleError } from "@/server/errors/error-handler"
@@ -84,6 +85,10 @@ export async function createQuestion(
     );
 
     await session.commitTransaction();
+
+    updateTag(CACHE_TAGS.questions);
+    updateTag(CACHE_TAGS.tags);
+    revalidatePath(ROUTES.PROFILE(String(userId)));
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
@@ -171,6 +176,10 @@ export async function editQuestion(
     await question.save({ session });
     await session.commitTransaction();
 
+    updateTag(CACHE_TAGS.questions);
+    updateTag(CACHE_TAGS.tags);
+    revalidatePath(ROUTES.QUESTION(questionId));
+
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
     await session.abortTransaction();
@@ -199,7 +208,8 @@ export const getQuestion = cache(async function getQuestion(
   try {
     const question = await Question.findById(questionId)
       .populate("tags", "_id name")
-      .populate("author", "_id name image");
+      .populate("author", "_id name image")
+      .lean();
 
     if (!question) throw new Error("Question not found");
 
@@ -209,14 +219,67 @@ export const getQuestion = cache(async function getQuestion(
   }
 });
 
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getQuestionSortCriteria = (
+  filter?: string
+): { sort: Record<string, 1 | -1>; unansweredOnly: boolean } => {
+  switch (filter) {
+    case "popular":
+      return { sort: { upvotes: -1, createdAt: -1 }, unansweredOnly: false };
+    case "unanswered":
+      return { sort: { createdAt: -1 }, unansweredOnly: true };
+    case "recommended":
+      return { sort: { upvotes: -1, createdAt: -1 }, unansweredOnly: false };
+    case "frequent":
+      return { sort: { views: -1, createdAt: -1 }, unansweredOnly: false };
+    case "newest":
+    default:
+      return { sort: { createdAt: -1 }, unansweredOnly: false };
+  }
+};
+
+// Question lists are read on almost every page (home feed + right sidebar), so they are
+// cached per (page, pageSize, query, filter) and invalidated by the questions tag
+const getCachedQuestionList = unstable_cache(
+  async (page: number, pageSize: number, query: string, filter: string) => {
+    await dbConnect();
+
+    const skip = (page - 1) * pageSize;
+    const { sort, unansweredOnly } = getQuestionSortCriteria(filter);
+    const filterQuery: FilterQuery<typeof Question> = {};
+
+    if (query) {
+      const pattern = new RegExp(escapeRegex(query), "i");
+      filterQuery.$or = [{ title: pattern }, { content: pattern }];
+    }
+    if (unansweredOnly) filterQuery.answers = 0;
+
+    // Fetching one extra row tells us whether a next page exists without a count query
+    const questions = await Question.find(filterQuery)
+      .select("-content")
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .sort(sort)
+      .skip(skip)
+      .limit(pageSize + 1)
+      .lean();
+
+    return {
+      questions: JSON.parse(JSON.stringify(questions.slice(0, pageSize))) as QuestionType[],
+      isNext: questions.length > pageSize,
+    };
+  },
+  ["question-list"],
+  { tags: [CACHE_TAGS.questions], revalidate: CACHE_REVALIDATE_SECONDS.questions }
+);
+
 export async function getQuestions(params: PaginatedSearchParams): Promise<
   ActionResponse<{
     questions: QuestionType[];
     isNext: boolean;
   }>
 > {
-  await dbConnect();
-
   const validationResult = await action({
     params,
     schema: paginatedSearchParamsSchema,
@@ -226,66 +289,10 @@ export async function getQuestions(params: PaginatedSearchParams): Promise<
     return HandleError(validationResult) as unknown as ErrorResponse;
   }
 
-  const { page = 1, pageSize = 10, query, filter } = params;
-
-  const skip = (Number(page) - 1) * pageSize;
-  const limit = pageSize;
-
-  const filterQuery: FilterQuery<typeof Question> = {};
-  let sortCriteria = {};
+  const { page = 1, pageSize = 10, query = "", filter = "" } = validationResult.validatedData;
 
   try {
-    if (query) {
-      filterQuery.$or = [
-        { title: { $regex: query,$options: "i" } },
-        { content: { $regex: query,$options: "i" } },
-      ];
-    }
-
-    switch (filter) {
-      case "popular":
-        sortCriteria = { upvotes: -1, createdAt: -1 };
-        break;
-      case "newest":
-        sortCriteria = { createdAt: -1 };
-        break;
-      case "unanswered":
-        filterQuery.answers = 0;
-        sortCriteria = { createdAt: -1 };
-        break;
-      case "popular":
-        sortCriteria = { upvotes: -1, views: -1 };
-        break;
-      case "recommended":
-        sortCriteria = { upvotes: -1 };
-        break;
-      case "frequent":
-        sortCriteria = { views: -1 };
-        break;
-      default:
-        sortCriteria = { createdAt: -1 };
-        break;
-    }
-
-    const totalQuestions = await Question.countDocuments(filterQuery);
-
-    const questions = await Question.find(filterQuery)
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .lean()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit);
-
-    const isNext = totalQuestions > skip + questions.length;
-
-    return {
-      success: true,
-      data: {
-        questions: JSON.parse(JSON.stringify(questions)),
-        isNext,
-      },
-    };
+    return { success: true, data: await getCachedQuestionList(page, pageSize, query, filter) };
   } catch (error) {
     return HandleError(String(error)) as unknown as ErrorResponse;
   }
@@ -308,11 +315,13 @@ export async function incrementQuestionViews(
   const { questionId } = validationResult.validatedData;
 
   try {
-    const question = await Question.findById(questionId);
+    // $inc is atomic, so concurrent visits can't overwrite each other's count
+    const question = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { views: 1 } },
+      { new: true, projection: { views: 1 } }
+    ).lean<{ views: number } | null>();
     if (!question) throw new Error("Question not found");
-
-    question.views += 1;
-    await question.save();
 
     return {
       success: true,
@@ -381,11 +390,11 @@ export async function deleteQuestion(
       // Operations on one transaction session must run sequentially
       await Collection.deleteMany({ question: questionId }, { session });
       await TagQuestion.deleteMany({ question: questionId }, { session });
-      await Vote.deleteMany({ actionId: questionId, actionType: "question" }, { session });
+      await Vote.deleteMany({ id: questionId, type: "question" }, { session });
 
       if (answerIds.length > 0) {
         await Vote.deleteMany(
-          { actionId: { $in: answerIds }, actionType: "answer" },
+          { id: { $in: answerIds }, type: "answer" },
           { session }
         );
         await Answer.deleteMany({ question: questionId }, { session });
@@ -402,8 +411,9 @@ export async function deleteQuestion(
       await Question.deleteOne({ _id: questionId }, { session });
     });
 
+    updateTag(CACHE_TAGS.questions);
+    updateTag(CACHE_TAGS.tags);
     revalidatePath(ROUTES.PROFILE(userId));
-    revalidatePath(ROUTES.HOME);
 
     return { success: true };
   } catch (error) {

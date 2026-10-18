@@ -1,8 +1,9 @@
 "use server"
 import mongoose from "mongoose"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, updateTag } from "next/cache"
 
 import { action } from "@/server/action"
+import { CACHE_TAGS } from "@/server/cache-tags"
 import { IAnswer, Question, Answer } from "@/server/db";
 import { HandleError } from "@/server/errors/error-handler"
 import ROUTES from "@/shared/constants/route"
@@ -29,7 +30,12 @@ export async function createAnswer(
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const question = await Question.findById(questionId);
+    // Atomic increment inside the transaction, so concurrent answers can't lose a count
+    const question = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { answers: 1 } },
+      { session, projection: { _id: 1 } }
+    );
 
     if (!question) {
       throw new Error("Question not found");
@@ -50,10 +56,8 @@ export async function createAnswer(
       throw new Error("Failed to create an answer");
     }
     
-    question.answers += 1;
-    await question.save({ session });
-
     await session.commitTransaction();
+    updateTag(CACHE_TAGS.questions);
     revalidatePath(ROUTES.QUESTION(questionId));
 
     return {

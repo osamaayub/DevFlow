@@ -12,3 +12,7 @@ export const TagQuestionSchema = new Schema({
 }, {
     timestamps: true
 })
+
+// Questions under a tag, and cleanup by question
+TagQuestionSchema.index({ tag: 1, question: 1 })
+TagQuestionSchema.index({ question: 1 })
