@@ -1,7 +1,7 @@
 export { default as BackButton } from "./BackButton"
+export { default as ConfirmDeleteButton } from "./ConfirmDeleteButton"
 export { default as ConfirmDialog } from "./ConfirmDialog"
 export { default as DataRender } from "./DataRender"
-export { default as LoadMoreButton } from "./LoadMoreButton"
 export { default as Metric } from "./Metric"
 export { default as Loader } from "./Loader"
 export { default as RelativeTime } from "./RelativeTime"

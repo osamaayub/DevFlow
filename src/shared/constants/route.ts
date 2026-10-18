@@ -17,6 +17,7 @@ const ROUTES = {
   PROFILE: (id: string) => `/profile/${id}`,
   QUESTION: (id: string) => `/questions/${id}`,
   EDIT_QUESTION: (id: string) => `/questions/${id}/edit`,
+  EDIT_ANSWER: (id: string) => `/answers/${id}/edit`,
   TAG: (id: string) => `/tags/${id}`,
   SIGN_IN_WITH_OAUTH: `signin-with-oauth`,
   AI_ANSWER: `/api/ai/answers`,

@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation"
 
 import { getSaveQuestions } from "@/features/collections/actions"
-import { QuestionFeed } from "@/features/questions/components"
+import { QuestionCard } from "@/features/questions/components"
 import { auth } from "@/server/auth"
 import { BackButton, DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
+import { Pagination } from "@/shared/components/navigation"
 import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import { CollectionFilters } from "@/shared/constants/filter"
 import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
@@ -64,18 +65,16 @@ const CollectionPage = async ({ searchParams }: RouteParams) => {
         data={questions as QuestionType[] | undefined}
         empty={EMPTY_COLLECTIONS}
         error={error}
-        render={(savedQuestions) => (
-          <QuestionFeed
-            key={JSON.stringify({ pageNumber, pageSizeNumber, ...listFilters })}
-            source={{ kind: "saved", ...listFilters }}
-            initialQuestions={savedQuestions}
-            initialHasMore={isNext || false}
-            initialPage={pageNumber}
-            pageSize={pageSizeNumber}
-            showSavedIcon
-          />
+        render={(questions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} showSavedIcon />
+            ))}
+          </div>
         )}
       />
+
+      <Pagination pageNumber={pageNumber} isNext={isNext || false} />
     </>
   )
 }

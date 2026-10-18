@@ -1,5 +1,4 @@
 export { default as JobCard } from "./JobCard"
-export { default as JobFeed } from "./JobFeed"
 export { default as JobActions } from "./JobActions"
 export { default as ApplyJob } from "./ApplyJob"
 export { default as SaveJob } from "./SaveJob"
