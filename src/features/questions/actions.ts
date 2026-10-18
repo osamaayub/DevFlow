@@ -4,6 +4,7 @@ import mongoose, { FilterQuery } from "mongoose";
 import { revalidatePath, unstable_cache, updateTag } from "next/cache";
 import { cache } from "react";
 
+import { insertQuestion } from "@/features/questions/service"
 import { PopulatedTag, processTags, removeTags } from "@/features/tags/tag-helpers"
 import { action } from "@/server/action"
 import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/server/cache-tags"
@@ -42,8 +43,6 @@ const normalizeAuthorId = (author: unknown): string | undefined => {
 export async function createQuestion(
   params: CreateQuestionParams
 ): Promise<ActionResponse<QuestionType>> {
-  await dbConnect();
-
   const validationResult = await action({
     params,
     schema: AskQuestionSchema,
@@ -54,48 +53,19 @@ export async function createQuestion(
     return HandleError(validationResult) as unknown as ErrorResponse;
   }
 
-  const { title, content, tags } = validationResult.validatedData;
   const userId = validationResult.session?.user?.id;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  if (!userId) return HandleError(new UnauthorizedError()) as unknown as ErrorResponse;
 
   try {
-    const [question] = await Question.create(
-      [{ title, content, author: userId }],
-      { session }
-    );
-
-    if (!question) throw new Error("Failed to create the question");
-
-    const { tagIds, tagQuestionDocuments } = await processTags(
-      tags,
-      question._id as mongoose.Types.ObjectId,
-      session
-    );
-
-    if (tagQuestionDocuments.length > 0) {
-      await TagQuestion.insertMany(tagQuestionDocuments, { session });
-    }
-
-    await Question.findByIdAndUpdate(
-      question._id,
-      { $push: { tags: {$each: tagIds } } },
-      { session }
-    );
-
-    await session.commitTransaction();
+    const question = await insertQuestion({ ...validationResult.validatedData, authorId: userId });
 
     updateTag(CACHE_TAGS.questions);
     updateTag(CACHE_TAGS.tags);
-    revalidatePath(ROUTES.PROFILE(String(userId)));
+    revalidatePath(ROUTES.PROFILE(userId));
 
-    return { success: true, data: JSON.parse(JSON.stringify(question)) };
+    return { success: true, data: question };
   } catch (error) {
-    await session.abortTransaction();
-    return HandleError(String(error)) as unknown as ErrorResponse;
-  } finally {
-    await session.endSession();
+    return HandleError(error instanceof Error ? error : String(error)) as unknown as ErrorResponse;
   }
 }
 

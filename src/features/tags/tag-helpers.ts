@@ -2,6 +2,8 @@ import mongoose from "mongoose"
 
 import { ITag, Tag, TagQuestion } from "@/server/db"
 
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
 export type PopulatedTag = Omit<ITag, "_id"> & {
   _id: mongoose.Types.ObjectId
 }
@@ -27,7 +29,8 @@ export async function processTags(
 
   for (const tag of tags) {
     const existingTag = await Tag.findOneAndUpdate(
-      { name: { $regex: new RegExp(`^${tag}$`, "i") } },
+      // Escaped so names like "next.js" or "c++" match literally, case-insensitively
+      { name: { $regex: new RegExp(`^${escapeRegex(tag)}$`, "i") } },
       { $setOnInsert: { name: tag },$inc: { questions: 1 } },
       { upsert: true, new: true, session }
     )

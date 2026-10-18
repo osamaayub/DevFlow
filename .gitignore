@@ -50,6 +50,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# thunder client (local API requests; may hold session tokens)
+/thunder-client/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
