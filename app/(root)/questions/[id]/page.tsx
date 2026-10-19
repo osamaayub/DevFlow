@@ -6,6 +6,7 @@ import { Suspense } from "react"
 import { getAnswers } from "@/features/answers/actions"
 import { AllAnswers } from "@/features/answers/components"
 import { AnswerForm } from "@/features/answers/components"
+import { recordInteraction } from "@/features/interaction/service"
 import { getQuestion, incrementQuestionViews } from "@/features/questions/actions"
 import { SaveQuestion } from "@/features/questions/components"
 import { TagCards } from "@/features/tags/components"
@@ -15,6 +16,7 @@ import { auth } from "@/server/auth"
 import { BackButton, Metric, UserAvatar } from "@/shared/components/common"
 import { Preview } from "@/shared/components/editor/preview"
 import ROUTES from "@/shared/constants/route"
+import logger from "@/shared/lib/logger"
 import { formatNumber, getTimeStamp } from "@/shared/lib/utils"
 import { Answer, RouteParams } from "@/shared/types"
 
@@ -47,10 +49,29 @@ const QuestionDetails = async ({
     redirect("/404")
   }
 
+  // The session can't be read inside after() on a page, so the user and the question's
+  // author are captured here, during the render
+  const questionAuthorId = String(question.author?._id ?? "")
+
   after(async () => {
     await incrementQuestionViews({
       questionId: id,
     })
+
+    // Signed-in users get a "view" interaction for their activity history (no reputation)
+    if (userId) {
+      try {
+        await recordInteraction({
+          userId,
+          action: "view",
+          actionTarget: "question",
+          actionId: id,
+          authorId: questionAuthorId || undefined,
+        })
+      } catch (error) {
+        logger.error({ questionId: id, error }, "Failed to record question view interaction")
+      }
+    }
   })
 
   const viewCount = question.views + 1

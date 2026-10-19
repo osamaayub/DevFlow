@@ -2,13 +2,16 @@
 
 import mongoose, { ClientSession } from "mongoose"
 import { refresh, revalidatePath, updateTag } from "next/cache"
+import { after } from "next/server"
 
+import { createInteraction } from "@/features/interaction/action"
 import { action } from "@/server/action"
 import { CACHE_TAGS } from "@/server/cache-tags"
 import { Vote } from "@/server/db"
 import { Question, Answer } from "@/server/db"
 import { HandleError } from "@/server/errors/error-handler"
 import ROUTES from "@/shared/constants/route"
+import logger from "@/shared/lib/logger"
 import {
   CreateVoteSchema,
   GetUserVotesForTargetsSchema,
@@ -106,6 +109,34 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
     return HandleError(new Error("Unauthorized User")) as unknown as ErrorResponse
   }
 
+  // Reputation goes to the owner of the voted question or answer
+  const votedContent =
+    targetType === "question"
+      ? await Question.findById(targetId).select("author").lean<{ author: unknown } | null>()
+      : await Answer.findById(targetId).select("author").lean<{ author: unknown } | null>()
+  if (!votedContent) {
+    return HandleError(new Error(`This ${targetType} no longer exists.`)) as unknown as ErrorResponse
+  }
+  const contentAuthorId = String(votedContent.author)
+
+  // Schedules a vote's reputation change to run after the response is sent. Only called
+  // after the vote commits, so a rolled-back vote never changes reputation. undo gives back
+  // what an earlier vote earned.
+  const recordVoteReputation = (vote: "upvote" | "downvote", undo = false) => {
+    after(async () => {
+      const result = await createInteraction({
+        action: vote,
+        actionTarget: targetType,
+        actionId: targetId,
+        authorId: contentAuthorId,
+        undo,
+      })
+      if (!result.success) {
+        logger.error({ targetId, vote, undo, error: result.error }, "Failed to record vote reputation")
+      }
+    })
+  }
+
   const session = await mongoose.startSession()
   session.startTransaction()
 
@@ -139,6 +170,8 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
         }
 
         await commitVoteTransaction(session, targetType, targetId)
+        // Vote removed: give back what it earned
+        recordVoteReputation(voteType, true)
 
         return { success: true }
       } else {
@@ -182,6 +215,9 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
         await existingVote.save({ session })
 
         await commitVoteTransaction(session, targetType, targetId)
+        // Vote switched: undo the old vote, then apply the new one
+        recordVoteReputation(oldVoteType, true)
+        recordVoteReputation(voteType)
 
         return { success: true }
       }
@@ -213,6 +249,8 @@ export async function CreateVote(params: CreateVoteParams): Promise<ActionRespon
       }
 
       await commitVoteTransaction(session, targetType, targetId)
+      // New vote
+      recordVoteReputation(voteType)
 
       return { success: true }
     }

@@ -1,8 +1,11 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import { after } from "next/server"
 
+import { recordInteraction } from "@/features/interaction/service"
 import { getQuestions } from "@/features/questions/actions"
 import { QuestionCard } from "@/features/questions/components"
+import { auth } from "@/server/auth"
 import { DataRender } from "@/shared/components/common"
 import CommonFilter from "@/shared/components/filters/CommonFilters"
 import HomeFilters from "@/shared/components/filters/HomeFilters"
@@ -13,6 +16,7 @@ import { homeFilters } from "@/shared/constants/filter"
 import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_QUESTION } from "@/shared/constants/states"
+import logger from "@/shared/lib/logger"
 import { RouteParams } from "@/shared/types"
 
 export const metadata: Metadata = {
@@ -51,6 +55,23 @@ async function Home({ searchParams }: RouteParams) {
   })
 
   const { questions,isNext } = data || {}
+
+  // Record a "search" interaction for signed-in users. Only on page 1, so paging through the
+  // results doesn't log the same search again. The session is read here because it can't be
+  // read inside after() on a page.
+  const searchText = normalizedQuery?.trim()
+  if (searchText && pageNumber === 1) {
+    const userId = (await auth())?.user?.id
+    if (userId) {
+      after(async () => {
+        try {
+          await recordInteraction({ userId, action: "search", query: searchText.slice(0, 100) })
+        } catch (searchError) {
+          logger.error({ query: searchText, error: searchError }, "Failed to record search interaction")
+        }
+      })
+    }
+  }
 
   return (
     <>

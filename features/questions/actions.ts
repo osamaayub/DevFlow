@@ -2,8 +2,10 @@
 
 import mongoose, { FilterQuery } from "mongoose";
 import { revalidatePath, revalidateTag, unstable_cache, updateTag } from "next/cache";
+import { after } from "next/server";
 import { cache } from "react";
 
+import { createInteraction } from "@/features/interaction/action"
 import { insertQuestion } from "@/features/questions/service"
 import { PopulatedTag, processTags, removeTags } from "@/features/tags/tag-helpers"
 import { action } from "@/server/action"
@@ -13,6 +15,7 @@ import dbConnect from "@/server/db/connect";
 import { HandleError } from "@/server/errors/error-handler"
 import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
+import logger from "@/shared/lib/logger";
 import { AskQuestionSchema, DeleteQuestionSchema, EditQuestionSchema, GetQuestionSchema, IncrementQuestionViewsSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
 import {
   ActionResponse,
@@ -59,6 +62,20 @@ export async function createQuestion(
   try {
     const question = await insertQuestion({ ...validationResult.validatedData, authorId: userId });
 
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "post",
+        actionTarget: "question",
+        actionId: String(question._id),
+        authorId: userId,
+      });
+      if (!interaction.success) {
+        logger.error({ questionId: question._id, error: interaction.error }, "Failed to record question post interaction");
+      }
+    });
+
+    // Cache invalidation and the return stay outside after(): updateTag only works while the
+    // action is running, and the form needs the created question back.
     updateTag(CACHE_TAGS.questions);
     updateTag(CACHE_TAGS.tags);
     revalidatePath(ROUTES.PROFILE(userId));
@@ -120,7 +137,7 @@ export async function editQuestion(
 
     if (tagsToRemove.length > 0) {
       await removeTags(tagsToRemove, new mongoose.Types.ObjectId(questionId), session);
-      
+
       const tagIdsToRemove = tagsToRemove.map((t: PopulatedTag) => t._id);
       const filteredTags = questionTags.filter(
         (tag: PopulatedTag) =>
@@ -145,6 +162,20 @@ export async function editQuestion(
 
     await question.save({ session });
     await session.commitTransaction();
+
+    // Record the edit for activity history after the response is sent (edits earn no
+    // reputation). questionAuthorId is the signed-in user, verified by the check above.
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "edit",
+        actionTarget: "question",
+        actionId: questionId,
+        authorId: questionAuthorId,
+      });
+      if (!interaction.success) {
+        logger.error({ questionId, error: interaction.error }, "Failed to record question edit interaction");
+      }
+    });
 
     updateTag(CACHE_TAGS.questions);
     updateTag(CACHE_TAGS.tags);
@@ -384,6 +415,20 @@ export async function deleteQuestion(
       }
 
       await Question.deleteOne({ _id: questionId }, { session });
+    });
+
+    // Take back the question's post points (-5) after the response is sent. Only the
+    // author can delete, so they are both the performer and the author.
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "delete",
+        actionTarget: "question",
+        actionId: questionId,
+        authorId: userId,
+      });
+      if (!interaction.success) {
+        logger.error({ questionId, error: interaction.error }, "Failed to record question delete interaction");
+      }
     });
 
     updateTag(CACHE_TAGS.questions);

@@ -125,13 +125,22 @@ const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: P
         />
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isSaving}
+          onClick={() => router.push(ROUTES.PROFILE(userId))}
+          className="light-border-2 text-dark400_light700 min-h-11 px-5"
+        >
+          Cancel
+        </Button>
         <Button
           type="submit"
           disabled={isSaving}
           className="primary-gradient min-h-11 px-5 text-light-900"
         >
-          {isSaving ? "Submitting..." : "Submit"}
+          {isSaving ? "Updating..." : "Update Profile"}
         </Button>
       </div>
     </form>
