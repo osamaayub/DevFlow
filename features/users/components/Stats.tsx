@@ -61,17 +61,17 @@ const Stats = ({ totalQuestions, totalAnswers, badges }: Props) => (
       </div>
       <StatsCard
         imgUrl="/icons/gold-medal.svg"
-        value={badges.GOLD}
+        value={badges.GOLD ||0}
         title="Gold Badges"
       />
       <StatsCard
         imgUrl="/icons/silver-medal.svg"
-        value={badges.SILVER}
+        value={badges.SILVER ||0}
         title="Silver Badges"
       />
       <StatsCard
         imgUrl="/icons/bronze-medal.svg"
-        value={badges.BRONZE}
+        value={badges.BRONZE ||0}
         title="Bronze Badges"
       />
     </div>
