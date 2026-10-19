@@ -20,6 +20,7 @@ import {
   ErrorResponse,
   GetUserParams,
   Question as QuestionType,
+  UserStats,
 } from "@/shared/types"
 
 const TOP_TAGS_LIMIT = 6
@@ -98,6 +99,135 @@ const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = asyn
   })
 }
 
+/**
+ * Totals for a user's questions and answers, and the badges they earn. Two aggregations run
+ * in parallel, each a single pass over the user's documents (indexed by author).
+ * Shared by getUser and getUserStats so the profile and the stats action always agree.
+ */
+const computeUserStats = async (authorId: Types.ObjectId): Promise<UserStats> => {
+  const [[questionStats], [answerStats]] = await Promise.all([
+    Question.aggregate<{ count: number; upvotes: number; views: number }>([
+      { $match: { author: authorId } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+          views: { $sum: "$views" },
+        },
+      },
+    ]),
+    Answer.aggregate<{ count: number; upvotes: number }>([
+      { $match: { author: authorId } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+        },
+      },
+    ]),
+  ])
+
+  // A user with no questions or answers gets no group back, so default everything to 0
+  const totalQuestions = questionStats?.count ?? 0
+  const totalAnswers = answerStats?.count ?? 0
+  const questionUpvotes = questionStats?.upvotes ?? 0
+  const answerUpvotes = answerStats?.upvotes ?? 0
+  const totalViews = questionStats?.views ?? 0
+
+  // Upvotes received on questions and answers count together toward the upvote badge
+  const badges = assignBadges({
+    criteria: [
+      { type: "ANSWER_COUNT", count: totalAnswers },
+      { type: "QUESTION_COUNT", count: totalQuestions },
+      { type: "QUESTION_UPVOTES", count: questionUpvotes + answerUpvotes },
+      { type: "TOTAL_VIEWS", count: totalViews },
+    ],
+  })
+
+  return {
+    totalQuestions,
+    totalAnswers,
+    questionUpvotes,
+    answerUpvotes,
+    totalUpvotes: questionUpvotes + answerUpvotes,
+    totalViews,
+    badges,
+  }
+}
+
+/**
+ * A user's question and answer counts and the badges they earn. Upvotes received (on
+ * questions and answers) and total question views count toward the badges.
+ */
+export async function getUserStats(params: GetUserParams): Promise<
+  ActionResponse<{
+    totalQuestions: number
+    totalAnswers: number
+    badges: Badges
+  }>
+> {
+  const validationResult = await action({
+    params,
+    schema: GetUserSchema,
+  })
+
+  if (validationResult instanceof Error) {
+    return handleActionError(validationResult)
+  }
+
+  const { userId } = params;
+
+  try {
+    const [questionStats] = await Question.aggregate([
+      { $match: { author: new Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+          views: { $sum: "$views" },
+        },
+      },
+    ]);
+
+    const [answerStats] = await Answer.aggregate([
+      { $match: { author: new Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+        },
+      },
+    ]);
+
+    const badges = assignBadges({
+      criteria: [
+        { type: "ANSWER_COUNT", count: answerStats.count },
+        { type: "QUESTION_COUNT", count: questionStats.count },
+        {
+          type: "QUESTION_UPVOTES",
+          count: questionStats.upvotes + answerStats.upvotes,
+        },
+        { type: "TOTAL_VIEWS", count: questionStats.views },
+      ],
+    });
+
+    return {
+      success: true,
+      data: {
+        totalQuestions: questionStats.count,
+        totalAnswers: answerStats.count,
+        badges,
+      },
+    };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
 export const getUser = async (
   params: GetUserParams
 ): Promise<
@@ -154,40 +284,9 @@ export const getUser = async (
     if (!user) throw new NotFoundError({ user: ["User not found"] })
 
     const authorId = new Types.ObjectId(userId)
-    const questionStatsPipeline = [
-      { $match: { author: authorId } },
-      {
-        $group: {
-          _id: null,
-          count: { $sum: 1 },
-          upvotes: { $sum: "$upvotes" },
-          views: { $sum: "$views" },
-        },
-      },
-      { $project: { _id: 0, count: 1, upvotes: 1, views: 1 } },
-    ]
-    const answerStatsPipeline = [
-      { $match: { author: authorId } },
-      {
-        $group: {
-          _id: null,
-          count: { $sum: 1 },
-          upvotes: { $sum: "$upvotes" },
-        },
-      },
-      { $project: { _id: 0, count: 1, upvotes: 1 } },
-    ]
-
-    const [[questionStats], [answerStats], topQuestions, topAnswers, topTags] =
+    const [stats, topQuestions, topAnswers, topTags] =
       await Promise.all([
-        Question.aggregate<{
-          count: number
-          upvotes: number
-          views: number
-        }>(questionStatsPipeline),
-        Answer.aggregate<{ count: number; upvotes: number }>(
-          answerStatsPipeline
-        ),
+        computeUserStats(authorId),
         Question.find({ author: authorId })
           .populate("tags", "_id name")
           .sort({ upvotes: -1, views: -1, createdAt: -1 })
@@ -204,21 +303,11 @@ export const getUser = async (
         getUserTopTags(authorId),
       ])
 
-    const totalQuestions = questionStats?.count ?? 0
-    const totalAnswers = answerStats?.count ?? 0
+    const { totalQuestions, totalAnswers, badges } = stats
     const topAnswerVotes = await getAnswerVoteStates(
       topAnswers.slice(0, 3).map((answer) => String(answer._id))
     )
 
-    const badges = assignBadges({
-      criteria: [
-        { type: "QUESTION_COUNT", count: totalQuestions },
-        { type: "ANSWER_COUNT", count: totalAnswers },
-        { type: "QUESTION_UPVOTES", count: questionStats?.upvotes ?? 0 },
-        { type: "ANSWER_UPVOTES", count: answerStats?.upvotes ?? 0 },
-        { type: "TOTAL_VIEWS", count: questionStats?.views ?? 0 },
-      ],
-    })
 
     return {
       success: true,

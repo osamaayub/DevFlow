@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { getUser } from "@/features/users/actions"
+import { getUser, getUserStats } from "@/features/users/actions"
 import {
   ProfileActivity,
   ProfileHeader,
@@ -14,9 +14,10 @@ const Profile = async ({ params }: RouteParams) => {
   const { id } = await params
   if (!id) return notFound();
 
-  const [session, { success, data, error }] = await Promise.all([
+  const [session, { success, data, error }, { data: userStats }] = await Promise.all([
     auth(),
     getUser({ userId: id }),
+    getUserStats({ userId: id }),
   ])
 
   if (!success || !data) {
@@ -33,22 +34,20 @@ const Profile = async ({ params }: RouteParams) => {
     totalAnswers,
     hasMoreQuestions,
     hasMoreAnswers,
-    badges,
     topQuestions,
     topAnswers,
     topTags,
   } = data
   const isOwnProfile =
     session?.user?.id != null && String(session.user.id) === String(user._id)
-
   return (
     <>
       <ProfileHeader user={user} isOwnProfile={isOwnProfile} />
 
       <Stats
-        totalQuestions={totalQuestions}
-        totalAnswers={totalAnswers}
-        badges={badges}
+        totalQuestions={userStats?.totalQuestions || 0}
+        totalAnswers={userStats?.totalAnswers || 0}
+        badges={userStats?.badges || { GOLD: 0, SILVER: 0, BRONZE: 0 }}
         reputationPoints={user.reputation || 0}
       />
 
