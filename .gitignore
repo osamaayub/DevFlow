@@ -52,6 +52,7 @@ yarn-error.log*
 
 # thunder client (local API requests; may hold session tokens)
 /thunder-client/
+/scripts/seed*.mjs
 
 # typescript
 *.tsbuildinfo
