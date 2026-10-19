@@ -354,7 +354,7 @@ export async function deleteQuestion(
         throw new RequestError("This question no longer exists.", 404);
       }
 
-      if (normalizeAuthorId(question.author) !== userId) {
+      if (normalizeAuthorId(question.author.toString()) !== userId) {
         throw new RequestError("You can only delete your own questions.", 403);
       }
 

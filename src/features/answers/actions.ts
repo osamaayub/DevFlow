@@ -8,11 +8,12 @@ import { IAnswer, Question, Answer, Vote } from "@/server/db";
 import { HandleError } from "@/server/errors/error-handler"
 import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
-import { AnswerIdSchema, CreateAnswerSchema, EditAnswerSchema, GetAnswersSchema } from "@/shared/lib/validation";
+import { AnswerIdSchema, CreateAnswerSchema, DeleteAnswerSchema, EditAnswerSchema, GetAnswersSchema } from "@/shared/lib/validation";
 import {
   ActionResponse,
   AnswerIdParams,
   CreateAnswerParams,
+  DeleteAnswerParams,
   EditAnswerParams,
   ErrorResponse,
   GetAnswersParams,
@@ -229,10 +230,10 @@ export async function editAnswer(
   }
 }
 
-export async function deleteAnswer(params: AnswerIdParams): Promise<ActionResponse> {
+export async function deleteAnswer(params: DeleteAnswerParams): Promise<ActionResponse> {
   const validationResult = await action({
     params,
-    schema: AnswerIdSchema,
+    schema: DeleteAnswerSchema,
     authorize: true,
   });
 
@@ -252,10 +253,10 @@ export async function deleteAnswer(params: AnswerIdParams): Promise<ActionRespon
       const answer = await Answer.findById(answerId)
         .select("author question")
         .session(session)
-        .lean<{ author: unknown; question: unknown } | null>();
+        .lean<{ author: mongoose.Types.ObjectId; question: mongoose.Types.ObjectId } | null>();
 
       if (!answer) throw new RequestError("This answer no longer exists.", 404);
-      if (String(answer.author) !== userId) {
+      if (String(answer.author.toString()) !== userId) {
         throw new RequestError("You can only delete your own answers.", 403);
       }
 
@@ -263,12 +264,12 @@ export async function deleteAnswer(params: AnswerIdParams): Promise<ActionRespon
 
       // Votes are stored as { id, type }
       await Vote.deleteMany({ id: answerId, type: "answer" }, { session });
-      await Answer.deleteOne({ _id: answerId }, { session });
-      // Never let the count go below zero
-      await Question.updateOne(
+      await Answer.findByIdAndDelete({ _id: answerId }, { session,new: true });
+   
+      await Question.findOneAndUpdate(
         { _id: answer.question, answers: { $gt: 0 } },
         { $inc: { answers: -1 } },
-        { session }
+        { session, new: true }
       );
     });
 

@@ -80,11 +80,14 @@ export interface CreateAnswerParams {
   content: string
 }
 
-export interface AnswerIdParams {
+export interface DeleteAnswerParams {
+  answerId: string
+}
+export interface AnswerIdParams{
   answerId: string
 }
 
-export interface EditAnswerParams extends AnswerIdParams {
+export interface EditAnswerParams extends DeleteAnswerParams {
   content: string
 }
 
