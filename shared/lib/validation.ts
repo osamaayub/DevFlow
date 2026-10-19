@@ -1,5 +1,7 @@
 import z from "zod"
 
+import {InteractionActionEnums} from "@/server/db/schemas/Interaction.schema"
+
 export const SignUpSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters."
@@ -267,4 +269,13 @@ export const CollectionSchema=z.object({
 })
 
 export const GetSavedQuestionsSchema = paginatedSearchParamsSchema.extend({
+})
+
+export const CreateInteractionSchema=z.object({
+  action:z.enum(InteractionActionEnums,{message:'Action is required'}),
+  actionTarget:z.enum(['question','answer'],{message:'Action Target is required'}),
+  actionId:z.string().min(1,{message:'Action Id is required'}),
+  authorId:z.string().min(1,{message:'Author Id is required'}),
+  // true reverses the points, e.g. when a vote is removed or switched
+  undo:z.boolean().optional()
 })

@@ -49,6 +49,7 @@ const Profile = async ({ params }: RouteParams) => {
         totalQuestions={totalQuestions}
         totalAnswers={totalAnswers}
         badges={badges}
+        reputationPoints={user.reputation || 0}
       />
 
       <div className="grid min-w-0 grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1fr)_260px]">

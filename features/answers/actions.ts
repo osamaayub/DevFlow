@@ -1,13 +1,16 @@
 "use server"
 import mongoose from "mongoose"
 import { revalidatePath, updateTag } from "next/cache"
+import { after } from "next/server"
 
+import { createInteraction } from "@/features/interaction/action"
 import { action } from "@/server/action"
 import { CACHE_TAGS } from "@/server/cache-tags"
 import { IAnswer, Question, Answer, Vote } from "@/server/db";
 import { HandleError } from "@/server/errors/error-handler"
 import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
+import logger from "@/shared/lib/logger"
 import { AnswerIdSchema, CreateAnswerSchema, DeleteAnswerSchema, EditAnswerSchema, GetAnswersSchema } from "@/shared/lib/validation";
 import {
   ActionResponse,
@@ -35,6 +38,7 @@ export async function createAnswer(
 
   const { content, questionId } = validationResult.validatedData;
   const userId = validationResult.session?.user?.id;
+  if (!userId) return HandleError(new UnauthorizedError()) as unknown as ErrorResponse;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -60,25 +64,39 @@ export async function createAnswer(
       ],
       { session }
     );
-    
+
     if (!answer) {
       throw new Error("Failed to create an answer");
     }
-    
+
     await session.commitTransaction();
+
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "post",
+        actionTarget: "answer",
+        actionId: String(answer._id),
+        authorId: userId,
+      });
+      if (!interaction.success) {
+        // The answer is saved either way; a missed reputation update shouldn't fail it
+        logger.error({ answerId: answer._id, error: interaction.error }, "Failed to record answer post interaction");
+      }
+    })
+
     updateTag(CACHE_TAGS.questions);
     revalidatePath(ROUTES.QUESTION(questionId));
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(answer)), 
+      data: JSON.parse(JSON.stringify(answer)),
     };
   } catch (error) {
     await session.abortTransaction();
-    
+
     const finalError = error instanceof Error ? error : new Error(String(error));
     return HandleError(finalError) as unknown as ErrorResponse;
-    
+
   } finally {
     await session.endSession();
   }
@@ -123,14 +141,14 @@ export async function getAnswers(
     }
 
     const totalAnswers = await Answer.countDocuments(query);
-    
+
     const answers = await Answer.find(query)
       .populate({
         path: "author",
         select: "_id name image", // Populates the author properties required by your frontend components
       })
       .sort(sortCriteria)
-      .skip(skip)   
+      .skip(skip)
       .limit(limit);
 
     return {
@@ -221,6 +239,21 @@ export async function editAnswer(
     }
 
     const questionId = String(answer.question);
+
+    // Record the edit for activity history after the response is sent (edits earn no
+    // reputation). Only the author can edit, so they are both the performer and the author.
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "edit",
+        actionTarget: "answer",
+        actionId: answerId,
+        authorId: userId,
+      });
+      if (!interaction.success) {
+        logger.error({ answerId, error: interaction.error }, "Failed to record answer edit interaction");
+      }
+    });
+
     revalidatePath(ROUTES.QUESTION(questionId));
     revalidatePath(ROUTES.PROFILE(userId));
 
@@ -264,13 +297,27 @@ export async function deleteAnswer(params: DeleteAnswerParams): Promise<ActionRe
 
       // Votes are stored as { id, type }
       await Vote.deleteMany({ id: answerId, type: "answer" }, { session });
-      await Answer.findByIdAndDelete({ _id: answerId }, { session,new: true });
-   
+      await Answer.findByIdAndDelete({ _id: answerId }, { session, new: true });
+
       await Question.findOneAndUpdate(
         { _id: answer.question, answers: { $gt: 0 } },
         { $inc: { answers: -1 } },
         { session, new: true }
       );
+    });
+
+    // Take back the answer's post points (-10) after the response is sent. Only the
+    // author can delete, so they are both the performer and the author.
+    after(async () => {
+      const interaction = await createInteraction({
+        action: "delete",
+        actionTarget: "answer",
+        actionId: answerId,
+        authorId: userId,
+      });
+      if (!interaction.success) {
+        logger.error({ answerId, error: interaction.error }, "Failed to record answer delete interaction");
+      }
     });
 
     // Answer counts show on the cached question lists

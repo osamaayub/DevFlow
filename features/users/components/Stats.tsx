@@ -7,6 +7,8 @@ interface Props {
   totalQuestions: number
   totalAnswers: number
   badges: Badges
+  /** The user's reputation; passed in for upcoming use (not shown in the cards yet) */
+  reputationPoints: number
 }
 
 interface StatsCardProps {
@@ -20,7 +22,7 @@ const StatsCard = ({
   value,
   title,
 }: StatsCardProps) => (
-  <div className="light-border background-light900_dark300 flex min-h-[76px] min-w-0 items-center justify-center gap-2 rounded-lg border px-2 py-2 shadow-light-300 dark:shadow-dark-200 sm:px-3">
+  <div className="light-border background-light900_dark300 flex min-h-[76px] min-w-0 items-center justify-start gap-3 rounded-lg border px-5 py-2 shadow-light-300 dark:shadow-dark-200">
     <Image
       src={imgUrl}
       alt={title}
@@ -45,14 +47,14 @@ const Stats = ({ totalQuestions, totalAnswers, badges }: Props) => (
     <h4 className="h3-semibold text-dark200_light900">Stats</h4>
 
     <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <div className="light-border background-light900_dark300 grid min-h-[76px] min-w-0 grid-cols-2 items-center justify-items-center gap-2 rounded-lg border px-2 py-2 shadow-light-300 dark:shadow-dark-200 sm:gap-5 sm:px-3">
-        <div className="text-center">
+      <div className="light-border background-light900_dark300 flex min-h-[76px] min-w-0 items-center gap-8 rounded-lg border px-5 py-2 shadow-light-300 dark:shadow-dark-200">
+        <div>
           <p className="small-semibold text-dark200_light900">
             {formatNumber(totalQuestions)}
           </p>
           <p className="small-regular text-dark400_light700">Questions</p>
         </div>
-        <div className="text-center">
+        <div>
           <p className="small-semibold text-dark200_light900">
             {formatNumber(totalAnswers)}
           </p>
@@ -61,17 +63,17 @@ const Stats = ({ totalQuestions, totalAnswers, badges }: Props) => (
       </div>
       <StatsCard
         imgUrl="/icons/gold-medal.svg"
-        value={badges.GOLD ||0}
+        value={badges.GOLD || 0}
         title="Gold Badges"
       />
       <StatsCard
         imgUrl="/icons/silver-medal.svg"
-        value={badges.SILVER ||0}
+        value={badges.SILVER || 0}
         title="Silver Badges"
       />
       <StatsCard
         imgUrl="/icons/bronze-medal.svg"
-        value={badges.BRONZE ||0}
+        value={badges.BRONZE || 0}
         title="Bronze Badges"
       />
     </div>

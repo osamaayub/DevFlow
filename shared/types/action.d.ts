@@ -1,3 +1,7 @@
+import mongoose from "mongoose"
+
+import { IInteraction } from "@/server/db"
+
 import { PaginatedSearchParams } from "./global"
 
 export type ActionOptions<T> = {
@@ -135,4 +139,27 @@ export interface collectionBaseParams{
 
 export interface GetUserParams extends PaginatedSearchParams {
   userId: string
+}
+export interface CreateInteractionParams {
+  action:
+    | "view"
+    | "upvote"
+    | "downvote"
+    | "bookmark"
+    | "post"
+    | "edit"
+    | "delete"
+    | "search";
+  actionId: string;
+  authorId: string;
+  actionTarget: "question" | "answer";
+  /** Reverses the reputation change, e.g. when a vote is removed or switched */
+  undo?: boolean;
+}
+export interface UpdateInteractionParams{
+interaction: IInteraction;
+  session: mongoose.ClientSession;
+  performerId: string;
+  authorId: string;
+  undo?: boolean;
 }

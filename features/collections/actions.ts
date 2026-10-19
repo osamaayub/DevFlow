@@ -3,12 +3,14 @@
 import mongoose from "mongoose"
 import { revalidatePath } from "next/cache"
 
+import { createInteraction } from "@/features/interaction/action"
 import { action } from "@/server/action"
 import { Collection, Question } from "@/server/db"
 import { dbConnect } from "@/server/db/connect"
 import { HandleError } from "@/server/errors/error-handler"
 import { NotFoundError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
+import logger from "@/shared/lib/logger"
 import { CollectionSchema, GetSavedQuestionsSchema } from "@/shared/lib/validation"
 import { ActionResponse, collectionBaseParams, ErrorResponse, PaginatedSearchParams, Question as QuestionType } from "@/shared/types"
 
@@ -73,8 +75,11 @@ export async function toggleSaveQuestion(
   const mongoSession = await mongoose.startSession()
 
   try {
-    const questionExists = await Question.exists({ _id: questionId })
-    if (!questionExists) throw new NotFoundError()
+    // Also fetch the author: the bookmark interaction below is recorded against them
+    const question = await Question.findById(questionId)
+      .select("author")
+      .lean<{ author: unknown } | null>()
+    if (!question) throw new NotFoundError()
 
     let saved = false
 
@@ -95,6 +100,20 @@ export async function toggleSaveQuestion(
       )
       saved = true
     })
+
+    // Record a "bookmark" interaction for new saves, only after the save is committed.
+    // Bookmarks don't change reputation, so unsaving has nothing to reverse.
+    if (saved) {
+      const interaction = await createInteraction({
+        action: "bookmark",
+        actionTarget: "question",
+        actionId: questionId,
+        authorId: String(question.author),
+      })
+      if (!interaction.success) {
+        logger.error({ questionId, error: interaction.error }, "Failed to record bookmark interaction")
+      }
+    }
 
     // Revalidate the question page AND the collection page cache
     revalidatePath(ROUTES.QUESTION(questionId))
