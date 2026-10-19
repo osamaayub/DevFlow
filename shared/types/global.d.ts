@@ -99,6 +99,21 @@ export interface Badges {
   BRONZE: number;
 }
 
+/** A user's activity totals and the badges they earn (see getUserStats) */
+export interface UserStats {
+  totalQuestions: number;
+  totalAnswers: number;
+  /** Upvotes received on the user's questions */
+  questionUpvotes: number;
+  /** Upvotes received on the user's answers */
+  answerUpvotes: number;
+  /** questionUpvotes + answerUpvotes */
+  totalUpvotes: number;
+  /** Views across all of the user's questions */
+  totalViews: number;
+  badges: Badges;
+}
+
 export interface Job {
   id?: string;
   employer_name?: string;
