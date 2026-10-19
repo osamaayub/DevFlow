@@ -5,7 +5,7 @@ module.exports = {
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "src/shared/components/ui/**"
+    "shared/components/ui/**"
   ],
   extends: ["next/core-web-vitals", "next/typescript"],
   plugins: ["import"],

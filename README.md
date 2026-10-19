@@ -18,7 +18,7 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 
 </div>
 
-> 🚀 **Project Status:** Core functionality is now in place and the project is in beta/stabilization. Recent work focused on profile activity performance, profile answer voting, question edit/delete ownership checks, and consistent toast feedback.
+> 🚀 **Project Status:** Core functionality is in place and the project is in beta/stabilization. Recent work added a jobs board, answer editing and deletion, and moved the app to Next.js Cache Components with cached data and instant navigations.
 
 
 ---
@@ -60,7 +60,7 @@ Optimized for desktop, tablet, and mobile devices.
 Browse members, filter by reputation or popularity, and view each member's questions.
 
 ### 👤 User Profiles
-View responsive profiles with bio, location, portfolio, activity stats, paginated questions and answers, and upvote/downvote controls on answers. Profile activity uses separate paginated question and answer actions; users can also edit their profile details.
+View responsive profiles with bio, location, portfolio, activity stats, paginated questions and answers, and upvote/downvote controls on answers. Owners can edit and delete their questions and answers from the profile, with a confirmation dialog before deleting; users can also edit their profile details.
 
 ### 🔥 Hot Network & Popular Tags
 Right sidebar highlights top-voted questions and popular tags. User profiles show up to six tags used on the user's questions.
@@ -74,13 +74,19 @@ Right sidebar highlights top-voted questions and popular tags. User profiles sho
 Markdown editor (MDXEditor, loaded client-side only) for questions and answers, with syntax-highlighted code blocks rendered via Bright.
 
 ### 🧭 Filters & Pagination
-Shared filter components and pagination across home, tags, tag details, collection, community, and answers.
+Shared filter components and page-number pagination across home, tags, tag details, collection, community, profile, jobs, and answers. Question lists show 3 per page.
 
 ### 📊 Structured Logging
 Request and error logging with Pino for debugging and monitoring.
 
 ### 🤖 AI-Powered Answers
 Generate intelligent answers using OpenAI integration.
+
+### 💼 Jobs Board
+Browse, search and filter jobs, then apply, save or share them. Posters can create, edit and delete their jobs (with company logo upload) and review applicants.
+
+### ⚡ Caching & Instant Navigation
+Cache Components and Partial Prefetching serve a static shell instantly while page data streams in. Shared lists are cached and invalidated as soon as questions, answers, votes or views change.
 
 </td>
 </tr>
@@ -90,14 +96,14 @@ Generate intelligent answers using OpenAI integration.
 
 ## 🔄 Recent Updates
 
-- Split profile activity into a render-focused component, a dedicated state/action hook, and reusable activity cards and tabs.
-- Added separate paginated server actions for profile questions and answers, with per-tab page state and refreshed server data synchronization.
-- Added optimistic upvote and downvote controls to profile answer cards, including the current user's vote state.
-- Reduced profile tag lookup work by limiting grouped tag IDs before fetching tag names, instead of joining the tags collection with `$lookup`.
-- Added compound MongoDB indexes for profile question/answer sorting and question tags by author.
-- Fixed the question edit flow so ownership checks correctly work when `question.author` is a populated Mongo object instead of a raw string.
-- Added proper delete confirmation and Sonner toast feedback for success/error states on profile question cards.
-- Kept pagination and delete operations guarded against overlapping requests and stale profile data.
+- **Jobs:** job board with search, filters and salary sorting; apply, save and share; posters can create, edit and delete jobs and manage applicants.
+- **Answers:** edit and delete your own answers from the profile Answers tab, with a dedicated answer edit page.
+- **Deletes:** shared confirmation dialog (shadcn AlertDialog) for deleting questions and answers; deletes run in MongoDB transactions and remove related votes.
+- **Caching:** enabled Next.js Cache Components and Partial Prefetching; question and tag lists are cached with tag-based invalidation, and the session is read once per request.
+- **Queries:** escaped search input, bounded pagination input, atomic view and answer counters, and new indexes for feeds, votes, saved questions and tag links.
+- **Google sign-in:** fewer database round trips during OAuth sign-in and a unique index on accounts.
+- **API:** `POST /api/questions` for creating questions (used by the Thunder Client collection).
+- **Lists:** page-number pagination everywhere, with 3 questions per page.
 
 ---
 
@@ -266,15 +272,20 @@ yarn lint         # Run ESLint checks
 - [x] Back button across pages
 - [x] MDX editor loaded client-side only (fixes "This page couldn't load" on ask-question and question details)
 - [x] CI workflow (lint, type-check, build) and Docker image publishing to GHCR
+- [x] Jobs board: listing, search, filters, details, apply, save, share
+- [x] Job posting with logo upload, plus edit, delete and applicant management for posters
+- [x] Answer editing and deletion from the profile Answers tab
+- [x] Shared confirmation dialog for question and answer deletion
+- [x] Next.js Cache Components and Partial Prefetching with per-route loading states
+- [x] Cached question and tag lists with tag-based invalidation
+- [x] `POST /api/questions` endpoint for creating questions
 
 ### 🚧 In Progress
-- [ ] Jobs page implementation (placeholder exists)
 - [ ] Final polish and edge-case validation for remaining UI flows
-- [ ] Answer editing and deletion
+- [ ] Securing the users and accounts REST endpoints
 
 ### 📋 Planned
 - [ ] Interaction tracking - Schema exists, implementation pending
-- [ ] Answer editing and deletion
 - [ ] User management actions
 - [ ] Live demo deployment
 - [ ] Admin dashboard
@@ -292,48 +303,93 @@ yarn lint         # Run ESLint checks
 
 ## 📁 Project Structure
 
+The project has no `src` folder: `app/` and the other folders sit at the project root. `app/` holds only routes (pages, layouts, loading states and API handlers), and each route delegates to a feature folder.
+
 ```
 DevFlow/
-├── src/
-│   ├── app/                         # Routes only: thin pages, layouts, API handlers
-│   │   ├── (auth)/                  # sign-in, sign-up
-│   │   ├── (root)/                  # home, ask-question, questions/[id], tags, community, ...
-│   │   ├── api/                     # REST endpoints (accounts, users, ai/answers, auth)
+├── app/                                  # Routes only (App Router)
+│   ├── layout.tsx                        # Root layout: fonts, metadata, Providers
+│   ├── Providers.tsx                     # SessionProvider, ThemeProvider, Toaster
+│   ├── (auth)/                           # Auth screens (no sidebars)
 │   │   ├── layout.tsx
-│   │   └── Providers.tsx
-│   ├── features/                    # Vertical slices: one folder per domain
-│   │   ├── answers/                 # actions.ts + components/ (AnswerForm, AnswerCard, AllAnswers)
-│   │   ├── auth/                    # actions.ts, sign-out.action.ts + components/ (AuthForm, SocialAuthForm)
-│   │   ├── collections/             # actions.ts (saved questions)
-│   │   ├── community/               # actions.ts + components/ (UserCard, CommunityMemberProfile)
-│   │   ├── questions/               # actions.ts + components/ (QuestionForm, QuestionCard, SaveQuestion)
-│   │   ├── tags/                    # actions.ts, tag-helpers.ts + components/ (TagCards)
-│   │   ├── users/                    # actions.ts + components/ (profile, activity, and profile editing)
-│   │   └── votes/                    # actions.ts, vote-state.ts, components/, hooks/useVote.ts
-│   ├── server/                      # Server-only infrastructure (never imported by client code)
-│   │   ├── auth.ts                  # NextAuth configuration
-│   │   ├── action.ts                # Validate + authorize + connect wrapper for server actions
-│   │   ├── errors/                  # HTTP error classes, error handler
-│   │   └── db/                      # connect.ts, models/, schemas/ (guarded by "server-only")
-│   ├── shared/                      # Client-safe building blocks used across features
-│   │   ├── api/                     # Typed fetch client for the REST endpoints
-│   │   ├── components/              # ui/ (shadcn), common/, editor/, filters/, navigation/, search/
-│   │   ├── constants/
-│   │   ├── context/                 # Theme context
-│   │   ├── lib/                     # utils, url, validation (zod), logger
-│   │   └── types/
-│   └── proxy.ts                     # Request proxy: forwards the question filter header
-├── patches/                         # patch-package patches (next-themes)
-├── public/                          # Static assets
-├── .github/workflows/               # CI and deploy workflows
-└── Dockerfile                       # Multi-stage standalone build
+│   │   ├── sign-in/page.tsx
+│   │   └── sign-up/page.tsx
+│   ├── (root)/                           # Main app with navbar and sidebars
+│   │   ├── layout.tsx                    # Navbar, left sidebar, right sidebar
+│   │   ├── loading.tsx                   # Shared Loader fallback
+│   │   ├── page.tsx                      # Home: questions feed
+│   │   ├── ask-question/page.tsx
+│   │   ├── questions/[id]/               # Question details, answers
+│   │   │   └── edit/                     # Edit a question
+│   │   ├── answers/[id]/edit/            # Edit an answer
+│   │   ├── tags/                         # All tags
+│   │   │   └── [id]/                     # Questions under a tag
+│   │   ├── collection/                   # Saved questions
+│   │   ├── community/                    # Members
+│   │   │   └── [id]/details/             # A member's questions
+│   │   ├── profile/
+│   │   │   ├── [id]/                     # Profile, Top Posts and Answers tabs
+│   │   │   └── edit/                     # Edit your profile
+│   │   └── jobs/                         # Jobs board
+│   │       ├── new/                      # Post a job
+│   │       └── [id]/                     # Job details
+│   │           ├── apply/                # Apply to a job
+│   │           ├── applicants/           # Poster's applicant list
+│   │           └── edit/                 # Edit a job
+│   └── api/                              # REST route handlers
+│       ├── auth/[...nextauth]/           # Auth.js handler
+│       ├── ai/answers/                   # AI answer generation
+│       ├── questions/                    # POST: create a question
+│       ├── users/                        # Users CRUD, /email, /[id]
+│       └── accounts/                     # Accounts CRUD, /provider, /[id]
+│   # Every page folder under (root) also has a loading.tsx that re-exports
+│   # the shared Loader, so client navigations stay instant.
+│
+├── features/                             # One folder per domain: actions.ts + components/
+│   ├── answers/                          # Create, list, edit, delete answers; AnswerForm, EditAnswerForm
+│   ├── auth/                             # Credentials sign-in/up; AuthForm, SocialAuthForm
+│   ├── collections/                      # Save/unsave questions, saved list
+│   ├── community/                        # Members list and member details
+│   ├── jobs/                             # Jobs, applications, saved jobs; types.ts, utils.ts
+│   ├── questions/                        # Create, edit, delete, list; service.ts (shared create logic)
+│   ├── tags/                             # Tag lists and tag questions; tag-helpers.ts
+│   ├── users/                            # Profile data, activity tabs, profile editing
+│   └── votes/                            # Votes on questions and answers; hooks/useVote.ts
+│
+├── server/                               # Server-only infrastructure
+│   ├── auth.ts                           # Auth.js config; auth() is cached per request
+│   ├── action.ts                         # Validate + authorize + connect wrapper for actions
+│   ├── cache-tags.ts                     # Cache tag names and revalidation intervals
+│   ├── request-time.ts                   # Defers DB work to request time (Cache Components)
+│   ├── errors/                           # HTTP error classes and error handler
+│   └── db/                               # connect.ts, models/, schemas/ (with indexes)
+│
+├── shared/                               # Client-safe building blocks
+│   ├── api/                              # Typed fetch client for the REST endpoints
+│   ├── components/
+│   │   ├── ui/                           # shadcn/ui primitives (incl. alert-dialog)
+│   │   ├── common/                       # Loader, ConfirmDialog, ConfirmDeleteButton, DataRender, ...
+│   │   ├── editor/                       # MDX editor and preview
+│   │   ├── filters/                      # Shared filters
+│   │   ├── navigation/                   # Navbar, sidebars, Pagination
+│   │   └── search/                       # Local search bar
+│   ├── constants/                        # Routes, filters, empty states, pagination
+│   ├── context/                          # Theme context
+│   ├── lib/                              # utils, url, validation (zod), logger
+│   └── types/
+│
+├── proxy.ts                              # Request proxy: forwards the question filter header
+├── patches/                              # patch-package patches (next-themes)
+├── public/                               # Static assets and icons
+├── .github/workflows/                    # CI and deploy workflows
+└── Dockerfile                            # Multi-stage standalone build
 ```
 
 **Dependency rules**
 
 - `app` → `features` → `shared`; `server` is used by `app` and feature `actions.ts`, never by client components.
 - A feature is imported only through its public surface: `@/features/<name>/components` or `@/features/<name>/actions`. Features don't reach into each other's internals.
-- Relative imports stay inside one area; anything crossing areas uses the `@/` alias (`@/*` → `src/*`).
+- Relative imports stay inside one area; anything crossing areas uses the `@/` alias (`@/*` → the project root).
 
 ---
 
@@ -344,7 +400,7 @@ All responses follow the standard envelope format:
 { "success": true, "data": {...}, "statusCode": 200 }
 ```
 
-> **Note:** Questions, Answers, and Tags use **Server Actions** instead of REST API endpoints for better performance and type safety.
+> **Note:** The app itself uses **Server Actions** for questions, answers, tags, votes, collections, community and jobs. `POST /api/questions` exists for external tools such as Thunder Client.
 
 ### 👥 Users
 
@@ -380,13 +436,20 @@ All responses follow the standard envelope format:
 |--------|----------|-------------|
 | `POST` | `/api/ai/answers` | Generate AI-powered answers with OpenAI |
 
+### ❓ Questions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/questions` | Create a question as the signed-in user (send the `authjs.session-token` cookie). Body: `{ title, content, tags }`, with Markdown content |
+
 ### ⚡ Server Actions
 
-Questions, Answers, Tags, Votes, Collections, and Community are handled via Server Actions instead of REST API:
+Questions, Answers, Tags, Votes, Collections, Community and Jobs are handled via Server Actions:
 
 | Feature | Action | Description |
 |---------|--------|-------------|
 | **Users** | `getUser` | Get profile data, statistics, top questions and answers, and up to six question tags |
+| | `updateUserProfile` | Update your profile details |
 | | `getUserQuestionsActivity` | Get paginated profile questions |
 | | `getUserAnswersActivity` | Get paginated profile answers with the current user's vote state |
 | **Questions** | `createQuestion` | Create new question with tags |
@@ -395,9 +458,12 @@ Questions, Answers, Tags, Votes, Collections, and Community are handled via Serv
 | | `getQuestions` | Get paginated questions with search and filters |
 | | `getHotQuestions` | Get top questions for the right sidebar |
 | | `incrementQuestionViews` | Track question views |
-| | `deleteQuestion` | Delete a question (no UI yet) |
+| | `deleteQuestion` | Delete your question with its answers and votes |
 | **Answers** | `createAnswer` | Create answer for question |
 | | `getAnswers` | Get paginated answers with filters |
+| | `getAnswerForEdit` | Load your answer for its edit page |
+| | `editAnswer` | Edit your answer |
+| | `deleteAnswer` | Delete your answer and its votes |
 | **Tags** | `getTags` | Get paginated tags with filters |
 | | `getTagQuestions` | Get questions for specific tag |
 | | `getTopTags` | Get popular tags for the right sidebar |
@@ -409,6 +475,11 @@ Questions, Answers, Tags, Votes, Collections, and Community are handled via Serv
 | | `getSaveQuestions` | Get the user's saved questions (paginated, filtered) |
 | **Community** | `getUsers` | Get paginated users with search and filters |
 | | `getCommunityMember` | Get a member and their questions |
+| **Jobs** | `getJobs` | Get paginated jobs with search, filters and salary sorting |
+| | `getJobById` / `getJobViewerState` | Get a job and the viewer's applied/saved state |
+| | `createJob` / `editJob` / `deleteJob` | Post, edit or delete a job (poster only) |
+| | `applyToJob` / `toggleSaveJob` | Apply to or save a job |
+| | `getJobApplicants` / `updateApplicationStatus` | Review applicants and set their status |
 | **Auth** | `signUpWithCredentials` | User registration |
 | | `signInWithCredentials` | User login |
 | | `logout` | User sign out |
@@ -470,9 +541,12 @@ GitHub Actions automate testing and deployment:
 ## 📊 Performance
 
 - 🎯 **Next.js App Router** with Server Components and Server Actions
+- ⚡ **Cache Components & Partial Prefetching**: a prerendered static shell (navbar, sidebars, loaders) with page data streamed in
+- 🗃️ **Cached lists** for questions and tags (`unstable_cache` + tags), invalidated with `updateTag` / `revalidateTag` on every change
+- 🔐 **One session read per request** via React `cache()` around `auth()`
 - 🧩 **Client-only MDX editor** loaded with `next/dynamic` to keep it out of server rendering
 - 🗜️ **Optimized Bundle** with tree-shaking
-- 📦 **MongoDB Indexing** for profile question/answer ordering and author-tag queries
+- 📦 **MongoDB Indexing** for feeds, answers by question, vote lookups, saved questions, tag links, accounts and profile queries
 - 🏷️ **Bounded Tag Retrieval** groups profile tags, limits the IDs, then fetches names in one query without `$lookup`
 - 🚀 **Docker Multi-stage Build** for minimal image size
 
