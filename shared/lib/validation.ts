@@ -213,6 +213,13 @@ export const paginatedSearchParamsSchema = z.object({
   sort: z.string().optional()
 })
 
+export const GetRecommendationQuestionsSchema = z.object({
+  userId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid user ID" }),
+  query: z.string().trim().max(100).optional(),
+  skip: z.coerce.number().int().min(0).max(10_000).default(0),
+  limit: z.coerce.number().int().positive().max(51).default(10),
+})
+
 export const GetTagQuestionsSchema = paginatedSearchParamsSchema.extend({
   tagId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid tag ID" })
 })

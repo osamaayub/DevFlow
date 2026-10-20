@@ -44,6 +44,9 @@ Save or remove questions and browse saved questions in your collection.
 ### 👍 Voting
 Upvote or downvote questions and answers with optimistic UI updates.
 
+### 🎯 Personalized Recommendations
+Signed-in users get recommended questions based on their interaction history and preferred tags. Questions they have already interacted with are excluded.
+
 </td>
 <td width="50%">
 
@@ -101,6 +104,8 @@ Cache Components and Partial Prefetching serve a static shell instantly while pa
 - **Deletes:** shared confirmation dialog (shadcn AlertDialog) for deleting questions and answers; deletes run in MongoDB transactions and remove related votes.
 - **Caching:** enabled Next.js Cache Components and Partial Prefetching; question and tag lists are cached with tag-based invalidation, and the session is read once per request.
 - **Queries:** escaped search input, bounded pagination input, atomic view and answer counters, and new indexes for feeds, votes, saved questions and tag links.
+- **Recommendations:** the home feed's Recommended filter now uses question interactions and preferred tags, removes duplicate tags, excludes previously interacted questions, and falls back to popular unseen questions.
+- **Authentication:** personalized recommendations are used only for signed-in users; logged-out users continue to receive the public question feed.
 - **Google sign-in:** fewer database round trips during OAuth sign-in and a unique index on accounts.
 - **API:** `POST /api/questions` for creating questions (used by the Thunder Client collection).
 - **Lists:** page-number pagination everywhere, with 3 questions per page.
@@ -259,6 +264,11 @@ yarn lint         # Run ESLint checks
 - [x] MongoDB transaction support for complex operations
 - [x] Tag processing and helper functions
 - [x] Question filtering (newest, unanswered, popular)
+- [x] Personalized question recommendations from user interactions and preferred tags
+- [x] Exclude previously interacted questions from recommendations
+- [x] Deduplicate tags in recommendation results
+- [x] Interaction tracking with reputation updates for posts, votes, bookmarks, views and edits
+- [x] Badge system and gamification with bronze, silver and gold profile badges
 - [x] URL utilities and helpers
 - [x] AI Answer UI integration (API implemented, UI Implemented)
 - [x] Vote system (upvotes/downvotes) for questions and answers with optimistic updates
@@ -285,14 +295,12 @@ yarn lint         # Run ESLint checks
 - [ ] Securing the users and accounts REST endpoints
 
 ### 📋 Planned
-- [ ] Interaction tracking - Schema exists, implementation pending
 - [ ] User management actions
 - [ ] Live demo deployment
 - [ ] Admin dashboard
 - [ ] Real-time notifications
 - [ ] Advanced analytics and reporting
 - [ ] Community features (comments, discussions)
-- [ ] Badge system and gamification
 - [ ] API rate limiting
 - [ ] Additional OAuth providers
 - [ ] Enhanced search algorithms
@@ -364,7 +372,7 @@ DevFlow/
 │   ├── errors/                           # HTTP error classes and error handler
 │   └── db/                               # connect.ts, models/, schemas/ (with indexes)
 │
-├── shared/                               # Client-safe building blocks
+├── shared/                               # Shared client and server building blocks
 │   ├── api/                              # Typed fetch client for the REST endpoints
 │   ├── components/
 │   │   ├── ui/                           # shadcn/ui primitives (incl. alert-dialog)
@@ -375,7 +383,7 @@ DevFlow/
 │   │   └── search/                       # Local search bar
 │   ├── constants/                        # Routes, filters, empty states, pagination
 │   ├── context/                          # Theme context
-│   ├── lib/                              # utils, url, validation (zod), logger
+│   ├── lib/                              # utils, url, validation, logger, question/recommendation helpers
 │   └── types/
 │
 ├── proxy.ts                              # Request proxy: forwards the question filter header
@@ -455,10 +463,12 @@ Questions, Answers, Tags, Votes, Collections, Community and Jobs are handled via
 | **Questions** | `createQuestion` | Create new question with tags |
 | | `editQuestion` | Edit existing question |
 | | `getQuestion` | Get single question by ID |
-| | `getQuestions` | Get paginated questions with search and filters |
+| | `getQuestions` | Get paginated questions with search and filters; uses personalized recommendations for signed-in users when the Recommended filter is selected |
+| | `getRecommendationQuestions` | Get interaction-based recommendations while excluding previously interacted questions |
 | | `getHotQuestions` | Get top questions for the right sidebar |
 | | `incrementQuestionViews` | Track question views |
 | | `deleteQuestion` | Delete your question with its answers and votes |
+| **Interactions** | `createInteraction` | Record user activity and apply reputation changes |
 | **Answers** | `createAnswer` | Create answer for question |
 | | `getAnswers` | Get paginated answers with filters |
 | | `getAnswerForEdit` | Load your answer for its edit page |
