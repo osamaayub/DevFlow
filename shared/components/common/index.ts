@@ -1,4 +1,5 @@
 export { default as BackButton } from "./BackButton"
+export { default as AppError } from "./AppError"
 export { default as ConfirmDeleteButton } from "./ConfirmDeleteButton"
 export { default as ConfirmDialog } from "./ConfirmDialog"
 export { default as DataRender } from "./DataRender"
