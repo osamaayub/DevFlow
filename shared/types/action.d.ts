@@ -163,3 +163,9 @@ interaction: IInteraction;
   authorId: string;
   undo?: boolean;
 }
+export interface RecommendationParams{
+  userId: string
+  query?: string
+  skip: string
+  limit: string
+}

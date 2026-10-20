@@ -1,7 +1,7 @@
 "use server";
 
 import mongoose, { FilterQuery } from "mongoose";
-import { revalidatePath, revalidateTag, unstable_cache, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { after } from "next/server";
 import { cache } from "react";
 
@@ -9,14 +9,23 @@ import { createInteraction } from "@/features/interaction/action"
 import { insertQuestion } from "@/features/questions/service"
 import { PopulatedTag, processTags, removeTags } from "@/features/tags/tag-helpers"
 import { action } from "@/server/action"
-import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/server/cache-tags"
+import { auth } from "@/server/auth"
+import { CACHE_TAGS } from "@/server/cache-tags"
 import { Answer, Collection, Vote, Question, TagQuestion, Tag } from "@/server/db";
 import dbConnect from "@/server/db/connect";
 import { HandleError } from "@/server/errors/error-handler"
 import { RequestError, UnauthorizedError } from "@/server/errors/http-error"
 import ROUTES from "@/shared/constants/route"
 import logger from "@/shared/lib/logger";
-import { AskQuestionSchema, DeleteQuestionSchema, EditQuestionSchema, GetQuestionSchema, IncrementQuestionViewsSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
+import { getCachedQuestionList, normalizeAuthorId } from "@/shared/lib/questions"
+import {
+  findRecommendationQuestions,
+  getInteractedQuestionIds,
+  getPreferredTagIds,
+  getRecommendationFilter,
+  serializeRecommendationQuestions,
+} from "@/shared/lib/recommendations"
+import { AskQuestionSchema, DeleteQuestionSchema, EditQuestionSchema, GetQuestionSchema, GetRecommendationQuestionsSchema, IncrementQuestionViewsSchema, paginatedSearchParamsSchema } from "@/shared/lib/validation"
 import {
   ActionResponse,
   CreateQuestionParams,
@@ -27,21 +36,8 @@ import {
   IncrementQuestionViewsParams,
   PaginatedSearchParams,
   Question as QuestionType,
+  RecommendationParams,
 } from "@/shared/types";
-
-const normalizeAuthorId = (author: unknown): string | undefined => {
-  if (!author) return undefined;
-
-  if (typeof author === "string") return author;
-
-  if (typeof author === "object") {
-    const authorRecord = author as { _id?: unknown; id?: unknown };
-    if (authorRecord._id != null) return String(authorRecord._id);
-    if (authorRecord.id != null) return String(authorRecord.id);
-  }
-
-  return String(author);
-};
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -220,61 +216,58 @@ export const getQuestion = cache(async function getQuestion(
   }
 });
 
-const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export async function getRecommendationQuestions(
+  params: RecommendationParams
+): Promise<ActionResponse<QuestionType[]>> {
+  const validationResult = await action({
+    params,
+    schema: GetRecommendationQuestionsSchema,
+    authorize: true,
+  });
 
-const getQuestionSortCriteria = (
-  filter?: string
-): { sort: Record<string, 1 | -1>; unansweredOnly: boolean } => {
-  switch (filter) {
-    case "popular":
-      return { sort: { upvotes: -1, createdAt: -1 }, unansweredOnly: false };
-    case "unanswered":
-      return { sort: { createdAt: -1 }, unansweredOnly: true };
-    case "recommended":
-      return { sort: { upvotes: -1, createdAt: -1 }, unansweredOnly: false };
-    case "frequent":
-      return { sort: { views: -1, createdAt: -1 }, unansweredOnly: false };
-    case "newest":
-    default:
-      return { sort: { createdAt: -1 }, unansweredOnly: false };
+  if (validationResult instanceof Error) {
+    return HandleError(validationResult) as unknown as ErrorResponse;
   }
-};
 
-// Question lists are read on almost every page (home feed + right sidebar), so they are
-// cached per (page, pageSize, query, filter) and invalidated by the questions tag
-const getCachedQuestionList = unstable_cache(
-  async (page: number, pageSize: number, query: string, filter: string) => {
-    await dbConnect();
+  const { userId, query, skip, limit } = validationResult.validatedData;
+  const authenticatedUserId = validationResult.session?.user?.id;
 
-    const skip = (page - 1) * pageSize;
-    const { sort, unansweredOnly } = getQuestionSortCriteria(filter);
-    const filterQuery: FilterQuery<typeof Question> = {};
+  if (!authenticatedUserId || authenticatedUserId !== userId) {
+    return HandleError(new UnauthorizedError()) as unknown as ErrorResponse;
+  }
 
-    if (query) {
-      const pattern = new RegExp(escapeRegex(query), "i");
-      filterQuery.$or = [{ title: pattern }, { content: pattern }];
+  try {
+    const offset = Number(skip);
+    const pageSize = Number(limit);
+    const interactedQuestionIds = await getInteractedQuestionIds(userId);
+    const preferredTagIds = await getPreferredTagIds(interactedQuestionIds);
+    const filter = getRecommendationFilter(userId, interactedQuestionIds, query);
+
+    const personalizedFilter: FilterQuery<typeof Question> = {
+      ...filter,
+      ...(preferredTagIds.length > 0 && { tags: { $in: preferredTagIds } }),
+    };
+
+    let questions = await findRecommendationQuestions(personalizedFilter, offset, pageSize);
+
+    // New users, or users whose preferred topics have no unseen questions, still get
+    // useful recommendations from the general feed.
+    if (questions.length === 0 && preferredTagIds.length > 0) {
+      questions = await findRecommendationQuestions(filter, offset, pageSize);
     }
-    if (unansweredOnly) filterQuery.answers = 0;
-
-    // Fetching one extra row tells us whether a next page exists without a count query
-    const questions = await Question.find(filterQuery)
-      .select("-content")
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .sort(sort)
-      .skip(skip)
-      .limit(pageSize + 1)
-      .lean();
 
     return {
-      questions: JSON.parse(JSON.stringify(questions.slice(0, pageSize))) as QuestionType[],
-      isNext: questions.length > pageSize,
+      success: true,
+      data: serializeRecommendationQuestions(questions),
     };
-  },
-  ["question-list"],
-  { tags: [CACHE_TAGS.questions], revalidate: CACHE_REVALIDATE_SECONDS.questions }
-);
+  } catch (error) {
+    return HandleError(String(error)) as unknown as ErrorResponse;
+  }
+}
 
+// Keep the previous misspelled export working for existing callers.
+export const getRecommmendedQuestions = getRecommendationQuestions;
+export const getRecommendQuestions = getRecommendationQuestions;
 export async function getQuestions(params: PaginatedSearchParams): Promise<
   ActionResponse<{
     questions: QuestionType[];
@@ -293,6 +286,34 @@ export async function getQuestions(params: PaginatedSearchParams): Promise<
   const { page = 1, pageSize = 10, query = "", filter = "" } = validationResult.validatedData;
 
   try {
+    if (filter === "recommended") {
+      const session = await auth();
+      const userId = session?.user?.id;
+
+      if (userId) {
+        const recommendationResult = await getRecommendQuestions({
+          userId,
+          query,
+          skip: String((page - 1) * pageSize),
+          limit: String(pageSize + 1),
+        });
+
+        if (!recommendationResult.success) {
+          return recommendationResult as unknown as ErrorResponse;
+        }
+
+        const recommendedQuestions = recommendationResult.data ?? [];
+
+        return {
+          success: true,
+          data: {
+            questions: recommendedQuestions.slice(0, pageSize),
+            isNext: recommendedQuestions.length > pageSize,
+          },
+        };
+      }
+    }
+
     return { success: true, data: await getCachedQuestionList(page, pageSize, query, filter) };
   } catch (error) {
     return HandleError(String(error)) as unknown as ErrorResponse;
