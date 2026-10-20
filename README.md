@@ -267,6 +267,8 @@ yarn lint         # Run ESLint checks
 - [x] Personalized question recommendations from user interactions and preferred tags
 - [x] Exclude previously interacted questions from recommendations
 - [x] Deduplicate tags in recommendation results
+- [x] Interaction tracking with reputation updates for posts, votes, bookmarks, views and edits
+- [x] Badge system and gamification with bronze, silver and gold profile badges
 - [x] URL utilities and helpers
 - [x] AI Answer UI integration (API implemented, UI Implemented)
 - [x] Vote system (upvotes/downvotes) for questions and answers with optimistic updates
@@ -293,14 +295,12 @@ yarn lint         # Run ESLint checks
 - [ ] Securing the users and accounts REST endpoints
 
 ### 📋 Planned
-- [x] Interaction tracking for question views, votes, bookmarks, posts and edits
 - [ ] User management actions
 - [ ] Live demo deployment
 - [ ] Admin dashboard
 - [ ] Real-time notifications
 - [ ] Advanced analytics and reporting
 - [ ] Community features (comments, discussions)
-- [ ] Badge system and gamification
 - [ ] API rate limiting
 - [ ] Additional OAuth providers
 - [ ] Enhanced search algorithms
@@ -468,6 +468,7 @@ Questions, Answers, Tags, Votes, Collections, Community and Jobs are handled via
 | | `getHotQuestions` | Get top questions for the right sidebar |
 | | `incrementQuestionViews` | Track question views |
 | | `deleteQuestion` | Delete your question with its answers and votes |
+| **Interactions** | `createInteraction` | Record user activity and apply reputation changes |
 | **Answers** | `createAnswer` | Create answer for question |
 | | `getAnswers` | Get paginated answers with filters |
 | | `getAnswerForEdit` | Load your answer for its edit page |
