@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, ResolvingMetadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getUser, getUserStats } from "@/features/users/actions"
@@ -12,7 +12,10 @@ import { auth } from "@/server/auth"
 import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams } from "@/shared/types"
 
-export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: RouteParams,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { id } = await params
   const result = await getUser({ userId: id })
   const user = result.success ? result.data?.user : undefined
@@ -20,12 +23,24 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
 
   const title = `${user.name}'s Developer Profile`
   const description = `View ${user.name}'s programming questions, answers, and developer activity on DevFlow.`
+  const url = `${getSiteUrl()}/profile/${id}`
+  const previousImages = (await parent).openGraph?.images ?? []
+  const profileImages = user.image ? [user.image] : ["/images/logo.png"]
   return {
     title,
     description,
-    alternates: { canonical: `${getSiteUrl()}/profile/${id}` },
-    openGraph: { type: "profile", title, description, images: user.image ? [user.image] : undefined },
-    twitter: { card: "summary", title, description }
+    keywords: [user.name, "developer profile", "programming community"],
+    authors: [{ name: user.name }],
+    alternates: { canonical: url },
+    openGraph: {
+      type: "profile",
+      url,
+      title,
+      description,
+      siteName: "DevFlow",
+      images: [...profileImages, ...previousImages],
+    },
+    twitter: { card: "summary", title, description, images: profileImages },
   }
 }
 
