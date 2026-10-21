@@ -1,5 +1,5 @@
 import { ArrowLeft, Building2, Users } from "lucide-react"
-import type { Metadata } from "next"
+import type { Metadata, ResolvingMetadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -16,7 +16,10 @@ import { getSiteUrl, stripMarkup } from "@/shared/lib/seo"
 import { getTimeStamp } from "@/shared/lib/utils"
 import { RouteParams } from "@/shared/types"
 
-export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: RouteParams,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { id } = await params
   const result = await getJobById({ jobId: id })
   if (!result.success || !result.data?.job) return { title: "Job not found", robots: { index: false, follow: false } }
@@ -24,12 +27,25 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   const job = result.data.job
   const description = stripMarkup(job.description || `Find your next opportunity with ${job.company}.`)
   const url = `${getSiteUrl()}/jobs/${id}`
+  const title = `${job.title} at ${job.company}`
+  const previousImages = (await parent).openGraph?.images ?? []
+  const jobImages = job.companyLogo ? [job.companyLogo] : ["/images/logo.png"]
   return {
-    title: `${job.title} at ${job.company}`,
+    title,
     description,
+    keywords: [job.title, job.company, job.category, job.location, "developer jobs"],
+    category: "careers",
     alternates: { canonical: url },
-    openGraph: { type: "article", url, title: `${job.title} at ${job.company}`, description },
-    twitter: { card: "summary", title: `${job.title} at ${job.company}`, description }
+    openGraph: {
+      type: "article",
+      url,
+      title,
+      description,
+      siteName: "DevFlow",
+      images: [...jobImages, ...previousImages],
+      publishedTime: new Date(job.postedDate).toISOString(),
+    },
+    twitter: { card: "summary", title, description, images: jobImages },
   }
 }
 

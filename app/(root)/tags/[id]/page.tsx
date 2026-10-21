@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, ResolvingMetadata } from "next"
 
 import { QuestionCard } from "@/features/questions/components"
 import { getTagQuestions } from "@/features/tags/actions"
@@ -13,19 +13,35 @@ import { EMPTY_QUESTION } from "@/shared/constants/states";
 import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams, Question } from "@/shared/types";
 
-export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: RouteParams,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { id } = await params
   const result = await getTagQuestions({ tagId: id, page: 1, pageSize: 1 })
   const tagName = result.success ? result.data?.tag?.name : undefined
-  if (!tagName) return { title: "Tag not found", robots: { index: false, follow: false } }
+  if (!tagName) {
+    return { title: "Tag not found", robots: { index: false, follow: false } }
+  }
 
   const description = `Explore programming questions and answers about ${tagName} on DevFlow.`
+  const title = `${tagName} Questions`
+  const url = `${getSiteUrl()}/tags/${id}`
+  const previousImages = (await parent).openGraph?.images ?? []
   return {
-    title: `${tagName} Questions`,
+    title,
     description,
-    alternates: { canonical: `${getSiteUrl()}/tags/${id}` },
-    openGraph: { type: "website", title: `${tagName} Questions`, description },
-    twitter: { card: "summary", title: `${tagName} Questions`, description }
+    keywords: [tagName, "programming questions", "developer community"],
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      title,
+      description,
+      siteName: "DevFlow",
+      images: ["/images/logo.png", ...previousImages],
+    },
+    twitter: { card: "summary", title, description, images: ["/images/logo.png"] },
   }
 }
 
