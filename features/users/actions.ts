@@ -1,6 +1,6 @@
 "use server"
 
-import { Types, type PipelineStage } from "mongoose"
+import { Types } from "mongoose"
 import { revalidatePath } from "next/cache"
 
 import { action } from "@/server/action"
@@ -66,23 +66,49 @@ const getAnswerVoteStates = async (answerIds: string[]) => {
 const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = async (
   authorId
 ) => {
-  const questions = await Question.find({ author: authorId }).select("_id").lean()
-  const tags = await TagQuestion.aggregate<{
-    _id: Types.ObjectId
-    count: number
-  }>([
-    { $match: { question: { $in: questions.map((question) => question._id) } } },
-    { $group: { _id: "$tag", count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-    { $limit: TOP_TAGS_LIMIT },
-  ] as PipelineStage[])
+  const questions = await Question.find({ author: authorId }).select("_id tags").lean()
+  const questionIds = questions.map((question) => question._id)
+  const relations = questionIds.length
+    ? await TagQuestion.find({ question: { $in: questionIds } }).select("question tag").lean()
+    : []
+  const tagCounts = new Map<string, number>()
+  const questionTags = new Set<string>()
+
+  for (const question of questions) {
+    const tags = Array.isArray(question.tags) ? question.tags : []
+    for (const tag of tags) {
+      const tagId = String(
+        tag && typeof tag === "object" && "_id" in tag ? tag._id : tag
+      )
+      if (!tagId || tagId === "undefined" || tagId === "null") continue
+      questionTags.add(`${String(question._id)}:${tagId}`)
+    }
+  }
+
+  for (const relation of relations) {
+    const tagId = String(relation.tag)
+    const questionTagKey = `${String(relation.question)}:${tagId}`
+    if (!tagId || tagId === "undefined" || tagId === "null" || questionTags.has(questionTagKey)) {
+      continue
+    }
+    questionTags.add(questionTagKey)
+  }
+
+  for (const questionTag of questionTags) {
+    const tagId = questionTag.slice(questionTag.indexOf(":") + 1)
+    tagCounts.set(tagId, (tagCounts.get(tagId) ?? 0) + 1)
+  }
+
+  const tags = [...tagCounts.entries()]
+    .sort(([, countA], [, countB]) => countB - countA)
+    .slice(0, TOP_TAGS_LIMIT)
 
   if (tags.length === 0) {
     return []
   }
 
   const tagDocuments = await Tag.find({
-    _id: { $in: tags.map(({ _id }) => _id) },
+    _id: { $in: tags.map(([id]) => id) },
   })
     .select("name")
     .lean()
@@ -90,8 +116,7 @@ const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = asyn
     tagDocuments.map((tag) => [String(tag._id), tag.name])
   )
 
-  return tags.flatMap(({ _id, count }) => {
-    const id = String(_id)
+  return tags.flatMap(([id, count]) => {
     const name = tagNamesById.get(id)
     return name === undefined ? [] : [{ _id: id, name, count }]
   })
@@ -122,14 +147,33 @@ const getRelationTagsForQuestions = async (questionIds: string[]) => {
 
 const addFallbackTags = async <T extends { _id: unknown; tags?: unknown }>(questions: T[]) => {
   const questionsMissingTags = questions.filter(
-    (question) => !Array.isArray(question.tags) || question.tags.length === 0
+    (question) =>
+      !Array.isArray(question.tags) ||
+      !question.tags.some(
+        (tag) =>
+          Boolean(tag) &&
+          typeof tag === "object" &&
+          "name" in tag &&
+          typeof tag.name === "string"
+      )
   )
   const fallbackTags = await getRelationTagsForQuestions(
     questionsMissingTags.map((question) => String(question._id))
   )
 
   return questions.map((question) => {
-    if (Array.isArray(question.tags) && question.tags.length > 0) return question
+    if (
+      Array.isArray(question.tags) &&
+      question.tags.some(
+        (tag) =>
+          Boolean(tag) &&
+          typeof tag === "object" &&
+          "name" in tag &&
+          typeof tag.name === "string"
+      )
+    ) {
+      return question
+    }
     return { ...question, tags: fallbackTags.get(String(question._id)) ?? [] }
   })
 }
