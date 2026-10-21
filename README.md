@@ -91,6 +91,12 @@ Browse, search and filter jobs, then apply, save or share them. Posters can crea
 ### ⚡ Caching & Instant Navigation
 Cache Components and Partial Prefetching serve a static shell instantly while page data streams in. Shared lists are cached and invalidated as soon as questions, answers, votes or views change.
 
+### 🔎 SEO & Metadata
+Centralized global metadata plus entity-aware metadata for questions, tags, profiles, community members, and jobs, including canonical URLs, keywords, Open Graph, Twitter cards, authors, and structured data.
+
+### 🚀 Performance & Mobile UX
+Optimized images, lazy-loaded non-critical media, responsive layouts, mobile-safe authentication redirects, and protected application routes for a faster and more consistent mobile experience.
+
 </td>
 </tr>
 </table>
@@ -109,6 +115,11 @@ Cache Components and Partial Prefetching serve a static shell instantly while pa
 - **Google sign-in:** fewer database round trips during OAuth sign-in and a unique index on accounts.
 - **API:** `POST /api/questions` for creating questions (used by the Thunder Client collection).
 - **Lists:** page-number pagination everywhere, with 3 questions per page.
+- **SEO:** centralized metadata constants and a shared dynamic metadata builder now power canonical URLs, keywords, social previews, authors, and entity-specific metadata across public detail pages.
+- **Authentication security:** the main application routes require an authenticated session, and voting controls are hidden for signed-out users and on other users' profile activity.
+- **Mobile OAuth:** Google OAuth callback and redirect handling was hardened for mobile browsers and deployed environments.
+- **Profiles and tags:** profile question cards and Top Tags now read both question tag fields and tag-question relations; a backfill migration repaired legacy questions with missing tag data.
+- **Images and responsive UX:** non-critical images use lazy loading and responsive sizing, while auth and job imagery is optimized for mobile performance.
 
 ---
 
@@ -209,6 +220,9 @@ yarn start        # Run production server
 
 # Code Quality
 yarn lint         # Run ESLint checks
+
+# Database maintenance
+npm run db:backfill-question-tags # Restore tags for legacy questions
 ```
 
 ---
@@ -289,6 +303,16 @@ yarn lint         # Run ESLint checks
 - [x] Next.js Cache Components and Partial Prefetching with per-route loading states
 - [x] Cached question and tag lists with tag-based invalidation
 - [x] `POST /api/questions` endpoint for creating questions
+- [x] Global SEO metadata with canonical, Open Graph, Twitter, author, and application metadata
+- [x] Dynamic metadata for question, tag, profile, community member, and job detail pages
+- [x] Shared metadata builder and centralized metadata constants
+- [x] Responsive image optimization and lazy loading for non-critical images
+- [x] Mobile Google OAuth callback and redirect handling
+- [x] Authenticated application route protection
+- [x] Signed-out vote controls hidden across the application
+- [x] Profile ownership checks for question and answer actions
+- [x] Profile question tags and Top Tags fallback support
+- [x] Legacy question tag backfill migration
 
 ### 🚧 In Progress
 - [ ] Final polish and edge-case validation for remaining UI flows
