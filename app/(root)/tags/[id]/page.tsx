@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+
 import { QuestionCard } from "@/features/questions/components"
 import { getTagQuestions } from "@/features/tags/actions"
 import { BackButton, DataRender } from "@/shared/components/common"
@@ -8,7 +10,24 @@ import { TagFilters } from "@/shared/constants/filter"
 import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
 import ROUTES from "@/shared/constants/route";
 import { EMPTY_QUESTION } from "@/shared/constants/states";
+import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams, Question } from "@/shared/types";
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { id } = await params
+  const result = await getTagQuestions({ tagId: id, page: 1, pageSize: 1 })
+  const tagName = result.success ? result.data?.tag?.name : undefined
+  if (!tagName) return { title: "Tag not found", robots: { index: false, follow: false } }
+
+  const description = `Explore programming questions and answers about ${tagName} on DevFlow.`
+  return {
+    title: `${tagName} Questions`,
+    description,
+    alternates: { canonical: `${getSiteUrl()}/tags/${id}` },
+    openGraph: { type: "website", title: `${tagName} Questions`, description },
+    twitter: { card: "summary", title: `${tagName} Questions`, description }
+  }
+}
 
 
 const Page = async ({ params, searchParams }: RouteParams) => {

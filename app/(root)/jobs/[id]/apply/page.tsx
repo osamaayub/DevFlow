@@ -64,7 +64,7 @@ const ApplyToJob = async ({ params }: RouteParams) => {
           <div className="flex items-center gap-3">
             <div className="background-light800_dark400 flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl">
               {job.companyLogo ? (
-                <Image src={job.companyLogo} alt={`${job.company} logo`} width={48} height={48} unoptimized className="size-full object-contain" />
+                <Image src={job.companyLogo} alt={`${job.company} logo`} width={48} height={48} loading="lazy" sizes="48px" unoptimized className="size-full object-contain" />
               ) : (
                 <BriefcaseBusiness className="size-5 text-primary-500" aria-hidden="true" />
               )}

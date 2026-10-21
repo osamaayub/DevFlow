@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getUser, getUserStats } from "@/features/users/actions"
@@ -8,7 +9,25 @@ import {
   UserTopTags,
 } from "@/features/users/components"
 import { auth } from "@/server/auth"
+import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams } from "@/shared/types"
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { id } = await params
+  const result = await getUser({ userId: id })
+  const user = result.success ? result.data?.user : undefined
+  if (!user) return { title: "Profile not found", robots: { index: false, follow: false } }
+
+  const title = `${user.name}'s Developer Profile`
+  const description = `View ${user.name}'s programming questions, answers, and developer activity on DevFlow.`
+  return {
+    title,
+    description,
+    alternates: { canonical: `${getSiteUrl()}/profile/${id}` },
+    openGraph: { type: "profile", title, description, images: user.image ? [user.image] : undefined },
+    twitter: { card: "summary", title, description }
+  }
+}
 
 const Profile = async ({ params }: RouteParams) => {
   const { id } = await params

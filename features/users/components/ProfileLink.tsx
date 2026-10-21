@@ -9,7 +9,7 @@ interface Props {
 
 const ProfileLink = ({ imgUrl, title, href }: Props) => (
   <div className="flex min-w-0 max-w-full items-center gap-1">
-    <Image src={imgUrl} alt="" width={16} height={16} className="shrink-0" />
+    <Image src={imgUrl} alt="" width={16} height={16} loading="lazy" sizes="16px" className="shrink-0" />
 
     {href ? (
       <Link

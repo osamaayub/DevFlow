@@ -23,7 +23,7 @@ const JobCard = ({
     <div className="flex items-start gap-4 sm:gap-6">
       {companyLogo ? (
         <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:size-16">
-          <Image src={companyLogo} alt={`${company} logo`} width={64} height={64} unoptimized className="size-full object-contain" />
+          <Image src={companyLogo} alt={`${company} logo`} width={64} height={64} loading="lazy" sizes="64px" unoptimized className="size-full object-contain" />
         </div>
       ) : (
         <div className="background-light800_dark400 flex size-12 shrink-0 items-center justify-center rounded-xl sm:size-16">
