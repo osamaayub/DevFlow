@@ -53,8 +53,10 @@ yarn-error.log*
 
 # thunder client (local API requests; may hold session tokens)
 /thunder-client/
+/scripts/*
+!/scripts/
 /scripts/seed*.mjs
-/scripts/
+!/scripts/backfill-question-tags.mjs
 
 # typescript
 *.tsbuildinfo
