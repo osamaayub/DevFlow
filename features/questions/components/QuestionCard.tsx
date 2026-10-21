@@ -36,6 +36,8 @@ const QuestionCard = ({ question: { _id, title, author, answers, tags, views, up
             alt="Saved question"
             width={20}
             height={20}
+            loading="lazy"
+            sizes="20px"
             className="shrink-0"
           />
         )}

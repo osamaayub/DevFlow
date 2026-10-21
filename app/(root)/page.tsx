@@ -20,9 +20,10 @@ import logger from "@/shared/lib/logger"
 import { RouteParams } from "@/shared/types"
 
 export const metadata: Metadata = {
-  title: "Dev Overflow | Home",
+  title: "Developer Questions and Answers",
   description:
-    "Discover different programming questions and answers with recommendations from the community."
+    "Discover programming questions and answers, get help from developers, and share what you know with the DevFlow community.",
+  alternates: { canonical: "/" }
 }
 
 async function Home({ searchParams }: RouteParams) {
@@ -75,6 +76,18 @@ async function Home({ searchParams }: RouteParams) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "DevFlow",
+            url: process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000",
+            description: "A community for asking and answering programming questions."
+          })
+        }}
+      />
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="h1-bold text-dark100_light900">
           All Questions

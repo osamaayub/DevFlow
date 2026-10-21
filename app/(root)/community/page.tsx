@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+
 import { getUsers } from "@/features/community/actions"
 import { UserCard } from "@/features/community/components"
 import { BackButton, DataRender } from "@/shared/components/common"
@@ -8,6 +10,12 @@ import { communityFilters } from "@/shared/constants/filter"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_USERS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
+
+export const metadata: Metadata = {
+  title: "Developer Community",
+  description: "Meet developers, explore community contributions, and connect through DevFlow.",
+  alternates: { canonical: "/community" }
+}
 
 
 const Community = async ({ searchParams }: RouteParams) => {

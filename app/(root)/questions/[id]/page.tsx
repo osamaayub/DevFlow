@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { after } from "next/server"
@@ -17,8 +18,26 @@ import { BackButton, Metric, UserAvatar } from "@/shared/components/common"
 import { Preview } from "@/shared/components/editor/preview"
 import ROUTES from "@/shared/constants/route"
 import logger from "@/shared/lib/logger"
+import { getSiteUrl, stripMarkup } from "@/shared/lib/seo"
 import { formatNumber, getTimeStamp } from "@/shared/lib/utils"
 import { Answer, RouteParams } from "@/shared/types"
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { id } = await params
+  const result = await getQuestion({ questionId: id })
+  if (!result.success || !result.data) return { title: "Question not found", robots: { index: false, follow: false } }
+
+  const question = result.data
+  const description = stripMarkup(question.content)
+  const url = `${getSiteUrl()}/questions/${id}`
+  return {
+    title: question.title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "article", url, title: question.title, description },
+    twitter: { card: "summary", title: question.title, description }
+  }
+}
 
 const QuestionDetails = async ({
   params,
@@ -112,6 +131,24 @@ const QuestionDetails = async ({
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "QAPage",
+            mainEntity: {
+              "@type": "Question",
+              name: title,
+              text: stripMarkup(content, 5000),
+              answerCount: totalAnswers,
+              dateCreated: createdAt,
+              author: { "@type": "Person", name: author.name },
+              url: `${getSiteUrl()}/questions/${id}`
+            }
+          })
+        }}
+      />
       <div className="flex w-full flex-col items-start">
         <BackButton />
 

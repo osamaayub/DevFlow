@@ -98,6 +98,13 @@ const nextAuth = NextAuth({
     })
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // OAuth providers can return an absolute callback URL. Only allow URLs
+      // on this app to prevent an open redirect after sign-in.
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = String(token.sub)

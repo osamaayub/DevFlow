@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 
 import { getJobs } from "@/features/jobs/actions"
@@ -8,6 +9,12 @@ import { Pagination } from "@/shared/components/navigation"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_JOBS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
+
+export const metadata: Metadata = {
+  title: "Developer Jobs",
+  description: "Find developer jobs and technology opportunities shared with the DevFlow community.",
+  alternates: { canonical: "/jobs" }
+}
 
 
 const Jobs = async ({ searchParams }: RouteParams) => {

@@ -1,4 +1,5 @@
 import { ArrowLeft, Building2, Users } from "lucide-react"
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -11,8 +12,26 @@ import { BackButton, Metric } from "@/shared/components/common"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import ROUTES from "@/shared/constants/route"
+import { getSiteUrl, stripMarkup } from "@/shared/lib/seo"
 import { getTimeStamp } from "@/shared/lib/utils"
 import { RouteParams } from "@/shared/types"
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { id } = await params
+  const result = await getJobById({ jobId: id })
+  if (!result.success || !result.data?.job) return { title: "Job not found", robots: { index: false, follow: false } }
+
+  const job = result.data.job
+  const description = stripMarkup(job.description || `Find your next opportunity with ${job.company}.`)
+  const url = `${getSiteUrl()}/jobs/${id}`
+  return {
+    title: `${job.title} at ${job.company}`,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "article", url, title: `${job.title} at ${job.company}`, description },
+    twitter: { card: "summary", title: `${job.title} at ${job.company}`, description }
+  }
+}
 
 const JobDetails = async ({ params }: RouteParams) => {
   const { id } = await params
@@ -29,13 +48,29 @@ const JobDetails = async ({ params }: RouteParams) => {
   const canManage = canManageJob(job.postedBy, session?.user?.id)
   return (
     <main className="mx-auto w-full max-w-5xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "JobPosting",
+            title: job.title,
+            description: stripMarkup(job.description, 5000),
+            datePosted: job.postedDate,
+            employmentType: job.employmentType,
+            hiringOrganization: { "@type": "Organization", name: job.company, logo: job.companyLogo || undefined },
+            jobLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressLocality: job.location } },
+            url: `${getSiteUrl()}/jobs/${job._id}`
+          })
+        }}
+      />
       <BackButton href={ROUTES.JOBS} />
 
       <section className="background-light900_dark200 light-border rounded-2xl border p-5 shadow-sm sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <div className="background-light800_dark300 light-border flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border sm:size-20">
             {job.companyLogo ? (
-              <Image src={job.companyLogo} alt={`${job.company} logo`} width={60} height={60} unoptimized className="size-14 object-contain" />
+              <Image src={job.companyLogo} alt={`${job.company} logo`} width={60} height={60} loading="lazy" sizes="56px" unoptimized className="size-14 object-contain" />
             ) : (
               <Building2 className="size-8 text-primary-500" aria-hidden="true" />
             )}

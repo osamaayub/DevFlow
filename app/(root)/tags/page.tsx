@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+
 import { getTags } from "@/features/tags/actions"
 import { TagCards } from "@/features/tags/components"
 import { BackButton, DataRender } from "@/shared/components/common"
@@ -7,6 +9,12 @@ import LocalSearchBar from "@/shared/components/search/LocalSearchBar"
 import ROUTES from "@/shared/constants/route"
 import { EMPTY_TAGS } from "@/shared/constants/states"
 import { RouteParams, Tag } from "@/shared/types"
+
+export const metadata: Metadata = {
+  title: "Programming Topics and Tags",
+  description: "Browse programming topics and discover questions by technology, framework, and development skill.",
+  alternates: { canonical: "/tags" }
+}
 
 const Tags = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = (await searchParams) || {}
