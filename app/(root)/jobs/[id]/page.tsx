@@ -1,5 +1,5 @@
 import { ArrowLeft, Building2, Users } from "lucide-react"
-import type { Metadata, ResolvingMetadata } from "next"
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -12,41 +12,32 @@ import { BackButton, Metric } from "@/shared/components/common"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import ROUTES from "@/shared/constants/route"
+import { createDynamicMetadata, createNotFoundMetadata } from "@/shared/lib/metadata"
 import { getSiteUrl, stripMarkup } from "@/shared/lib/seo"
 import { getTimeStamp } from "@/shared/lib/utils"
 import { RouteParams } from "@/shared/types"
 
 export async function generateMetadata(
-  { params }: RouteParams,
-  parent: ResolvingMetadata
+  { params }: RouteParams
 ): Promise<Metadata> {
   const { id } = await params
   const result = await getJobById({ jobId: id })
-  if (!result.success || !result.data?.job) return { title: "Job not found", robots: { index: false, follow: false } }
+  if (!result.success || !result.data?.job) return createNotFoundMetadata("Job not found")
 
   const job = result.data.job
   const description = stripMarkup(job.description || `Find your next opportunity with ${job.company}.`)
   const url = `${getSiteUrl()}/jobs/${id}`
   const title = `${job.title} at ${job.company}`
-  const previousImages = (await parent).openGraph?.images ?? []
-  const jobImages = job.companyLogo ? [job.companyLogo] : ["/images/logo.png"]
-  return {
+  return createDynamicMetadata({
     title,
     description,
+    url,
     keywords: [job.title, job.company, job.category, job.location, "developer jobs"],
     category: "careers",
-    alternates: { canonical: url },
-    openGraph: {
-      type: "article",
-      url,
-      title,
-      description,
-      siteName: "DevFlow",
-      images: [...jobImages, ...previousImages],
-      publishedTime: new Date(job.postedDate).toISOString(),
-    },
-    twitter: { card: "summary", title, description, images: jobImages },
-  }
+    type: "article",
+    image: job.companyLogo || undefined,
+    publishedTime: new Date(job.postedDate).toISOString(),
+  })
 }
 
 const JobDetails = async ({ params }: RouteParams) => {

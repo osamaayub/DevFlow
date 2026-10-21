@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { after } from "next/server"
@@ -18,22 +18,18 @@ import { BackButton, Metric, UserAvatar } from "@/shared/components/common"
 import { Preview } from "@/shared/components/editor/preview"
 import ROUTES from "@/shared/constants/route"
 import logger from "@/shared/lib/logger"
+import { createDynamicMetadata, createNotFoundMetadata } from "@/shared/lib/metadata"
 import { getSiteUrl, stripMarkup } from "@/shared/lib/seo"
 import { formatNumber, getTimeStamp } from "@/shared/lib/utils"
 import { Answer, RouteParams } from "@/shared/types"
 
 export async function generateMetadata(
-  { params }: RouteParams,
-  parent: ResolvingMetadata
+  { params }: RouteParams
 ): Promise<Metadata> {
   const { id } = await params
   const result = await getQuestion({ questionId: id })
   if (!result.success || !result.data) {
-    return {
-      title: "Question not found",
-      description: "The requested DevFlow question could not be found.",
-      robots: { index: false, follow: false },
-    }
+    return createNotFoundMetadata("Question not found")
   }
 
   const question = result.data
@@ -42,34 +38,19 @@ export async function generateMetadata(
     `Explore answers and developer discussion about ${question.title}.`
   const url = `${getSiteUrl()}/questions/${id}`
   const tagNames = question.tags.map((tag) => tag.name).filter(Boolean)
-  const previousImages = (await parent).openGraph?.images ?? []
   const publishedTime = new Date(question.createdAt).toISOString()
 
-  return {
+  return createDynamicMetadata({
     title: question.title,
     description,
+    url,
+    type: "article",
     keywords: [question.title, ...tagNames, "programming", "developer questions"],
-    authors: [{ name: question.author.name }],
     category: "technology",
-    alternates: { canonical: url },
-    openGraph: {
-      type: "article",
-      url,
-      title: question.title,
-      description,
-      siteName: "DevFlow",
-      publishedTime,
-      authors: [question.author.name],
-      tags: tagNames,
-      images: ["/images/logo.png", ...previousImages],
-    },
-    twitter: {
-      card: "summary",
-      title: question.title,
-      description,
-      images: ["/images/logo.png"],
-    },
-  }
+    tags: tagNames,
+    author: question.author.name,
+    publishedTime,
+  })
 }
 
 const QuestionDetails = async ({

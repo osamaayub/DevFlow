@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getUser, getUserStats } from "@/features/users/actions"
@@ -9,39 +9,30 @@ import {
   UserTopTags,
 } from "@/features/users/components"
 import { auth } from "@/server/auth"
+import { createDynamicMetadata, createNotFoundMetadata } from "@/shared/lib/metadata"
 import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams } from "@/shared/types"
 
 export async function generateMetadata(
-  { params }: RouteParams,
-  parent: ResolvingMetadata
+  { params }: RouteParams
 ): Promise<Metadata> {
   const { id } = await params
   const result = await getUser({ userId: id })
   const user = result.success ? result.data?.user : undefined
-  if (!user) return { title: "Profile not found", robots: { index: false, follow: false } }
+  if (!user) return createNotFoundMetadata("Profile not found")
 
   const title = `${user.name}'s Developer Profile`
   const description = `View ${user.name}'s programming questions, answers, and developer activity on DevFlow.`
   const url = `${getSiteUrl()}/profile/${id}`
-  const previousImages = (await parent).openGraph?.images ?? []
-  const profileImages = user.image ? [user.image] : ["/images/logo.png"]
-  return {
+  return createDynamicMetadata({
     title,
     description,
+    url,
     keywords: [user.name, "developer profile", "programming community"],
-    authors: [{ name: user.name }],
-    alternates: { canonical: url },
-    openGraph: {
-      type: "profile",
-      url,
-      title,
-      description,
-      siteName: "DevFlow",
-      images: [...profileImages, ...previousImages],
-    },
-    twitter: { card: "summary", title, description, images: profileImages },
-  }
+    type: "profile",
+    image: user.image || undefined,
+    author: user.name,
+  })
 }
 
 const Profile = async ({ params }: RouteParams) => {
