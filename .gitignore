@@ -54,7 +54,7 @@ yarn-error.log*
 # thunder client (local API requests; may hold session tokens)
 /thunder-client/
 /scripts/*
-!/scripts/
+/scripts/
 /scripts/seed*.mjs
 !/scripts/backfill-question-tags.mjs
 
