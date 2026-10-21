@@ -109,6 +109,7 @@ Optimized images, lazy-loaded non-critical media, responsive layouts, mobile-saf
 - **Answers:** edit and delete your own answers from the profile Answers tab, with a dedicated answer edit page.
 - **Deletes:** shared confirmation dialog (shadcn AlertDialog) for deleting questions and answers; deletes run in MongoDB transactions and remove related votes.
 - **Caching:** enabled Next.js Cache Components and Partial Prefetching; question and tag lists are cached with tag-based invalidation, and the session is read once per request.
+- **Next.js caching:** migrated high-read question feeds, tag lists/top tags, and job filter options from deprecated `unstable_cache` to `use cache` with explicit `cacheLife` profiles and `cacheTag` invalidation.
 - **Queries:** escaped search input, bounded pagination input, atomic view and answer counters, and new indexes for feeds, votes, saved questions and tag links.
 - **Recommendations:** the home feed's Recommended filter now uses question interactions and preferred tags, removes duplicate tags, excludes previously interacted questions, and falls back to popular unseen questions.
 - **Authentication:** personalized recommendations are used only for signed-in users; logged-out users continue to receive the public question feed.
@@ -301,6 +302,7 @@ npm run db:backfill-question-tags # Restore tags for legacy questions
 - [x] Answer editing and deletion from the profile Answers tab
 - [x] Shared confirmation dialog for question and answer deletion
 - [x] Next.js Cache Components and Partial Prefetching with per-route loading states
+- [x] `use cache` with explicit `cacheLife` and `cacheTag` for question, tag, and job filter data
 - [x] Cached question and tag lists with tag-based invalidation
 - [x] `POST /api/questions` endpoint for creating questions
 - [x] Global SEO metadata with canonical, Open Graph, Twitter, author, and application metadata
@@ -576,7 +578,7 @@ GitHub Actions automate testing and deployment:
 
 - 🎯 **Next.js App Router** with Server Components and Server Actions
 - ⚡ **Cache Components & Partial Prefetching**: a prerendered static shell (navbar, sidebars, loaders) with page data streamed in
-- 🗃️ **Cached lists** for questions and tags (`unstable_cache` + tags), invalidated with `updateTag` / `revalidateTag` on every change
+- 🗃️ **Cached lists** for questions and tags (`use cache` + `cacheTag`), invalidated with `updateTag` / `revalidateTag` on every change
 - 🔐 **One session read per request** via React `cache()` around `auth()`
 - 🧩 **Client-only MDX editor** loaded with `next/dynamic` to keep it out of server rendering
 - 🗜️ **Optimized Bundle** with tree-shaking
