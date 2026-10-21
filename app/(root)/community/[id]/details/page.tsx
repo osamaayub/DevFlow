@@ -1,42 +1,33 @@
-import type { Metadata, ResolvingMetadata } from "next"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getCommunityMember } from "@/features/community/actions"
 import { CommunityMemberProfile } from "@/features/community/components"
 import { QUESTIONS_PER_PAGE } from "@/shared/constants/pagination"
+import { createDynamicMetadata, createNotFoundMetadata } from "@/shared/lib/metadata"
 import { getSiteUrl } from "@/shared/lib/seo"
 import { RouteParams } from "@/shared/types"
 
 export async function generateMetadata(
-  { params }: RouteParams,
-  parent: ResolvingMetadata
+  { params }: RouteParams
 ): Promise<Metadata> {
   const { id } = await params
   const result = await getCommunityMember({ userId: id, page: 1, pageSize: 1 })
   const user = result.success ? result.data?.user : undefined
-  if (!user) return { title: "Community member not found", robots: { index: false, follow: false } }
+  if (!user) return createNotFoundMetadata("Community member not found")
 
   const title = `${user.name} | DevFlow Community`
   const description = `See ${user.name}'s contributions and programming activity in the DevFlow community.`
   const url = `${getSiteUrl()}/community/${id}/details`
-  const previousImages = (await parent).openGraph?.images ?? []
-  const profileImages = user.image ? [user.image] : ["/images/logo.png"]
-  return {
+  return createDynamicMetadata({
     title,
     description,
+    url,
     keywords: [user.name, "developer community", "programming contributors"],
-    authors: [{ name: user.name }],
-    alternates: { canonical: url },
-    openGraph: {
-      type: "profile",
-      url,
-      title,
-      description,
-      siteName: "DevFlow",
-      images: [...profileImages, ...previousImages],
-    },
-    twitter: { card: "summary", title, description, images: profileImages },
-  }
+    type: "profile",
+    image: user.image || undefined,
+    author: user.name,
+  })
 }
 
 const CommunityMemberDetailsPage = async ({ params, searchParams }: RouteParams) => {
