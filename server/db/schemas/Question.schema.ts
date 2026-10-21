@@ -62,3 +62,5 @@ QuestionSchema.index({ createdAt: -1 })
 QuestionSchema.index({ upvotes: -1, createdAt: -1 })
 QuestionSchema.index({ views: -1, createdAt: -1 })
 QuestionSchema.index({ answers: 1, createdAt: -1 })
+// Search queries use MongoDB's text index instead of scanning title/content with a regex.
+QuestionSchema.index({ title: "text", content: "text" })

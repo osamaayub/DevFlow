@@ -19,8 +19,6 @@ export const normalizeAuthorId = (author: unknown): string | undefined => {
   return String(author);
 };
 
-export const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
 export const getQuestionSortCriteria = (
   filter?: string
 ): { sort: Record<string, 1 | -1>; unansweredOnly: boolean } => {
@@ -56,8 +54,7 @@ export async function getCachedQuestionList(
   const filterQuery: FilterQuery<typeof Question> = {};
 
   if (query) {
-    const pattern = new RegExp(escapeRegex(query), "i");
-    filterQuery.$or = [{ title: pattern }, { content: pattern }];
+    filterQuery.$text = { $search: query };
   }
   if (unansweredOnly) filterQuery.answers = 0;
 

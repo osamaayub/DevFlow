@@ -22,8 +22,17 @@ const getQuestionFilter = (value: string | null) =>
   value && QUESTION_FILTERS.has(value) ? value : DEFAULT_QUESTION_FILTER
 
 const RightSidebar = async () => {
+  const requestHeaders = await headers()
+  const userAgent = requestHeaders.get("user-agent") ?? ""
+
+  // The sidebar is hidden below the xl breakpoint. Avoid its two database reads on mobile,
+  // where they add latency and bandwidth without producing visible content.
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+    return null
+  }
+
   const questionFilter = getQuestionFilter(
-    (await headers()).get("x-devflow-question-filter")
+    requestHeaders.get("x-devflow-question-filter")
   )
   const [questionsResult, tagsResult] = await Promise.all([
     getQuestions({

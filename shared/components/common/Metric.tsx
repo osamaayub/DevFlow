@@ -14,10 +14,11 @@ interface MetricProps{
 }
 
 const Metric = ({imgUrl ,imgStyles,alt,title,value,href,textStyles,isAuthor}:MetricProps) => {
+  const imageUrl = imgUrl || "/icons/avatar.svg"
 
   const metricContent=(
     <>
-      <Image src={imgUrl} alt={alt} width={16} height={16} loading="lazy" sizes="16px" className={`rounded-full object-contain ${imgStyles}`}/>
+      <Image src={imageUrl} alt={alt} width={16} height={16} loading="lazy" sizes="16px" className={`rounded-full object-contain ${imgStyles}`}/>
      <p className={`${textStyles} flex items-center gap-1`}>{value}</p>
       <span className={`small-regular line-clamp-1 ${isAuthor ?"max-sm:hidden":""}`}>{title}</span>
     </>

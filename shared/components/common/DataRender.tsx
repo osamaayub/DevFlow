@@ -76,8 +76,8 @@ const DataRenderer = <T,>({ success, error, data, empty = DEFAULT_EMPTY, render 
     return (
       <StateSkeleton
         image={{
-          light: "/images/light-error.png",
-          dark: "/images/dark-error.png",
+          light: "/images/light-illustration.png",
+          dark: "/images/dark-illustration.png",
           alt: "Error state illustration"
         }}
         title={error?.message || DEFAULT_ERROR.title}
