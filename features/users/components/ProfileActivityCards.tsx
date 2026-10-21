@@ -220,16 +220,18 @@ export const ProfileAnswerCard = ({
             />
           </div>
         )}
-        <Votes
-          targetId={answer._id}
-          targetType="answer"
-          upvotes={answer.upvotes}
-          downvotes={answer.downvotes}
-          initialVoteState={{
-            hasUpVoted: answer.hasUpVoted,
-            hasDownVoted: answer.hasDownVoted,
-          }}
-        />
+        {isOwnProfile && (
+          <Votes
+            targetId={answer._id}
+            targetType="answer"
+            upvotes={answer.upvotes}
+            downvotes={answer.downvotes}
+            initialVoteState={{
+              hasUpVoted: answer.hasUpVoted,
+              hasDownVoted: answer.hasDownVoted,
+            }}
+          />
+        )}
       </div>
     </div>
 

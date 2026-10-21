@@ -1,9 +1,17 @@
-import { ReactNode } from "react"
-import { Suspense } from "react"
+import { redirect } from "next/navigation"
+import { ReactNode, Suspense } from "react"
 
+import { auth } from "@/server/auth"
 import { LeftSidebar, RightSidebar, RightSidebarGate, Navbar } from "@/shared/components/navigation"
+import ROUTES from "@/shared/constants/route"
 
-const RootLayout = ({ children }: { children: ReactNode }) => {
+const AuthenticatedRootLayout = async ({ children }: { children: ReactNode }) => {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    redirect(ROUTES.SIGN_IN)
+  }
+
   return (
     <main className="background-light850_dark100 relative">
       <Navbar />
@@ -24,5 +32,11 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
     </main>
   )
 }
+
+const RootLayout = ({ children }: { children: ReactNode }) => (
+  <Suspense fallback={null}>
+    <AuthenticatedRootLayout>{children}</AuthenticatedRootLayout>
+  </Suspense>
+)
 
 export default RootLayout
