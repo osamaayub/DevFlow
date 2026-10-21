@@ -1,10 +1,10 @@
 "use server"
 
 import { Types, type FilterQuery } from "mongoose"
-import { unstable_cache } from "next/cache"
+import { cacheLife, cacheTag } from "next/cache"
 
 import { action } from "@/server/action"
-import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/server/cache-tags"
+import { CACHE_TAGS } from "@/server/cache-tags"
 import { IQuestion, ITag, Question, Tag } from "@/server/db"
 import dbConnect from "@/server/db/connect"
 import { HandleError } from "@/server/errors/error-handler"
@@ -58,45 +58,50 @@ const getQuestionSortCriteria = (filter?: string): SortCriteria => {
 }
 
 // Shown in the right sidebar on almost every page
-const getCachedTopTags = unstable_cache(
-  async () => {
-    await dbConnect()
+const getCachedTopTags = async () => {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag(CACHE_TAGS.tags)
 
-    const tags = await Tag.find({})
-      .sort({ questions: -1, name: 1 })
-      .limit(TOP_TAGS_LIMIT)
-      .lean()
+  await dbConnect()
 
-    return JSON.parse(JSON.stringify(tags)) as ITag[]
-  },
-  ["top-tags"],
-  { tags: [CACHE_TAGS.tags], revalidate: CACHE_REVALIDATE_SECONDS.tags }
-)
+  const tags = await Tag.find({})
+    .sort({ questions: -1, name: 1 })
+    .limit(TOP_TAGS_LIMIT)
+    .lean()
 
-const getCachedTagList = unstable_cache(
-  async (page: number, pageSize: number, query: string, filter: string) => {
-    await dbConnect()
+  return JSON.parse(JSON.stringify(tags)) as ITag[]
+}
 
-    const skip = (page - 1) * pageSize
-    const filterQuery: FilterQuery<typeof Tag> = {}
-    if (query) {
-      filterQuery.name = { $regex: escapeRegex(query), $options: "i" }
-    }
+const getCachedTagList = async (
+  page: number,
+  pageSize: number,
+  query: string,
+  filter: string
+) => {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag(CACHE_TAGS.tags)
 
-    const tags = await Tag.find(filterQuery)
-      .sort(getTagSortCriteria(filter))
-      .skip(skip)
-      .limit(pageSize + 1)
-      .lean()
+  await dbConnect()
 
-    return {
-      tags: JSON.parse(JSON.stringify(tags.slice(0, pageSize))) as ITag[],
-      isNext: tags.length > pageSize,
-    }
-  },
-  ["tag-list"],
-  { tags: [CACHE_TAGS.tags], revalidate: CACHE_REVALIDATE_SECONDS.tags }
-)
+  const skip = (page - 1) * pageSize
+  const filterQuery: FilterQuery<typeof Tag> = {}
+  if (query) {
+    filterQuery.name = { $regex: escapeRegex(query), $options: "i" }
+  }
+
+  const tags = await Tag.find(filterQuery)
+    .sort(getTagSortCriteria(filter))
+    .skip(skip)
+    .limit(pageSize + 1)
+    .lean()
+
+  return {
+    tags: JSON.parse(JSON.stringify(tags.slice(0, pageSize))) as ITag[],
+    isNext: tags.length > pageSize,
+  }
+}
 
 export const getTopTags = async (): Promise<ActionResponse<{ tags: ITag[] }>> => {
   try {

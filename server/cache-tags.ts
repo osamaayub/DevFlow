@@ -1,7 +1,7 @@
 import "server-only"
 
 /**
- * Tags for data cached with `unstable_cache`. Any server action that changes the
+ * Tags for data cached with `use cache`. Any server action that changes the
  * underlying data must call `updateTag()` with the matching tag, so readers see the
  * change immediately instead of waiting for the time-based revalidation.
  */

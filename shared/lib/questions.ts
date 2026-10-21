@@ -1,7 +1,7 @@
 import { FilterQuery } from "mongoose";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 
-import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/server/cache-tags";
+import { CACHE_TAGS } from "@/server/cache-tags";
 import { Question } from "@/server/db";
 import dbConnect from "@/server/db/connect";
 import type { Question as QuestionType } from "@/shared/types";
@@ -39,34 +39,39 @@ export const getQuestionSortCriteria = (
   }
 };
 
-export const getCachedQuestionList = unstable_cache(
-  async (page: number, pageSize: number, query: string, filter: string) => {
-    await dbConnect();
+export async function getCachedQuestionList(
+  page: number,
+  pageSize: number,
+  query: string,
+  filter: string
+) {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag(CACHE_TAGS.questions)
 
-    const skip = (page - 1) * pageSize;
-    const { sort, unansweredOnly } = getQuestionSortCriteria(filter);
-    const filterQuery: FilterQuery<typeof Question> = {};
+  await dbConnect();
 
-    if (query) {
-      const pattern = new RegExp(escapeRegex(query), "i");
-      filterQuery.$or = [{ title: pattern }, { content: pattern }];
-    }
-    if (unansweredOnly) filterQuery.answers = 0;
+  const skip = (page - 1) * pageSize;
+  const { sort, unansweredOnly } = getQuestionSortCriteria(filter);
+  const filterQuery: FilterQuery<typeof Question> = {};
 
-    const questions = await Question.find(filterQuery)
-      .select("-content")
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .sort(sort)
-      .skip(skip)
-      .limit(pageSize + 1)
-      .lean();
+  if (query) {
+    const pattern = new RegExp(escapeRegex(query), "i");
+    filterQuery.$or = [{ title: pattern }, { content: pattern }];
+  }
+  if (unansweredOnly) filterQuery.answers = 0;
 
-    return {
-      questions: JSON.parse(JSON.stringify(questions.slice(0, pageSize))) as QuestionType[],
-      isNext: questions.length > pageSize,
-    };
-  },
-  ["question-list"],
-  { tags: [CACHE_TAGS.questions], revalidate: CACHE_REVALIDATE_SECONDS.questions }
-);
+  const questions = await Question.find(filterQuery)
+    .select("-content")
+    .populate("tags", "name")
+    .populate("author", "name image")
+    .sort(sort)
+    .skip(skip)
+    .limit(pageSize + 1)
+    .lean();
+
+  return {
+    questions: JSON.parse(JSON.stringify(questions.slice(0, pageSize))) as QuestionType[],
+    isNext: questions.length > pageSize,
+  };
+}

@@ -2,7 +2,7 @@
 
 import type { FilterQuery, PipelineStage } from "mongoose"
 import mongoose from "mongoose"
-import { revalidatePath, unstable_cache, updateTag } from "next/cache"
+import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache"
 import { z } from "zod"
 
 import type { Job, JobApplicant } from "@/features/jobs/types"
@@ -123,22 +123,22 @@ const ensureSalaryFields = () => {
 
 // Dropdown options change only when a job is posted, so they are cached instead of
 // running two full-collection distinct() scans on every page view
-const getJobFilterOptions = unstable_cache(
-  async () => {
-    await dbConnect()
-    const [categories, locations] = await Promise.all([
-      JobModel.distinct("category"),
-      JobModel.distinct("location"),
-    ])
+const getJobFilterOptions = async () => {
+  "use cache"
+  cacheLife("hours")
+  cacheTag(JOB_FILTERS_TAG)
 
-    return {
-      categories: (categories as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
-      locations: (locations as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
-    }
-  },
-  [JOB_FILTERS_TAG],
-  { tags: [JOB_FILTERS_TAG], revalidate: 3600 }
-)
+  await dbConnect()
+  const [categories, locations] = await Promise.all([
+    JobModel.distinct("category"),
+    JobModel.distinct("location"),
+  ])
+
+  return {
+    categories: (categories as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+    locations: (locations as string[]).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+  }
+}
 
 const toPlain = <T>(value: unknown) => JSON.parse(JSON.stringify(value)) as T
 
