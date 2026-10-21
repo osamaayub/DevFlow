@@ -199,6 +199,11 @@ yarn dev
 | `AUTH_GOOGLE_ID` | Google OAuth | [Google Cloud Console](https://console.cloud.google.com/) |
 | `AUTH_GOOGLE_SECRET` | Google OAuth | [Google Cloud Console](https://console.cloud.google.com/) |
 
+For Vercel or another production host, add both Google variables in the deployment
+environment (not only in `.env.local`). The exact callback URL must also be registered
+in Google Cloud Console: `https://<your-domain>/api/auth/callback/google`. The app also
+accepts `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` as aliases.
+
 ### Optional Variables
 
 | Variable | Default | Values |

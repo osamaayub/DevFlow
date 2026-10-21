@@ -11,6 +11,19 @@ import { dbConnect } from "@/server/db/connect"
 import { deferToRequestTime } from "@/server/request-time"
 import logger from "@/shared/lib/logger"
 
+const googleClientId =
+  process.env.AUTH_GOOGLE_ID?.trim() || process.env.GOOGLE_CLIENT_ID?.trim()
+const googleClientSecret =
+  process.env.AUTH_GOOGLE_SECRET?.trim() || process.env.GOOGLE_CLIENT_SECRET?.trim()
+
+const googleProvider =
+  googleClientId && googleClientSecret
+    ? Google({
+        clientId: googleClientId,
+        clientSecret: googleClientSecret
+      })
+    : null
+
 function buildOAuthUsername(
   provider: string,
   profile: Record<string, unknown> | undefined,
@@ -38,10 +51,7 @@ const nextAuth = NextAuth({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET
     }),
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET
-    }),
+    ...(googleProvider ? [googleProvider] : []),
     Credentials({
       async authorize(credentials) {
         const email = credentials?.email as string
