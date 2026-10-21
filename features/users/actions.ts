@@ -1,11 +1,11 @@
 "use server"
 
-import { Types } from "mongoose"
+import { Types, type PipelineStage } from "mongoose"
 import { revalidatePath } from "next/cache"
 
 import { action } from "@/server/action"
 import { auth } from "@/server/auth"
-import { Answer, IUser, Question, Tag, User, Vote } from "@/server/db"
+import { Answer, IUser, Question, Tag, TagQuestion, User, Vote } from "@/server/db"
 import { HandleError } from "@/server/errors/error-handler"
 import { NotFoundError } from "@/server/errors/http-error"
 import { assignBadges } from "@/shared/lib/utils"
@@ -66,18 +66,16 @@ const getAnswerVoteStates = async (answerIds: string[]) => {
 const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = async (
   authorId
 ) => {
-  const pipeline = [
-    { $match: { author: authorId } },
-    { $unwind: "$tags" },
-    { $group: { _id: "$tags", count: { $sum: 1 } } },
-    { $limit: TOP_TAGS_LIMIT },
-    { $project: { _id: 1, count: 1 } },
-  ]
-
-  const tags = await Question.aggregate<{
+  const questions = await Question.find({ author: authorId }).select("_id").lean()
+  const tags = await TagQuestion.aggregate<{
     _id: Types.ObjectId
     count: number
-  }>(pipeline)
+  }>([
+    { $match: { question: { $in: questions.map((question) => question._id) } } },
+    { $group: { _id: "$tag", count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: TOP_TAGS_LIMIT },
+  ] as PipelineStage[])
 
   if (tags.length === 0) {
     return []
@@ -96,6 +94,43 @@ const getUserTopTags: (authorId: Types.ObjectId) => Promise<UserTopTag[]> = asyn
     const id = String(_id)
     const name = tagNamesById.get(id)
     return name === undefined ? [] : [{ _id: id, name, count }]
+  })
+}
+
+type PopulatedProfileTag = { _id: unknown; name?: string }
+
+const getRelationTagsForQuestions = async (questionIds: string[]) => {
+  if (questionIds.length === 0) return new Map<string, Array<{ _id: string; name: string }>>()
+
+  const relations = await TagQuestion.find({ question: { $in: questionIds } })
+    .populate("tag", "_id name")
+    .lean()
+
+  const tagsByQuestion = new Map<string, Array<{ _id: string; name: string }>>()
+  for (const relation of relations) {
+    const tag = relation.tag as unknown as PopulatedProfileTag
+    if (!tag || typeof tag.name !== "string") continue
+
+    const questionId = String(relation.question)
+    const questionTags = tagsByQuestion.get(questionId) ?? []
+    questionTags.push({ _id: String(tag._id), name: tag.name })
+    tagsByQuestion.set(questionId, questionTags)
+  }
+
+  return tagsByQuestion
+}
+
+const addFallbackTags = async <T extends { _id: unknown; tags?: unknown }>(questions: T[]) => {
+  const questionsMissingTags = questions.filter(
+    (question) => !Array.isArray(question.tags) || question.tags.length === 0
+  )
+  const fallbackTags = await getRelationTagsForQuestions(
+    questionsMissingTags.map((question) => String(question._id))
+  )
+
+  return questions.map((question) => {
+    if (Array.isArray(question.tags) && question.tags.length > 0) return question
+    return { ...question, tags: fallbackTags.get(String(question._id)) ?? [] }
   })
 }
 
@@ -304,6 +339,7 @@ export const getUser = async (
       ])
 
     const { totalQuestions, totalAnswers, badges } = stats
+    const topQuestionsWithTags = await addFallbackTags(topQuestions)
     const topAnswerVotes = await getAnswerVoteStates(
       topAnswers.slice(0, 3).map((answer) => String(answer._id))
     )
@@ -318,7 +354,7 @@ export const getUser = async (
         hasMoreQuestions: topQuestions.length > 3,
         hasMoreAnswers: topAnswers.length > 3,
         badges,
-        topQuestions: JSON.parse(JSON.stringify(topQuestions.slice(0, 3))),
+        topQuestions: JSON.parse(JSON.stringify(topQuestionsWithTags.slice(0, 3))),
         topAnswers: JSON.parse(
           JSON.stringify(
             topAnswers.slice(0, 3).map((answer) => ({
@@ -375,10 +411,12 @@ export const getUserQuestionsActivity = async (params: {
       Question.countDocuments({ author: authorId }),
     ])
 
+    const questionsWithTags = await addFallbackTags(questions)
+
     return {
       success: true,
       data: {
-        questions: JSON.parse(JSON.stringify(questions)),
+        questions: JSON.parse(JSON.stringify(questionsWithTags)),
         isNext: skip + questions.length < total,
       },
     }
