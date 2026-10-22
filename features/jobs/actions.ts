@@ -62,6 +62,7 @@ const JOB_LIST_PROJECTION = {
   title: 1,
   company: 1,
   companyLogo: 1,
+  applicationUrl: 1,
   category: 1,
   employmentType: 1,
   salaryRange: 1,

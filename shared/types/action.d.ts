@@ -44,6 +44,7 @@ export interface CreateJobParams {
   title: string
   company: string
   companyLogo: string
+  applicationUrl: string
   category: string
   employmentType: "Full-time" | "Part-time" | "Contract" | "Internship" | "Freelance"
   location: string
