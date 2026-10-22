@@ -18,7 +18,7 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 
 </div>
 
-> 🚀 **Project Status:** Core functionality is in place and the project is in beta/stabilization. Recent work added a jobs board, answer editing and deletion, and moved the app to Next.js Cache Components with cached data and instant navigations.
+> 🚀 **Project Status:** Core functionality is in place and the project is in beta/stabilization. Recent work added an optimized multi-model global search bar with in-memory LRU caching, a full-featured jobs board, answer editing and deletion workflows, and Next.js Cache Components with cached data and instant navigations.
 
 
 ---
@@ -32,8 +32,8 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 ### 💬 Ask & Answer
 Post questions, write detailed answers, and help others grow together.
 
-### 🔍 Powerful Search
-Full-text search with intelligent tag and category filtering.
+### 🔍 Multi-Model Global & Local Search
+Instant search across questions, answers, users, and tags with category filters (`Question`, `Answer`, `User`, `Tag`), in-memory LRU client caching, debounced URL synchronization, and local page-level feed search.
 
 ### 🏷️ Tagging System
 Organize content with technology tags (React, JavaScript, TypeScript, etc.).
@@ -105,6 +105,9 @@ Optimized images, lazy-loaded non-critical media, responsive layouts, mobile-saf
 
 ## 🔄 Recent Updates
 
+- **Global search:** Multi-model global search across questions, answers, users, and tags with category filtering (`Question`, `Answer`, `User`, `Tag`), debounced URL sync, client-side LRU caching for instant query recall, and outside-click/escape key dismissal.
+- **Search UI & Figma alignment:** Pixel-perfect global search bar and dropdown matching Figma specifications with dark/light gradients, rounded-xl container styling, 56px height, and seamless navigation integration.
+- **Search performance:** Eliminated cascading `useEffect` hooks in favor of render-phase state synchronization and direct timer management to eliminate render lag and race conditions.
 - **Jobs:** job board with search, filters and salary sorting; apply, save and share; posters can create, edit and delete jobs and manage applicants.
 - **Answers:** edit and delete your own answers from the profile Answers tab, with a dedicated answer edit page.
 - **Deletes:** shared confirmation dialog (shadcn AlertDialog) for deleting questions and answers; deletes run in MongoDB transactions and remove related votes.
@@ -239,13 +242,18 @@ npm run db:backfill-question-tags # Restore tags for legacy questions
 - [x] Project setup with Next.js 16 & TypeScript
 - [x] MongoDB & Mongoose integration with multiple models
 - [x] NextAuth.js authentication (Google, GitHub, Email/Password)
-- [x] Complete database models (Questions, Answers, Users, Tags, Accounts, Collections, Interactive, Votes, QuestionView, TagQuestion)
+- [x] Complete database models (Questions, Answers, Users, Tags, Accounts, Collections, Interaction, Votes, QuestionView, TagQuestion, Job, JobApplication, SavedJob)
 - [x] Server actions for CRUD operations (questions, answers, tags, auth)
 - [x] Tailwind CSS & component styling with shadcn/ui
 - [x] Dark/Light theme support with context provider
 - [x] Rich text editor with MDX support
 - [x] Tag management system with tag-question relationships
-- [x] Search functionality with filtering
+- [x] Multi-model global search across questions, answers, users, and tags with category filtering
+- [x] Debounced global search bar with direct event-driven timer management and render-phase state sync
+- [x] In-memory LRU client caching for search queries (zero-latency instant feedback)
+- [x] Search dropdown with outside-click and escape key dismissal
+- [x] Figma design alignment for global search bar and navigation header
+- [x] Local search bar with filtering for questions, tags, community, and jobs
 - [x] Pagination system
 - [x] Error handling with custom error handler
 - [x] Validation schemas with Zod
@@ -389,8 +397,10 @@ DevFlow/
 │   ├── auth/                             # Credentials sign-in/up; AuthForm, SocialAuthForm
 │   ├── collections/                      # Save/unsave questions, saved list
 │   ├── community/                        # Members list and member details
+│   ├── interaction/                      # User interaction tracking, reputation score updates, badges
 │   ├── jobs/                             # Jobs, applications, saved jobs; types.ts, utils.ts
 │   ├── questions/                        # Create, edit, delete, list; service.ts (shared create logic)
+│   ├── search/                           # Global search action across questions, users, answers, tags
 │   ├── tags/                             # Tag lists and tag questions; tag-helpers.ts
 │   ├── users/                            # Profile data, activity tabs, profile editing
 │   └── votes/                            # Votes on questions and answers; hooks/useVote.ts
@@ -411,7 +421,7 @@ DevFlow/
 │   │   ├── editor/                       # MDX editor and preview
 │   │   ├── filters/                      # Shared filters
 │   │   ├── navigation/                   # Navbar, sidebars, Pagination
-│   │   └── search/                       # Local search bar
+│   │   └── search/                       # Global search bar, filters, results dropdown, local search bar
 │   ├── constants/                        # Routes, filters, empty states, pagination
 │   ├── context/                          # Theme context
 │   ├── lib/                              # utils, url, validation, logger, question/recommendation helpers
@@ -508,6 +518,7 @@ Questions, Answers, Tags, Votes, Collections, Community and Jobs are handled via
 | **Tags** | `getTags` | Get paginated tags with filters |
 | | `getTagQuestions` | Get questions for specific tag |
 | | `getTopTags` | Get popular tags for the right sidebar |
+| **Search** | `globalSearch` | Multi-model global search across questions, answers, users, and tags with category filtering and sanitized regex |
 | **Votes** | `CreateVote` / `UpdateVote` | Cast, switch, or remove an upvote/downvote |
 | | `hasVoted` | Check the current user's vote on a question or answer |
 | | `getUserVotesForTargets` | Batch-check votes for multiple targets |
@@ -584,6 +595,7 @@ GitHub Actions automate testing and deployment:
 - 🎯 **Next.js App Router** with Server Components and Server Actions
 - ⚡ **Cache Components & Partial Prefetching**: a prerendered static shell (navbar, sidebars, loaders) with page data streamed in
 - 🗃️ **Cached lists** for questions and tags (`use cache` + `cacheTag`), invalidated with `updateTag` / `revalidateTag` on every change
+- 🔍 **Optimized Global Search & In-Memory LRU Cache**: Client-side query caching (100-entry LRU) and direct event-driven debounce prevent redundant server actions and deliver zero-latency instant feedback
 - 🔐 **One session read per request** via React `cache()` around `auth()`
 - 🧩 **Client-only MDX editor** loaded with `next/dynamic` to keep it out of server rendering
 - 🗜️ **Optimized Bundle** with tree-shaking
