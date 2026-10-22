@@ -1,1 +1,6 @@
+export { default as LocalSearchBar } from "./LocalSearchBar"
+export { default as GlobalSearchBar } from "./GlobalSearchBar"
+export * from "./GlobalSearchBar"
+export * from "./GlobalFilters"
+export * from "./GlobalResult"
 export * from "./LocalSearchBar"
