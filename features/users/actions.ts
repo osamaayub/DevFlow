@@ -599,7 +599,7 @@ export const updateUserProfile = async (params:UpdateUserProfileParams): Promise
     revalidatePath(`/profile/${userId}`)
     revalidatePath("/profile/edit")
 
-    return { success: true }
+    return { success: true,data:JSON.parse(JSON.stringify(user)) }
   } catch (error) {
     return handleActionError(error)
   }
