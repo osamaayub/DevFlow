@@ -1,12 +1,9 @@
-import { Plus } from "lucide-react"
 import type { Metadata } from "next"
-import Link from "next/link"
 
 import { getJobs } from "@/features/jobs/actions"
 import { JobCard, JobSearchControls } from "@/features/jobs/components"
 import { BackButton, DataRender } from "@/shared/components/common"
 import { Pagination } from "@/shared/components/navigation"
-import ROUTES from "@/shared/constants/route"
 import { EMPTY_JOBS } from "@/shared/constants/states"
 import { RouteParams } from "@/shared/types"
 
@@ -37,17 +34,8 @@ const Jobs = async ({ searchParams }: RouteParams) => {
     <div>
       <div className="flex flex-col gap-2">
         <BackButton />
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <h1 className="h1-bold text-dark100_light900">Jobs</h1>
-          <div className="flex items-center gap-3">
-            <Link
-              href={ROUTES.JOBS_NEW}
-              className="body-semibold primary-gradient inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-light-900 transition-opacity hover:opacity-90"
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Post a Job
-            </Link>
-          </div>
         </div>
       </div>
       <JobSearchControls locations={data?.locations || []} />

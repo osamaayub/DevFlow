@@ -5,6 +5,7 @@ export interface IJob {
   title: string
   company: string
   companyLogo?: string
+  applicationUrl?: string
   category: string
   description: string
   employmentType: string
@@ -48,6 +49,11 @@ export const JobSchema = new Schema<IJob>(
     companyLogo: {
       type: String,
       default: "",
+    },
+    applicationUrl: {
+      type: String,
+      required: true,
+      trim: true,
     },
     category: {
       type: String,

@@ -148,6 +148,10 @@ export const CreateJobSchema = z.object({
         message: "Please upload a valid image.",
       }),
   ]),
+  applicationUrl: z
+    .string()
+    .trim()
+    .url({ message: "Please provide a valid official job URL." }),
   category: z
     .string()
     .trim()

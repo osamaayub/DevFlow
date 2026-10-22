@@ -58,6 +58,7 @@ const JobForm = ({ job, isEdit = false }: JobFormProps) => {
       title: job?.title ?? "",
       company: job?.company ?? "",
       companyLogo: job?.companyLogo ?? "",
+      applicationUrl: job?.applicationUrl ?? "",
       category: job?.category ?? "",
       employmentType: isEmploymentType(job?.employmentType) ? job.employmentType : "Full-time",
       location: job?.location ?? "",
@@ -151,6 +152,30 @@ const JobForm = ({ job, isEdit = false }: JobFormProps) => {
                 <FormControl>
                   <Input className={inputClasses} placeholder="e.g. Development, Design, Software" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="applicationUrl"
+            render={({ field }) => (
+              <FormItem className="flex w-full flex-col md:col-span-2">
+                <FormLabel className={labelClasses}>
+                  Official job link <Required />
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    className={inputClasses}
+                    type="url"
+                    placeholder="https://careers.example.com/jobs/..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription className="body-regular text-light-500">
+                  Link directly to the company&apos;s real job posting.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

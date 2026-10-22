@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, Users } from "lucide-react"
+import { ArrowLeft, Building2, ExternalLink, Users } from "lucide-react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 
 import { getJobById, getJobViewerState } from "@/features/jobs/actions"
 import { JobActions, JobEditDeleteActions } from "@/features/jobs/components"
-import { canManageJob } from "@/features/jobs/utils"
+import { canManageJob, resolveCompanyJobUrl } from "@/features/jobs/utils"
 import { auth } from "@/server/auth"
 import { BackButton, Metric } from "@/shared/components/common"
 import { Badge } from "@/shared/components/ui/badge"
@@ -101,7 +101,7 @@ const JobDetails = async ({ params }: RouteParams) => {
             <p className="body-regular text-dark400_light500 mt-2">Find your next opportunity with {job.company}.</p>
           </div>
 
-          {/* Apply, Save and Share show for everyone; the poster also gets View applicants */}
+          {/* Find Jobs stays browse-focused; owners can still manage their own postings. */}
           <div className="flex w-full flex-col gap-2 sm:w-44 sm:shrink-0">
             {isOwner && (
               <Link
@@ -114,10 +114,23 @@ const JobDetails = async ({ params }: RouteParams) => {
             )}
             <JobActions
               jobId={job._id}
-              hasApplied={Boolean(viewerState.data?.applied)}
               hasSaved={Boolean(viewerState.data?.saved)}
               isAuthenticated={Boolean(session?.user?.id)}
             />
+            {(() => {
+              const applyUrl = resolveCompanyJobUrl(job.applicationUrl, job.company)
+
+              return (
+                <a
+                  href={applyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="primary-gradient inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  Apply for job <ExternalLink className="size-4" aria-hidden="true" />
+                </a>
+              )
+            })()}
           </div>
         </div>
 

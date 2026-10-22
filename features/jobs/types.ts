@@ -3,6 +3,7 @@ export interface Job {
   title: string
   company: string
   companyLogo?: string
+  applicationUrl?: string
   category: string
   description: string
   employmentType: string
