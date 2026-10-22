@@ -20,6 +20,7 @@ import {
   ErrorResponse,
   GetUserParams,
   Question as QuestionType,
+  UpdateUserProfileParams,
   UserStats,
 } from "@/shared/types"
 
@@ -548,13 +549,7 @@ export const getUserAnswersActivity = async (params: {
   }
 }
 
-export const updateUserProfile = async (params: {
-  name: string
-  username: string
-  bio: string
-  location: string
-  portfolio: string
-}): Promise<ActionResponse> => {
+export const updateUserProfile = async (params:UpdateUserProfileParams): Promise<ActionResponse> => {
   const validationResult = await action({
     params,
     schema: UpdateUserProfileSchema,
@@ -591,9 +586,9 @@ export const updateUserProfile = async (params: {
         $set: {
           name,
           username,
-          bio: bio.trim(),
-          location: location.trim(),
-          portfolio: portfolio.trim(),
+          bio: (bio ?? "").trim(),
+          location: (location ?? "").trim(),
+          portfolio: (portfolio ?? "").trim(),
         },
       },
       { new: true, runValidators: true }

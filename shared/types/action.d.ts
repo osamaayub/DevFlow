@@ -175,3 +175,10 @@ export interface GlobalSearchParams {
   query?: string | null;
   type?: string | null;
 }
+export interface UpdateUserProfileParams {
+  name: string
+  username: string
+  bio?: string
+  location?: string
+  portfolio?: string
+}

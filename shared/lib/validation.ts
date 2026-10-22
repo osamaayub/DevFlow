@@ -193,14 +193,14 @@ export const UpdateUserProfileSchema = z.object({
   username: z.string().trim().min(2, {
     message: "Username must be at least 2 characters."
   }),
-  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }),
+  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional(),
   location: z.string().max(100, {
     message: "Location cannot exceed 100 characters.",
-  }),
+  }).optional(),
   portfolio: z.union([
     z.literal(""),
     z.string().url({ message: "Portfolio must be a valid URL." }),
-  ]),
+  ]).optional(),
 })
 export const GetCommunityMemberSchema = GetUserSchema.extend({
   page: z.number().int().positive().default(1),

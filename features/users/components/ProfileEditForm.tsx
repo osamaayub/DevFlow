@@ -7,17 +7,23 @@ import { toast } from "sonner"
 import { updateUserProfile } from "@/features/users/actions"
 import { Button, Input } from "@/shared/components/ui"
 import ROUTES from "@/shared/constants/route"
-
-interface Props {
+export interface ProfileEditFormProps {
   userId: string
   name: string
   username: string
-  bio: string
-  location: string
-  portfolio: string
+  bio?: string
+  location?: string
+  portfolio?: string
 }
 
-const ProfileEditForm = ({ userId, name, username, bio, location, portfolio }: Props) => {
+const ProfileEditForm = ({
+  userId,
+  name,
+  username,
+  bio = "",
+  location = "",
+  portfolio = "",
+}: ProfileEditFormProps) => {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
 
