@@ -170,3 +170,8 @@ export interface RecommendationParams{
   skip: string
   limit: string
 }
+
+export interface GlobalSearchParams {
+  query?: string | null;
+  type?: string | null;
+}

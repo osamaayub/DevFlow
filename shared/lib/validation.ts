@@ -290,3 +290,8 @@ export const CreateInteractionSchema=z.object({
   // true reverses the points, e.g. when a vote is removed or switched
   undo:z.boolean().optional()
 })
+
+export const GlobalSearchSchema = z.object({
+  query: z.string().trim().max(100).optional().nullable(),
+  type: z.enum(["question", "answer", "user", "tag"]).optional().nullable(),
+})
