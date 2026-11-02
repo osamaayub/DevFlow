@@ -57,6 +57,7 @@ yarn-error.log*
 /scripts/
 /scripts/seed*.mjs
 !/scripts/backfill-question-tags.mjs
+!/scripts/cleanup-test-questions.mjs
 
 # typescript
 *.tsbuildinfo
