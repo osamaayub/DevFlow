@@ -3,7 +3,7 @@
 <div align="center">
 
 ![DevFlow Logo](https://img.shields.io/badge/DevFlow-Community%20Q%2FA-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-🚧%20In%20Development-orange?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Beta-orange?style=for-the-badge)
 
 A modern, community-driven **Q&A platform for developers** — reimagined with the latest web technologies.
 
@@ -14,11 +14,13 @@ A modern, community-driven **Q&A platform for developers** — reimagined with t
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-[Documentation](#) • [Report Bug](https://github.com/osamaayub/DevFlow/issues) • [Request Feature](https://github.com/osamaayub/DevFlow/discussions)
+[Live Demo](https://dev-flow-kappa-seven.vercel.app) • [Quick Start](#-quick-start) • [Report Bug](https://github.com/osamaayub/DevFlow/issues) • [Request Feature](https://github.com/osamaayub/DevFlow/discussions)
 
 </div>
 
 > 🚀 **Project Status:** Core functionality is in place and the project is in beta/stabilization. Recent work added an optimized multi-model global search bar with in-memory LRU caching, a full-featured jobs board, answer editing and deletion workflows, and Next.js Cache Components with cached data and instant navigations.
+
+> 🙏 **Credits:** DevFlow started from the [JS Mastery](https://www.jsmastery.com) Next.js course project. I then extended it well beyond the course: a full jobs board with applications and applicant tracking, multi-model global search with LRU caching, answer editing and deletion, the Next.js 16 upgrade (proxy.ts, Cache Components), Docker, and CI/CD workflows.
 
 
 ---
@@ -232,6 +234,8 @@ yarn lint         # Run ESLint checks
 
 # Database maintenance
 npm run db:backfill-question-tags # Restore tags for legacy questions
+MONGODB_URI="..." npm run db:cleanup-test-questions            # Dry run: list seeded test questions
+MONGODB_URI="..." npm run db:cleanup-test-questions -- --apply # Delete them and fix tag counts
 ```
 
 ---
