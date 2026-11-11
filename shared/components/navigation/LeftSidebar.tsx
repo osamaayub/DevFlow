@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import React, { Suspense } from "react"
 
+import { isAdminEmail } from "@/server/admin-access"
 import { auth, signOut } from "@/server/auth"
 import ROUTES from "@/shared/constants/route"
 
@@ -16,11 +17,12 @@ import NavLinks from "./navbar/NavLinks"
 const LeftSidebarContent = async () => {
   const session = await auth()
   const userId = session?.user?.id
+  const isAdmin = isAdminEmail(session?.user?.email)
 
   return (
     <>
       <div className="flex flex-1 flex-col gap-6">
-        <NavLinks userId={userId} hideProfile={Boolean(userId)} />
+        <NavLinks userId={userId} hideProfile={Boolean(userId)} isAdmin={isAdmin} />
       </div>
 
       <div className="flex flex-col gap-3">

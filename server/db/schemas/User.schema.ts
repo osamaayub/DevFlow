@@ -11,6 +11,8 @@ export interface IUser {
   portfolio?: string
   reputation?: number
   password?: string // ✅ Made optional (OAuth users might not have a password)
+  isSuspended?: boolean
+  suspendedAt?: Date
   joinedAt?: Date
   createdAt?: Date
 }
@@ -45,6 +47,13 @@ export const UserSchema = new Schema(
     reputation: {
       type: Number,
       default: 0
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false
+    },
+    suspendedAt: {
+      type: Date
     },
     password: {
       type: String,

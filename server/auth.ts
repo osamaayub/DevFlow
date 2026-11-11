@@ -1,12 +1,15 @@
+import { createHash } from "node:crypto"
+
 import bcrypt from "bcryptjs"
 import type { Types } from "mongoose"
+import { cookies } from "next/headers"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
 import { cache } from "react"
 
-import { Account, User } from "@/server/db"
+import { Account, AccountLinkIntent, User } from "@/server/db"
 import { dbConnect } from "@/server/db/connect"
 import { deferToRequestTime } from "@/server/request-time"
 import logger from "@/shared/lib/logger"
@@ -54,7 +57,7 @@ const nextAuth = NextAuth({
     ...(googleProvider ? [googleProvider] : []),
     Credentials({
       async authorize(credentials) {
-        const email = credentials?.email as string
+        const email = String(credentials?.email ?? "").trim().toLowerCase()
         const password = credentials?.password as string
 
         if (!email || !password) {
@@ -65,9 +68,13 @@ const nextAuth = NextAuth({
         try {
           await dbConnect()
 
+          const emailPattern = new RegExp(
+            `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          )
           const existingAccount = (await Account.findOne({
             provider: "credentials",
-            providerAccountId: email
+            providerAccountId: emailPattern
           }).lean()) as { userId: string; password?: string } | null
 
           if (!existingAccount || !existingAccount.password) {
@@ -80,10 +87,15 @@ const nextAuth = NextAuth({
             name: string
             email: string
             image?: string
+            isSuspended?: boolean
           } | null
 
           if (!existingUser) {
             logger.error("❌ NextAuth Error: User not found")
+            return null
+          }
+          if (existingUser.isSuspended) {
+            logger.warn({ userId: existingUser._id.toString() }, "Suspended user attempted sign in")
             return null
           }
 
@@ -168,7 +180,50 @@ const nextAuth = NextAuth({
           User.findOne({ email: userInfo.email }).select("_id").lean<{ _id: Types.ObjectId } | null>()
         ])
 
-        // A linked account is authoritative, then a user with this email, else a new user
+        const effectiveUserId = existingAccount?.userId ?? existingUser?._id
+        if (effectiveUserId) {
+          const existingDevFlowUser = (await User.findById(effectiveUserId)
+            .select("isSuspended")
+            .lean()) as { isSuspended?: boolean } | null
+          if (!existingDevFlowUser || existingDevFlowUser.isSuspended) {
+            logger.warn(
+              { userId: String(effectiveUserId) },
+              "Suspended or missing user attempted OAuth sign in"
+            )
+            return false
+          }
+        }
+
+        if (!existingAccount && existingUser) {
+          const cookieStore = await cookies()
+          const linkToken = cookieStore.get("devflow-account-link")?.value
+          const linkIntent = linkToken
+            ? await AccountLinkIntent.findOneAndDelete({
+                tokenHash: createHash("sha256").update(linkToken).digest("hex"),
+                userId: existingUser._id,
+                email: userInfo.email,
+                provider: account.provider,
+                expiresAt: { $gt: new Date() }
+              })
+                .select("userId")
+                .lean()
+            : null
+
+          if (!linkIntent) {
+            const signInUrl = new URL(
+              "/sign-in",
+              process.env.NEXT_PUBLIC_SITE_URL ||
+                process.env.NEXTAUTH_URL ||
+                "http://localhost:3000"
+            )
+            signInUrl.searchParams.set("accountLink", "1")
+            signInUrl.searchParams.set("provider", account.provider)
+            return signInUrl.toString()
+          }
+        }
+
+        // Existing provider links are authoritative; matching emails require explicit proof
+        // of ownership before the new provider account is attached.
         const userId: Types.ObjectId =
           existingAccount?.userId ??
           existingUser?._id ??
@@ -213,5 +268,12 @@ export const auth = cache(async () => {
   // Reading the session can re-encrypt the cookie (random IV), which a prefetch render
   // rejects, so session reads only run while serving a real request
   await deferToRequestTime()
-  return nextAuth.auth()
+  const session = await nextAuth.auth()
+  if (!session?.user?.id) return session
+
+  await dbConnect()
+  const user = (await User.findById(session.user.id).select("isSuspended").lean()) as {
+    isSuspended?: boolean
+  } | null
+  return user && !user.isSuspended ? session : null
 })

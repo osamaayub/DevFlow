@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 
 
+import { isAdminEmail } from "@/server/admin-access"
 import { auth } from "@/server/auth"
 import { UserAvatar } from "@/shared/components/common"
 import { Theme } from "@/shared/components/navigation"
@@ -22,7 +23,7 @@ async function NavbarUser() {
         <UserAvatar id={user.id} name={user.name} image={user.image} className="size-9" />
       )}
 
-      <MobileNavigation userId={user?.id} />
+      <MobileNavigation userId={user?.id} isAdmin={isAdminEmail(user?.email)} />
     </>
   )
 }

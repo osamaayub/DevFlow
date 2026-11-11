@@ -13,13 +13,15 @@ type Props = {
   isMobileNav?: boolean
   userId?: string
   hideProfile?: boolean
+  isAdmin?: boolean
 }
 
-const NavLinks = ({ isMobileNav, userId, hideProfile }: Props) => {
+const NavLinks = ({ isMobileNav, userId, hideProfile, isAdmin = false }: Props) => {
   const pathname = usePathname();
   return (
     <>
       {sidebarLinks.map((item) => {
+        if ("adminOnly" in item && item.adminOnly && !isAdmin) return null;
         if (hideProfile && item.route === "/profile") return null;
 
         const route =

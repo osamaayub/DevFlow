@@ -36,6 +36,12 @@ export const sidebarLinks = [
     label: "Profile"
   },
   {
+    imgURL: "/icons/users.svg",
+    route: "/admin/users",
+    label: "Manage Users",
+    adminOnly: true
+  },
+  {
     imgURL: "/icons/question.svg",
     route: "/ask-question",
     label: "Ask a Question"

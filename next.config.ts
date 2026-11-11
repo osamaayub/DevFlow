@@ -2,6 +2,9 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    agentUpgrade: "security"
+  },
   // Prerender a static shell for every route and stream request-time parts behind Suspense
   cacheComponents: true,
   partialPrefetching: true,
