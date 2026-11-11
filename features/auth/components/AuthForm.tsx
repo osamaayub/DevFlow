@@ -98,6 +98,17 @@ export function AuthForm<T extends FieldValues>({
           />
         ))}
 
+        {formType === "SIGN_IN" && (
+          <div className="-mt-3 flex justify-end">
+            <Link
+              href={Routes.FORGOT_PASSWORD}
+              className="small-medium text-dark500_light400 hover:text-primary-500"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        )}
+
         {form.formState.errors.root && (
           <p className="text-sm text-red-500">{form.formState.errors.root.message}</p>
         )}

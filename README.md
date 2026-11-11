@@ -53,6 +53,13 @@ Signed-in users get recommended questions based on their interaction history and
 ### 🔐 Authentication
 Sign in with Google, GitHub, or email via NextAuth.
 
+Password reset links are delivered through Resend. Configure `RESEND_API_KEY` and
+`AUTH_EMAIL_FROM` with a verified sender, and set `NEXT_PUBLIC_SITE_URL` to the
+public origin used in reset links.
+
+Set `ADMIN_EMAILS` to a comma-separated list of administrator email addresses
+to enable the protected user-management dashboard.
+
 ### 🌓 Dark / Light Theme
 Seamless theme switching for comfortable viewing.
 
@@ -213,7 +220,8 @@ accepts `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` as aliases.
 |----------|---------|--------|
 | `LOG_LEVEL` | `debug` (dev) / `info` (prod) | `debug`, `info`, `warn`, `error` |
 | `NEXTAUTH_URL` | Auto-detected (`trustHost`) | Your site URL, e.g. `http://localhost:3000` |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://$VERCEL_URL` on Vercel, otherwise localhost | Base URL used by the API client in `lib/api.ts` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://dev-flow-kappa-seven.vercel.app/` on Vercel, otherwise localhost | Base URL used by the API client in `lib/api.ts` |
+| `ADMIN_EMAILS` | Empty | Comma-separated email addresses allowed to access `/admin/users` |
 
 ---
 
@@ -328,15 +336,15 @@ npm run db:backfill-question-tags # Restore tags for legacy questions
 - [x] Profile ownership checks for question and answer actions
 - [x] Profile question tags and Top Tags fallback support
 - [x] Legacy question tag backfill migration
+- [x] Admin user search, profile editing, and account suspension controls
+- [x] Protected admin dashboard for user management
+- [x] Live demo deployment
 
 ### 🚧 In Progress
 - [ ] Final polish and edge-case validation for remaining UI flows
 - [ ] Securing the users and accounts REST endpoints
 
 ### 📋 Planned
-- [ ] User management actions
-- [ ] Live demo deployment
-- [ ] Admin dashboard
 - [ ] Real-time notifications
 - [ ] Advanced analytics and reporting
 - [ ] Community features (comments, discussions)
@@ -365,6 +373,7 @@ DevFlow/
 │   │   ├── layout.tsx                    # Navbar, left sidebar, right sidebar
 │   │   ├── loading.tsx                   # Shared Loader fallback
 │   │   ├── page.tsx                      # Home: questions feed
+│   │   ├── admin/users/                  # Admin-only user management
 │   │   ├── ask-question/page.tsx
 │   │   ├── questions/[id]/               # Question details, answers
 │   │   │   └── edit/                     # Edit a question

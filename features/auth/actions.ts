@@ -122,18 +122,24 @@ export async function signInWithCredentials(
   await dbConnect()
 
   try {
-    const existingUser = (await User.findOne({ email }).lean()) as { _id: unknown } | null
-    if (!existingUser) {
-      return formatActionError(new NotFoundError({ user: ["User not found"] }))
-    }
-
+    const emailPattern = new RegExp(
+      `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+      "i"
+    )
     const existingAccount = (await Account.findOne({
       provider: "credentials",
-      providerAccountId: email
-    }).lean()) as { password?: string } | null
+      providerAccountId: emailPattern
+    }).lean()) as { userId: string; password?: string } | null
 
     if (!existingAccount || !existingAccount.password) {
       return formatActionError(new NotFoundError({ account: ["Account not found"] }))
+    }
+
+    const existingUser = (await User.findById(existingAccount.userId)
+      .select("isSuspended")
+      .lean()) as { isSuspended?: boolean } | null
+    if (!existingUser || existingUser.isSuspended) {
+      return formatActionError(new RequestError("Authentication failed", 401))
     }
 
     const passwordMatch = await bcrypt.compare(password, existingAccount.password)
