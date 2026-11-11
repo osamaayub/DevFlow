@@ -30,7 +30,7 @@
     "cn": "^0.4.0",
     "dayjs": "^1.11.23",
     "lucide-react": "^0.523.0",
-    "mongoose": "^8.18.0",
+    "mongoose": "^8.24.7",
     "next": "^16.4.1",
     "next-auth": "^5.0.0-beta.32",
     "next-mdx-remote": "^6.0.0",
